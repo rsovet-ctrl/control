@@ -7,7 +7,11 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1877f2">
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: #f0f2f5; color: #1c1e21; }
+    /* ПЕРЕМЕННЫЕ ДЛЯ ПОДДЕРЖКИ СВЕТЛОЙ И ТЕМНОЙ ТЕМЫ */
+    :root { --bg-main: #f0f2f5; --bg-card: #ffffff; --text-main: #1c1e21; --text-sub: #65676b; --border-color: #ced4da; }
+    .dark-mode { --bg-main: #18191a; --bg-card: #242526; --text-main: #e4e6eb; --text-sub: #b0b3b8; --border-color: #3a3b3c; }
+
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg-main); color: var(--text-main); transition: background 0.3s, color 0.3s; }
     
     #sync-status-bar { text-align: center; padding: 10px; font-size: 13px; font-weight: bold; color: white; position: sticky; top: 0; z-index: 2000; transition: all 0.4s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     .status-synced { background: #42b72a; }
@@ -17,67 +21,72 @@
     .progress-container { width: 90%; height: 6px; background: rgba(255,255,255,0.25); border-radius: 4px; margin: 8px auto 0 auto; display: none; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
     .progress-bar { height: 100%; width: 0%; background: #ffffff; transition: width 0.3s ease; box-shadow: 0 0 4px #fff; }
 
-    .nav-tabs { display: flex; background: #fff; border-bottom: 1px solid #e4e6eb; position: sticky; top: 38px; z-index: 1000; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .tab-link { flex: 1; text-align: center; padding: 16px 0; font-weight: 600; cursor: pointer; color: #65676b; font-size: 15px; }
+    /* ШАПКА С НАВИГАЦИЕЙ И КНОПКОЙ НОЧНОЙ СМЕНЫ */
+    .header-nav { display: flex; background: var(--bg-card); border-bottom: 1px solid var(--border-color); position: sticky; top: 38px; z-index: 1000; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .nav-tabs-box { display: flex; flex: 1; }
+    .tab-link { flex: 1; text-align: center; padding: 16px 0; font-weight: 600; cursor: pointer; color: var(--text-sub); font-size: 15px; }
     .tab-link.active { color: #1877f2; border-bottom: 3px solid #1877f2; background: rgba(24, 119, 242, 0.03); }
+    
+    .theme-toggle-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 0 15px; color: var(--text-main); user-select: none; }
+
     .tab-content { display: none; padding: 15px; }
     .tab-content.active { display: block; }
-    .card { background: white; padding: 16px; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); margin-bottom: 15px; }
-    h3 { margin-top: 0; margin-bottom: 10px; font-size: 18px; color: #050505; }
-    label { font-size: 12px; color: #65676b; font-weight: bold; display: block; margin-bottom: 4px; }
-    input { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid #ced4da; border-radius: 8px; font-size: 15px; background: #f5f6f7; margin-bottom: 10px; }
-    input:focus { background: #fff; border-color: #1877f2; outline: none; }
+    .card { background: var(--bg-card); padding: 16px; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); margin-bottom: 15px; }
+    h3 { margin-top: 0; margin-bottom: 10px; font-size: 18px; color: var(--text-main); }
+    label { font-size: 12px; color: var(--text-sub); font-weight: bold; display: block; margin-bottom: 4px; }
+    input { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; background: var(--bg-main); color: var(--text-main); margin-bottom: 10px; }
+    input:focus { background: var(--bg-card); border-color: #1877f2; outline: none; }
     
     .btn { background: #1877f2; color: white; padding: 16px; border: none; border-radius: 8px; font-size: 16px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 5px; box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2); }
     .btn-secondary { background: #e4e6eb; color: #4b4f56; box-shadow: none; }
+    .dark-mode .btn-secondary { background: #3a3b3c; color: #e4e6eb; }
     
-    .journal-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 12px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 6px solid #1877f2; transition: all 0.3s ease; }
-    .journal-item.pending { border-left-color: #ffc107; background: #fffdf5; }
-    .journal-item.repeat { border-left-color: #f02849; background: #fff5f6; }
-    .journal-item.new { border-left-color: #42b72a; background: #f6fff5; }
-    .journal-item.error-item { border-left-color: #ff7a00; background: #fffaf5; }
-    .journal-item.local-offline { border-left-color: #ffaa00; background: #fffaee; }
-    .journal-item.local-online-processing { border-left-color: #1877f2; background: #f4f8ff; }
+    .journal-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); padding: 12px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 6px solid #1877f2; transition: all 0.3s ease; }
+    .journal-item.pending { border-left-color: #ffc107; background: rgba(255, 193, 7, 0.03); }
+    .journal-item.repeat { border-left-color: #f02849; background: rgba(240, 40, 73, 0.04); }
+    .journal-item.new { border-left-color: #42b72a; background: rgba(66, 183, 42, 0.03); }
+    .journal-item.error-item { border-left-color: #ff7a00; background: rgba(255, 122, 0, 0.03); }
+    .journal-item.local-offline { border-left-color: #ffaa00; background: rgba(255, 170, 0, 0.03); }
+    .journal-item.local-online-processing { border-left-color: #1877f2; background: rgba(24, 119, 242, 0.04); }
     
-    .thumb-box { width: 75px; height: 105px; min-width: 75px; border-radius: 8px; overflow: hidden; background: #e4e6eb; margin-right: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid #ced4da; cursor: pointer; }
+    .thumb-box { width: 75px; height: 105px; min-width: 75px; border-radius: 8px; overflow: hidden; background: #e4e6eb; margin-right: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); cursor: pointer; }
     .thumb-box img { width: 100%; height: 100%; object-fit: cover; }
     .info-left { flex-grow: 1; text-align: left; font-size: 14px; min-width: 0; }
     
     .plate-wrapper { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
-    .plate-display { font-size: 19px; font-weight: bold; color: #050505; letter-spacing: 0.5px; }
-    .edit-trigger-btn { background: #f0f2f5; border: none; font-size: 12px; cursor: pointer; padding: 6px 10px; color: #1877f2; border-radius: 6px; font-weight: bold; margin-top: 2px; transition: background 0.2s; }
+    .plate-display { font-size: 19px; font-weight: bold; color: var(--text-main); letter-spacing: 0.5px; }
+    .edit-trigger-btn { background: var(--bg-main); border: none; font-size: 12px; cursor: pointer; padding: 6px 10px; color: #1877f2; border-radius: 6px; font-weight: bold; margin-top: 2px; transition: background 0.2s; }
     .journal-trigger-btn { background: #1877f2; border: none; font-size: 12px; cursor: pointer; padding: 6px 10px; color: white; border-radius: 6px; font-weight: bold; margin-top: 5px; display: inline-block; transition: background 0.2s; box-shadow: 0 2px 5px rgba(24,119,242,0.2); }
     
-    .info-date { color: #65676b; font-size: 12px; margin-top: 2px; }
-    .info-address { font-size: 12px; color: #4b4f56; margin-top: 2px; font-weight: 500; }
+    .info-date { color: var(--text-sub); font-size: 12px; margin-top: 2px; }
+    .info-address { font-size: 12px; color: var(--text-main); margin-top: 2px; font-weight: 500; }
     .status-right { text-align: right; font-weight: bold; font-size: 12px; color: #f02849; line-height: 1.4; width: 45%; padding-left: 10px; word-break: break-word; }
     .status-right.status-new { color: #42b72a; font-size: 13px; }
     .status-right.status-pending { color: #b8860b; font-size: 13px; }
     .status-right.status-offline-text { color: #ffaa00; font-size: 13px; }
     .status-right.status-processing-text { color: #1877f2; font-size: 13px; }
-    .geo-btn { margin-top: 5px; background: #e4e6eb; border-radius: 6px; padding: 4px 8px; font-size: 11px; text-decoration: none; color: #1c1e21; font-weight: bold; display: inline-block; margin-right: 5px; }
+    .geo-btn { margin-top: 5px; background: var(--bg-main); border-radius: 6px; padding: 4px 8px; font-size: 11px; text-decoration: none; color: var(--text-main); font-weight: bold; display: inline-block; margin-right: 5px; border: 1px solid var(--border-color); }
 
     #fullscreen-edit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 3000; box-sizing: border-box; padding: 8px; }
-    .modal-box { background: white; border-radius: 16px; width: 100%; height: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; padding: 14px; display: flex; flex-direction: column; overflow-y: auto; }
-    .modal-title { font-size: 13px; font-weight: bold; color: #65676b; text-align: center; margin-bottom: 6px; }
+    .modal-box { background: var(--bg-card); border-radius: 16px; width: 100%; height: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; padding: 14px; display: flex; flex-direction: column; overflow-y: auto; }
+    .modal-title { font-size: 13px; font-weight: bold; color: var(--text-sub); text-align: center; margin-bottom: 6px; }
     
-    /* СТИЛИ КОНТЕЙНЕРА С ПОДДЕРЖКОЙ СВОБОДНОГО ЗУМА И ПЕРЕМЕЩЕНИЯ */
-    .modal-photo-container { width: 100%; height: 52vh; background: #000; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid #ddd; margin-bottom: 12px; position: relative; }
+    .modal-photo-container { width: 100%; height: 52vh; background: #000; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); margin-bottom: 12px; position: relative; }
     .modal-photo-container img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.1s ease-out; transform-origin: center center; }
     
-    /* КНОПКИ ЗУМА НА ИЗОБРАЖЕНИИ */
     .zoom-controls { position: absolute; bottom: 12px; right: 12px; display: flex; gap: 10px; z-index: 3100; }
     .zoom-btn { background: rgba(0, 0, 0, 0.75); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: 44px; height: 44px; font-size: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); user-select: none; touch-action: none; }
     .zoom-btn:active { background: #1877f2; }
 
-    .modal-plate-input { font-size: 28px; font-weight: bold; text-align: center; letter-spacing: 1px; text-transform: uppercase; padding: 12px; border: 3px solid #1877f2; border-radius: 12px; width: 100%; box-sizing: border-box; background: #f5f6f7; color: #050505; margin-bottom: 12px; }
-    .modal-plate-input:focus { background: #fff; outline: none; border-color: #42b72a; }
+    .modal-plate-input { font-size: 28px; font-weight: bold; text-align: center; letter-spacing: 1px; text-transform: uppercase; padding: 12px; border: 3px solid #1877f2; border-radius: 12px; width: 100%; box-sizing: border-box; background: var(--bg-main); color: var(--text-main); margin-bottom: 12px; }
+    .modal-plate-input:focus { background: var(--bg-card); outline: none; border-color: #42b72a; }
     
     .modal-btn-table { display: table; width: 100%; border-spacing: 10px 0; margin-top: auto; }
     .modal-btn-cell { display: table-cell; width: 50%; }
     .m-btn { width: 100%; padding: 16px; font-size: 16px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
     .m-btn-save { background: #42b72a; color: white; }
     .m-btn-cancel { background: #e4e6eb; color: #4b4f56; }
+    .dark-mode .m-btn-cancel { background: #3a3b3c; color: #e4e6eb; }
 
     #flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; opacity: 0; background: transparent; transition: opacity 0.08s ease-out; }
 
@@ -100,16 +109,19 @@
     </div>
   </div>
 
-  <div class="nav-tabs">
-    <div class="tab-link active" onclick="openTab('scan-tab', this)">📷 Камера</div>
-    <div class="tab-link" onclick="openTab('search-tab', this); triggerSearch();">📋 Журнал</div>
-    <div class="tab-link" onclick="openTab('settings-tab', this); loadSettings();">⚙️ Опции</div>
+  <div class="header-nav">
+    <div class="nav-tabs-box">
+      <div class="tab-link active" onclick="openTab('scan-tab', this)">📷 Камера</div>
+      <div class="tab-link" onclick="openTab('search-tab', this); triggerSearch();">📋 Журнал</div>
+      <div class="tab-link" onclick="openTab('settings-tab', this); loadSettings();">⚙️ Опции</div>
+    </div>
+    <button class="theme-toggle-btn" onclick="toggleThemeMode()">🌙</button>
   </div>
 
   <div id="scan-tab" class="tab-content active">
     <div class="card">
       <h3>Потоковая фиксация</h3>
-      <p id="gps-status" style="font-size:13px; color:#65676b;">Ожидание геопозиции...</p>
+      <p id="gps-status" style="font-size:13px; color:var(--text-sub);">Ожидание геопозиции...</p>
       <input type="file" accept="image/*" capture="camera" id="main-camera" style="display:none;" onchange="uploadAndProcess(this)">
       <button class="btn" id="scan-btn" disabled onclick="document.getElementById('main-camera').click()">Сфотографировать машину</button>
       <div id="scan-result" style="margin-top:15px;"></div>
@@ -140,13 +152,13 @@
   <div id="settings-tab" class="tab-content">
     <div class="card">
       <h3>Датчик геолокации (GPS)</h3>
-      <p id="settings-gps-status" style="font-size:13px; color:#65676b;">Ожидание инициализации...</p>
+      <p id="settings-gps-status" style="font-size:13px; color:var(--text-sub);">Ожидание инициализации...</p>
       <button class="btn btn-secondary" onclick="reRequestGeolocation(false)">🔄 Проверить и запустить GPS повторно</button>
     </div>
     <div class="card">
       <h3>Окно повторов</h3>
       <label>Глубина отслеживания дубликатов (дней):</label>
-      <input type="number" id="settings-days" min="1">
+      <input type="number" id="settings-days" min="1" value="3">
       <label style="margin-top:10px;">Интервал "Свежего" повтора (минут):</label>
       <input type="number" id="settings-recent-mins" min="1" max="1440" value="30">
     </div>
@@ -154,7 +166,7 @@
       <h3>Длительность сигналов (в секундах)</h3>
       <label>Новый объект:</label><input type="number" id="settings-dur-new" min="0.1" max="5" step="0.1">
       <label>Повторный визит:</label><input type="number" id="settings-dur-rep" min="0.1" max="5" step="0.1">
-      <label>Ошибка / Не распознан:</label><input type="number" id="settings-dur-err" min="0.1" max="0.5" step="0.1">
+      <label>Ошибка / Не распознан:</label><input type="number" id="settings-dur-err" min="0.1" max="5" step="0.1">
       <button class="btn" style="margin-top: 10px;" onclick="saveSettings()">Сохранить настройки</button>
       <p id="settings-status" style="color: #42b72a; font-weight: bold; margin-top: 10px; text-align:center;"></p>
     </div>
@@ -187,55 +199,89 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "3.8"; 
+    const APP_VERSION = "3.9"; 
     
-    let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30 };
+    let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3 };
     let currentCoords = null;
     let globalJournalCache = []; 
     let isSyncing = false;       
     let globalAudioCtx = null; 
     let isDbLoaded = false;
     let syncTotalItems = 0; 
+    let indexedDatabase = null; // Объект базы IndexedDB
 
-    // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ КОНТРОЛЯ ЗУМА И ТАСКАНИЯ ФОТО
-    let modalZoomScale = 1;
-    let panX = 0;
-    let panY = 0;
-    let isDragging = false;
-    let startX = 0, startY = 0;
+    let modalZoomScale = 1; let panX = 0; let panY = 0; let isDragging = false; let startX = 0; let startY = 0;
 
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-          .then(reg => console.log('PWA Сервис-Воркер запущен!'))
-          .catch(err => console.log('Сбой Сервис-Воркера', err));
+    // ИНИЦИАЛИЗАЦИЯ ПРОМЫШЛЕННОЙ БАЗЫ ДАННЫХ INDEXEDDB ДЛЯ ТЕЛЕФОНА
+    function initIndexedDB() {
+      return new Promise((resolve, reject) => {
+        let request = indexedDB.open("CarControlDB", 1);
+        request.onupgradeneeded = function(e) {
+          let db = e.target.result;
+          if (!db.objectStoreNames.contains("uploadQueue")) {
+            db.createObjectStore("uploadQueue", { keyPath: "taskId" });
+          }
+        };
+        request.onsuccess = function(e) { indexedDatabase = e.target.result; resolve(); };
+        request.onerror = function(e) { reject(e); };
       });
     }
 
-    function initAudioEngine() {
-      if (!globalAudioCtx) {
-        globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
-        globalAudioCtx.resume();
+    function getIndexedDBQueue() {
+      return new Promise((resolve) => {
+        if (!indexedDatabase) return resolve([]);
+        let tx = indexedDatabase.transaction("uploadQueue", "readonly");
+        let store = tx.objectStore("uploadQueue");
+        let req = store.getAll();
+        req.onsuccess = function() { resolve(req.result || []); };
+        req.onerror = function() { resolve([]); };
+      });
+    }
+
+    function addIndexedDBItem(item) {
+      return new Promise((resolve) => {
+        if (!indexedDatabase) return resolve();
+        let tx = indexedDatabase.transaction("uploadQueue", "readwrite");
+        let store = tx.objectStore("uploadQueue");
+        store.put(item);
+        tx.oncomplete = function() { resolve(); };
+      });
+    }
+
+    function removeIndexedDBItem(taskId) {
+      return new Promise((resolve) => {
+        if (!indexedDatabase) return resolve();
+        let tx = indexedDatabase.transaction("uploadQueue", "readwrite");
+        let store = tx.objectStore("uploadQueue");
+        store.delete(taskId);
+        tx.oncomplete = function() { resolve(); };
+      });
+    }
+
+    // УПРАВЛЕНИЕ НОЧНОЙ СМЕНОЙ
+    function toggleThemeMode() {
+      document.body.classList.toggle('dark-mode');
+      let isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('theme_dark_mode', isDark ? 'yes' : 'no');
+      document.querySelector('.theme-toggle-btn').innerText = isDark ? '☀️' : '🌙';
+    }
+
+    function loadSavedTheme() {
+      if (localStorage.getItem('theme_dark_mode') === 'yes') {
+        document.body.classList.add('dark-mode');
+        document.querySelector('.theme-toggle-btn').innerText = '☀️';
       }
     }
 
-    // ЛОГИКА ФУНКЦИИ ИНТЕРАКТИВНОГО УВЕЛИЧЕНИЯ И СБРОСА КООРДИНАТ
-     charityTransform = function() {
+    function charityTransform() {
       const img = document.getElementById('m-target-img');
       if (img) img.style.transform = `translate(${panX}px, ${panY}px) scale(${modalZoomScale})`;
-    };
+    }
 
     function zoomModalImage(direction, event) {
-      if (event) event.stopPropagation(); // Не запускаем таскание при клике на кнопки
-      
-      if (direction === 'in') {
-        if (modalZoomScale < 5) modalZoomScale += 0.5;
-      } else if (direction === 'out') {
-        if (modalZoomScale > 1) modalZoomScale -= 0.5;
-        if (modalZoomScale <= 1) { modalZoomScale = 1; panX = 0; panY = 0; } // Жесткий сброс центра при 1х
-      }
+      if (event) event.stopPropagation();
+      if (direction === 'in') { if (modalZoomScale < 5) modalZoomScale += 0.5; } 
+      else { if (modalZoomScale > 1) modalZoomScale -= 0.5; if (modalZoomScale <= 1) { modalZoomScale = 1; panX = 0; panY = 0; } }
       charityTransform();
     }
 
@@ -243,16 +289,11 @@
       let img = new Image();
       img.onload = function() {
         let canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        if (width > height) {
-          if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
-        } else {
-          if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
-        }
+        let width = img.width; let height = img.height;
+        if (width > height) { if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; } } 
+        else { if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; } }
         canvas.width = width; canvas.height = height;
-        let ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
+        let ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
         callback(canvas.toDataURL('image/jpeg', quality));
       };
       img.src = base64Str; 
@@ -261,23 +302,20 @@
     function reRequestGeolocation(isSilent) {
       let camStatus = document.getElementById('gps-status');
       let optStatus = document.getElementById('settings-gps-status');
-      if (optStatus) optStatus.innerHTML = "<span style='color:#65676b;'>⏳ Поиск спутников...</span>";
-      if (camStatus) camStatus.innerHTML = "<span style='color:#65676b;'>⏳ Поиск спутников...</span>";
+      if (optStatus) optStatus.innerHTML = "<span style='color:var(--text-sub);'>⏳ Поиск спутников...</span>";
+      if (camStatus) camStatus.innerHTML = "<span style='color:var(--text-sub);'>⏳ Поиск спутников...</span>";
 
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
           currentCoords = { latitude: position.coords.latitude, longitude: position.coords.longitude };
-          let successHtml = "<span style='color:#42b72a;'>📍 Спутники GPS active</span>";
+          let successHtml = "<span style='color:#42b72a;'>📍 Спутники GPS активны</span>";
           if (camStatus) camStatus.innerHTML = successHtml;
           if (optStatus) optStatus.innerHTML = successHtml;
           document.getElementById('scan-btn').disabled = false;
         }, function(error) {
           let msg = "<span style='color:#ff7a00;'>⚠️ Геопозиция отключена</span>";
-          if (error.code === error.PERMISSION_DENIED) {
-            msg = "<span style='color:#f02849;'>❌ Доступ заблокирован</span>";
-          } else {
-            msg = "<span style='color:#ffaa00;'>⚠️ Ошибка датчика GPS</span>";
-          }
+          if (error.code === error.PERMISSION_DENIED) { msg = "<span style='color:#f02849;'>❌ Доступ заблокирован</span>"; } 
+          else { msg = "<span style='color:#ffaa00;'>⚠️ Ошибка датчика GPS</span>"; }
           if (camStatus) camStatus.innerHTML = msg;
           if (optStatus) optStatus.innerHTML = msg;
           document.getElementById('scan-btn').disabled = false; 
@@ -285,42 +323,35 @@
       }
     }
 
-    window.onload = function() {
+    window.onload = async function() {
+      loadSavedTheme();
+      await initIndexedDB(); // Запускаем базу данных в первую очередь
       reRequestGeolocation(true);
       loadSettings(true);
-      refreshSyncStatusBar();
-      restoreOfflineCards(); 
-      silentLoadJournalCache();
+      await refreshSyncStatusBar();
+      await restoreOfflineCards(); 
+      silentLoadJournalCache(); // Синхронизируем скользящее окно базы
       setInterval(backgroundSyncLoop, 10000);
 
       document.body.addEventListener('click', initAudioEngine, { once: false });
 
-      // РЕГИСТРАЦИЯ ДВИЖЕНИЯ ПАЛЬЦА/МЫШКИ ДЛЯ ПАННИНГА КАРТИНКИ
       const zoomContainer = document.querySelector('.modal-photo-container');
       if (zoomContainer) {
-        // Мышка
         zoomContainer.addEventListener('mousedown', (e) => {
           if (modalZoomScale <= 1 || e.target.classList.contains('zoom-btn')) return;
-          isDragging = true;
-          startX = e.clientX - panX; startY = e.clientY - panY;
+          isDragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
         });
         window.addEventListener('mousemove', (e) => {
-          if (!isDragging) return;
-          panX = e.clientX - startX; panY = e.clientY - startY;
-          charityTransform();
+          if (!isDragging) return; panX = e.clientX - startX; panY = e.clientY - startY; charityTransform();
         });
         window.addEventListener('mouseup', () => { isDragging = false; });
 
-        // Тач-экран (телефон)
         zoomContainer.addEventListener('touchstart', (e) => {
           if (modalZoomScale <= 1 || e.target.classList.contains('zoom-btn')) return;
-          isDragging = true;
-          startX = e.touches[0].clientX - panX; startY = e.touches[0].clientY - panY;
+          isDragging = true; startX = e.touches[0].clientX - panX; startY = e.touches[0].clientY - panY;
         });
         window.addEventListener('touchmove', (e) => {
-          if (!isDragging) return;
-          panX = e.touches[0].clientX - startX; panY = e.touches[0].clientY - startY;
-          charityTransform();
+          if (!isDragging) return; panX = e.touches[0].clientX - startX; panY = e.touches[0].clientY - startY; charityTransform();
         });
         window.addEventListener('touchend', () => { isDragging = false; });
       }
@@ -334,8 +365,8 @@
       });
     };
 
-    function restoreOfflineCards() {
-      let q = getOfflineQueue();
+    async function restoreOfflineCards() {
+      let q = await getIndexedDBQueue();
       let scanResultArea = document.getElementById('scan-result');
       if (!scanResultArea || q.length === 0) return;
       
@@ -350,7 +381,7 @@
         let displayStatus = item.manualNumber ? "Внесен (ждет сеть) 💾" : (isOnline ? "Выгрузка 📡" : "Ожидание сети 🌐");
         let displayAddress = item.manualNumber ? "Сохранено в телефоне" : (isOnline ? "Связь с сервером..." : "Сбор координат");
         
-        let localDupStatus = checkLocalDuplicateText(displayNum, item.taskId);
+        let localDupStatus = checkLocalDuplicateText(displayNum, item.taskId, q);
         if (localDupStatus) { displayStatus = localDupStatus; displayAddress = "Проверка в оффлайне"; }
         
         updateCardUi(itemDiv, displayNum, displayStatus, displayAddress, "", "🕒 Ожидает выгрузку", item.image);
@@ -361,33 +392,27 @@
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
-      if (el) {
-        el.classList.add('active');
-      } else {
+      if (el) { el.classList.add('active'); } 
+      else {
         const idx = tabId === 'scan-tab' ? 0 : (tabId === 'search-tab' ? 1 : 2);
         document.querySelectorAll('.tab-link')[idx].classList.add('active');
       }
     }
 
     function showInJournal(number) {
-      let days = parseInt(document.getElementById('settings-days').value) || 1;
-      let today = new Date();
-      let startDate = new Date();
+      let days = parseInt(document.getElementById('settings-days').value) || 3;
+      let today = new Date(); let startDate = new Date();
       startDate.setDate(today.getDate() - days);
       
       document.getElementById('search-start-date').value = startDate.toISOString().split('T')[0];
       document.getElementById('search-end-date').value = today.toISOString().split('T')[0];
       document.getElementById('search-number').value = number;
       
-      openTab('search-tab', null);
-      triggerSearch();
+      openTab('search-tab', null); triggerSearch();
     }
 
-    function getOfflineQueue() { return JSON.parse(localStorage.getItem('car_sync_queue') || '[]'); }
-    function saveOfflineQueue(q) { localStorage.setItem('car_sync_queue', JSON.stringify(q)); refreshSyncStatusBar(); }
-
-    function refreshSyncStatusBar() {
-      let q = getOfflineQueue();
+    async function refreshSyncStatusBar() {
+      let q = await getIndexedDBQueue();
       let bar = document.getElementById('sync-status-bar');
       let txt = document.getElementById('sync-status-text');
       let pContainer = document.getElementById('sync-progress-container');
@@ -398,8 +423,7 @@
       if (q.length === 0) {
         bar.className = "status-synced";
         txt.innerText = `${dbText} | Все файлы в облаке [v${APP_VERSION}]`;
-        pContainer.style.display = 'none';
-        pBar.style.width = '0%';
+        pContainer.style.display = 'none'; pBar.style.width = '0%';
       } else {
         if (isSyncing) {
           bar.className = "status-uploading";
@@ -417,122 +441,93 @@
       }
     }
 
+    // СКОЛЬЗЯЩЕЕ ОКНО СИНХРОНИЗАЦИИ БАЗЫ ДАННЫХ
     async function silentLoadJournalCache() {
       try {
-        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: {} }) });
+        let days = parseInt(localStorage.getItem('settings_days') || '3');
+        let today = new Date(); let pastDate = new Date();
+        pastDate.setDate(today.getDate() - days);
+        let sDate = pastDate.toISOString().split('T')[0];
+
+        let response = await fetch(API_URL, { 
+          method: 'POST', 
+          body: JSON.stringify({ action: 'search', filters: { startDate: sDate } }) 
+        });
         let records = await response.json();
         if (records && records.length) {
           globalJournalCache = records;
           isDbLoaded = true;
-          refreshSyncStatusBar();
+          await refreshSyncStatusBar();
         }
       } catch (e) {}
     }
 
-    function checkLocalDuplicateText(num, currentTaskId) {
+    function checkLocalDuplicateText(num, currentTaskId, preloadedQueue) {
       if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ...") return null;
       let cleanNum = num.toUpperCase().trim();
-      let count = 0;
-      let latestTimestamp = 0;
-      let latestAddress = "";
-      let latestGps = "";
+      let count = 0; let latestTimestamp = 0; let latestAddress = ""; let latestGps = "";
 
       function parseGSheetsDate(dateStr) {
         if (!dateStr) return 0;
         try {
-          let parts = dateStr.split(' ');
-          let dParts = parts[0].split('.');
-          let tParts = parts[1].split(':');
+          let parts = dateStr.split(' '); let dParts = parts[0].split('.'); let tParts = parts[1].split(':');
           return new Date(dParts[2], dParts[1] - 1, dParts[0], tParts[0], tParts[1], tParts[2] || 0).getTime();
         } catch(e) { return 0; }
       }
 
       for (let i = 0; i < globalJournalCache.length; i++) {
         if (globalJournalCache[i].taskId === currentTaskId) continue; 
-        
         if (globalJournalCache[i].number.toUpperCase().trim() === cleanNum) {
-          count++;
-          let ts = parseGSheetsDate(globalJournalCache[i].date);
-          if (ts > latestTimestamp) {
-            latestTimestamp = ts;
-            latestAddress = globalJournalCache[i].address || "Архив рейда";
-            latestGps = globalJournalCache[i].gps || "";
-          }
+          count++; let ts = parseGSheetsDate(globalJournalCache[i].date);
+          if (ts > latestTimestamp) { latestTimestamp = ts; latestAddress = globalJournalCache[i].address || "Архив рейда"; latestGps = globalJournalCache[i].gps || ""; }
         }
       }
 
-      let q = getOfflineQueue();
+      let q = preloadedQueue || [];
       for (let i = 0; i < q.length; i++) {
         if (q[i].taskId === currentTaskId) continue; 
-        
         if (q[i].manualNumber && q[i].manualNumber.toUpperCase().trim() === cleanNum) {
           count++;
-          if (q[i].timestamp > latestTimestamp) {
-            latestTimestamp = q[i].timestamp;
-            latestAddress = "Текущий рейд (в очереди)";
-            latestGps = q[i].coords ? `${q[i].coords.latitude},${q[i].coords.longitude}` : "";
-          }
+          if (q[i].timestamp > latestTimestamp) { latestTimestamp = q[i].timestamp; latestAddress = "Текущий рейд (в очереди)"; latestGps = q[i].coords ? `${q[i].coords.latitude},${q[i].coords.longitude}` : ""; }
         }
       }
 
       if (count === 0) return null;
 
-      let nowTs = new Date().getTime();
-      let diffMs = nowTs - latestTimestamp;
-      let diffMins = Math.floor(diffMs / 60000);
-      let timeStatusText = "";
-      let isRecent = false;
+      let nowTs = new Date().getTime(); let diffMs = nowTs - latestTimestamp; let diffMins = Math.floor(diffMs / 60000);
+      let timeStatusText = ""; let isRecent = false;
 
       if (diffMs > 0 && diffMs < 12 * 60 * 60 * 1000) {
-        if (diffMins < 1) {
-          timeStatusText = `только что`;
-        } else if (diffMins < 60) {
-          timeStatusText = `${diffMins} мин. назад`;
-        } else {
-          let hrs = Math.floor(diffMins / 60);
-          let m = diffMins % 60;
-          timeStatusText = `${hrs} ч. ${m} мин. назад`;
-        }
-        if (diffMins <= appSettings.recentMins) {
-          isRecent = true;
-        }
+        if (diffMins < 1) { timeStatusText = `только что`; } 
+        else if (diffMins < 60) { timeStatusText = `${diffMins} мин. назад`; } 
+        else { let hrs = Math.floor(diffMins / 60); let m = diffMins % 60; timeStatusText = `${hrs} ч. ${m} мин. назад`; }
+        if (diffMins <= appSettings.recentMins) { isRecent = true; }
       } else {
         let d = new Date(latestTimestamp);
         timeStatusText = d.toLocaleDateString([], {day:'2-digit', month:'2-digit'}) + " в " + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
       }
 
       let dotHtml = isRecent ? `<span class="pulse-dot"></span>` : "";
-      let mapBtnHtml = (latestGps && latestGps !== "Нет GPS") ? `<br><a class="geo-btn" href="https://maps.google.com/?q=${encodeURIComponent(latestGps)}" target="_blank">🗺️ Карта повтора</a>` : "";
+      let mapBtnHtml = (latestGps && latestGps !== "Нет GPS") ? `<br><a class="geo-btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(latestGps)}" target="_blank">🗺️ Карта повтора</a>` : "";
 
-      if (count === 1) {
-        return `Повтор! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`;
-      } else {
-        return `Повтор: ${count} раз! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`;
-      }
+      if (count === 1) { return `Повтор! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`; } 
+      else { return `Повтор: ${count} раз! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`; }
     }
 
-    function uploadAndProcess(input) {
+    async function uploadAndProcess(input) {
       if (!input.files.length) return;
       initAudioEngine(); 
-      const file = input.files[0];
-      const taskId = "task_" + new Date().getTime(); 
-      const reader = new FileReader();
+      const file = input.files[0]; const taskId = "task_" + new Date().getTime(); const reader = new FileReader();
       
       reader.onload = function(e) {
-        compressImage(e.target.result, 1280, 1280, 0.7, function(compressedBg64) {
+        compressImage(e.target.result, 1280, 1280, 0.7, async function(compressedBg64) {
           let offlineItem = { action: 'scan', taskId: taskId, image: compressedBg64, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: null };
           
-          try {
-            let q = getOfflineQueue();
-            q.push(offlineItem);
-            saveOfflineQueue(q);
-          } catch(err) {
-            alert("Критическая ошибка памяти телефона!"); return;
-          }
+          await addIndexedDBItem(offlineItem); // Запись во встроенную IndexedDB базу
+          await refreshSyncStatusBar();
           
           let scanResultArea = document.getElementById('scan-result');
-          let itemDiv = document.createElement('div');
-          itemDiv.id = taskId;
+          let itemDiv = document.createElement('div'); itemDiv.id = taskId;
           scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
           
           let isOnline = navigator.onLine;
@@ -540,19 +535,20 @@
           let displayStatus = isOnline ? "Выгрузка 📡" : "Ожидание сети 🌐";
           let displayAddress = isOnline ? "Связь с сервером..." : "Сбор координат";
           
+          let currentQueue = await getIndexedDBQueue();
+          let localDupStatus = checkLocalDuplicateText(displayNum, taskId, currentQueue);
+          if (localDupStatus) { displayStatus = localDupStatus; displayAddress = "Проверка в оффлайне"; }
+
           updateCardUi(itemDiv, displayNum, displayStatus, displayAddress, "", "🕒 Снимок сделан", compressedBg64);
           backgroundSyncLoop();
         });
       };
-      reader.readAsDataURL(file);
-      document.getElementById('main-camera').value = "";
+      reader.readAsDataURL(file); document.getElementById('main-camera').value = "";
     }
 
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc) {
-      let isRep = status.includes("Повтор");
-      let isPending = status.includes("Ожидание сети");
-      let isProcessing = number === "🤖 АНАЛИЗ...";
-      let isErr = number === "Не распознан" || number.includes("Ошибка");
+      let isRep = status.includes("Повтор"); let isPending = status.includes("Ожидание сети");
+      let isProcessing = number === "🤖 АНАЛИЗ..."; let isErr = number === "Не распознан" || number.includes("Ошибка");
       
       if (isPending) cardElement.className = "journal-item local-offline";
       else if (isProcessing) cardElement.className = "journal-item local-online-processing";
@@ -589,24 +585,18 @@
     }
 
     function openFullscreenEdit(cardId, photoUrl, address, timeStr, imgToDisplay) {
-      initAudioEngine();
-      
-      // СБРОС МАСШТАБА ПРИ ОТКРЫТИИ ОКНА КОРРЕКЦИИ
-      modalZoomScale = 1; panX = 0; panY = 0;
-      charityTransform();
+      initAudioEngine(); modalZoomScale = 1; panX = 0; panY = 0; charityTransform();
 
       let textSpan = document.getElementById(`text_${cardId}`);
       let currentNumber = textSpan ? textSpan.innerText : "";
       if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "🤖 АНАЛИЗ..." || currentNumber === "Не распознан") currentNumber = "";
       
       document.getElementById('m-target-img').src = imgToDisplay || "";
-      let inputField = document.getElementById('m-plate-field');
-      inputField.value = currentNumber;
+      let inputField = document.getElementById('m-plate-field'); inputField.value = currentNumber;
       
       let saveBtn = document.getElementById('m-save-btn');
       saveBtn.onclick = function() { saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgToDisplay); };
-      document.getElementById('fullscreen-edit-modal').style.display = 'block';
-      inputField.focus();
+      document.getElementById('fullscreen-edit-modal').style.display = 'block'; inputField.focus();
     }
 
     function closeFullscreenEdit() { document.getElementById('fullscreen-edit-modal').style.display = 'none'; }
@@ -618,26 +608,24 @@
       let carRegex = /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i; 
       let motoRegex = /^\d{4}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i;           
       if (!carRegex.test(newNum) && !motoRegex.test(newNum)) {
-        triggerHardwareAlert('error');
-        alert("ОШИБКА ГОСТа РФ!\nАвтомобильный: А000АА99\nМотоциклетный: 0000АА99"); return;
+        triggerHardwareAlert('error'); alert("ОШИБКА ГОСТа РФ!\nАвтомобильный: А000АА99\nМотоциклетный: 0000АА99"); return;
       }
       
       closeFullscreenEdit(); 
       let card = document.getElementById(cardId);
-      let q = getOfflineQueue();
+      let q = await getIndexedDBQueue();
       let matchIdx = q.findIndex(item => item.taskId === cardId);
       
       if (matchIdx !== -1) {
         q[matchIdx].manualNumber = newNum;
-        saveOfflineQueue(q);
+        await addIndexedDBItem(q[matchIdx]); // Обновление внутри IndexedDB
+        await refreshSyncStatusBar();
         
-        let localDupStatus = checkLocalDuplicateText(newNum, cardId);
+        let localDupStatus = checkLocalDuplicateText(newNum, cardId, q);
         if (localDupStatus) {
-          triggerHardwareAlert('repeat');
-          updateCardUi(card, newNum, localDupStatus, "Проверка в оффлайне", photoUrl, timeStr, imgSrc);
+          triggerHardwareAlert('repeat'); updateCardUi(card, newNum, localDupStatus, "Проверка в оффлайне", photoUrl, timeStr, imgSrc);
         } else {
-          triggerHardwareAlert('new');
-          updateCardUi(card, newNum, "Внесен (ждет сеть) 💾", "Сохранено в телефоне", photoUrl, timeStr, imgSrc);
+          triggerHardwareAlert('new'); updateCardUi(card, newNum, "Внесен (ждет сеть) 💾", "Сохранено в телефоне", photoUrl, timeStr, imgSrc);
         }
         backgroundSyncLoop();
       } else {
@@ -650,13 +638,11 @@
           let res = await response.json();
           if (res.success) {
             function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
-            
-            let finalNum = res.number || newNum;
-            let finalStatus = res.status || "Новый объект";
+            let finalNum = res.number || newNum; let finalStatus = res.status || "Новый объект";
             
             globalJournalCache.unshift({ taskId: cardId, number: finalNum, date: getGSheetsTimestamp(), address: address, gps: "Изменен в сети" });
             
-            let smartStatus = checkLocalDuplicateText(finalNum, cardId) || finalStatus;
+            let smartStatus = checkLocalDuplicateText(finalNum, cardId, null) || finalStatus;
             if (smartStatus.includes("Повтор")) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
             updateCardUi(card, finalNum, smartStatus, address, photoUrl, timeStr, imgSrc);
           }
@@ -666,30 +652,22 @@
 
     async function backgroundSyncLoop() {
       if (isSyncing) return;
-      let q = getOfflineQueue();
-      if (q.length === 0) {
-        syncTotalItems = 0; refreshSyncStatusBar(); return;
-      }
+      let q = await getIndexedDBQueue();
+      if (q.length === 0) { syncTotalItems = 0; await refreshSyncStatusBar(); return; }
       if (syncTotalItems < q.length) { syncTotalItems = q.length; }
       
-      isSyncing = true; refreshSyncStatusBar();
-      let item = q[0];
+      isSyncing = true; await refreshSyncStatusBar(); let item = q[0];
       
       try {
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(item) });
         let res = await response.json();
         
-        q = getOfflineQueue().filter(i => i.taskId !== item.taskId);
-        saveOfflineQueue(q);
+        await removeIndexedDBItem(item.taskId); // Стираем из IndexedDB после успешной отправки
         
         function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
         globalJournalCache.unshift({
-          taskId: item.taskId,
-          number: res.number,
-          date: getGSheetsTimestamp(),
-          address: res.address || "Определено GPS",
-          gps: item.coords ? `${item.coords.latitude},${item.coords.longitude}` : "Нет GPS",
-          thumb: item.image
+          taskId: item.taskId, number: res.number, date: getGSheetsTimestamp(), address: res.address || "Определено GPS",
+          gps: item.coords ? `${item.coords.latitude},${item.coords.longitude}` : "Нет GPS", thumb: item.image
         });
 
         let card = document.getElementById(item.taskId);
@@ -697,13 +675,14 @@
           let isRep = res.status.includes("Повтор"); let isErr = res.number === "Не распознан" || res.number.includes("Ошибка");
           if (isErr) triggerHardwareAlert('error'); else if (isRep) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
           
-          let smartStatus = checkLocalDuplicateText(res.number, item.taskId) || res.status;
+          let refreshedQueue = await getIndexedDBQueue();
+          let smartStatus = checkLocalDuplicateText(res.number, item.taskId, refreshedQueue) || res.status;
           updateCardUi(card, res.number, smartStatus, res.address, res.photo, "📅 Запись сохранена", item.image);
         }
       } catch (error) { console.log("Ждем интернет-канал..."); } 
       finally {
-        isSyncing = false; refreshSyncStatusBar();
-        if (getOfflineQueue().length > 0 && navigator.onLine) setTimeout(backgroundSyncLoop, 1000);
+        isSyncing = false; await refreshSyncStatusBar();
+        if ((await getIndexedDBQueue()).length > 0 && navigator.onLine) setTimeout(backgroundSyncLoop, 1000);
       }
     }
 
@@ -711,22 +690,20 @@
       let sDate = document.getElementById('search-start-date').value;
       let eDate = document.getElementById('search-end-date').value;
       let fNum = document.getElementById('search-number').value;
-      document.getElementById('journal-container').innerHTML = "<p style='text-align:center; color:#65676b;'>⏳ Выборка данных...</p>";
+      document.getElementById('journal-container').innerHTML = "<p style='text-align:center; color:var(--text-sub);'>⏳ Выборка данных...</p>";
       try {
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: { startDate: sDate, endDate: eDate, number: fNum } }) });
         let records = await response.json();
-        if (records && records.length) globalJournalCache = records; 
-        renderJournal(records);
+        if (records && records.length) globalJournalCache = records; renderJournal(records);
       } catch(e) { document.getElementById('journal-container').innerHTML = "<p style='text-align:center; color:#ff7a00;'>⚠️ Журнал недоступен без интернета</p>"; }
     }
 
     function renderJournal(records) {
       let container = document.getElementById('journal-container');
-      if (!records.length) { container.innerHTML = "<p style='text-align:center; color:#65676b; margin-top:20px;'>Записей не обнаружено</p>"; return; }
-      container.innerHTML = `<p style="font-size:13px; color:#65676b; margin-bottom:10px;">Найдено в общей базе: ${records.length}</p>`;
+      if (!records.length) { container.innerHTML = "<p style='text-align:center; color:var(--text-sub); margin-top:20px;'>Записей не обнаружено</p>"; return; }
+      container.innerHTML = `<p style="font-size:13px; color:var(--text-sub); margin-bottom:10px;">Найдено в общей базе: ${records.length}</p>`;
       records.forEach((r, idx) => {
-        let itemId = "journal_item_" + idx;
-        let mapsUrl = r.gps !== "Нет GPS" ? `https://maps.google.com/?q=${encodeURIComponent(r.gps)}` : "#";
+        let itemId = "journal_item_" + idx; let mapsUrl = r.gps !== "Нет GPS" ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.gps)}` : "#";
         let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
         updateCardUi(itemDiv, r.number, r.status, r.address, r.photo, "📅 " + r.date, r.thumb);
         if (r.gps !== "Нет GPS") {
@@ -739,7 +716,13 @@
     function loadSettings(isSilent) {
       let localRecent = localStorage.getItem('settings_recent_mins');
       if (localRecent) appSettings.recentMins = parseInt(localRecent);
-      if (!isSilent) { document.getElementById('settings-recent-mins').value = appSettings.recentMins; }
+      let localDays = localStorage.getItem('settings_days');
+      if (localDays) appSettings.days = parseInt(localDays);
+
+      if (!isSilent) { 
+        document.getElementById('settings-recent-mins').value = appSettings.recentMins; 
+        document.getElementById('settings-days').value = appSettings.days;
+      }
 
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings' }) })
         .then(r => r.json())
@@ -755,12 +738,13 @@
     function saveSettings() {
       let days = document.getElementById('settings-days').value;
       let rMins = parseInt(document.getElementById('settings-recent-mins').value) || 30;
-      appSettings.recentMins = rMins;
-      localStorage.setItem('settings_recent_mins', rMins);
+      appSettings.recentMins = rMins; appSettings.days = parseInt(days);
+      localStorage.setItem('settings_recent_mins', rMins); localStorage.setItem('settings_days', days);
 
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', days: days, durNew: document.getElementById('settings-dur-new').value, durRep: document.getElementById('settings-dur-rep').value, durErr: document.getElementById('settings-dur-err').value }) })
         .then(r => {
           document.getElementById('settings-status').innerText = "Настройки сохранены!";
+          silentLoadJournalCache(); // Пересчитываем скользящее окно кэша при изменении дней
           setTimeout(() => document.getElementById('settings-status').innerText = "", 3000);
         }).catch(e => { alert("Локальные параметры сохранены!"); });
     }
@@ -771,37 +755,27 @@
         if (type === 'new') overlay.style.backgroundColor = 'rgba(66, 183, 42, 0.35)';      
         else if (type === 'repeat') overlay.style.backgroundColor = 'rgba(240, 40, 73, 0.45)'; 
         else if (type === 'error') overlay.style.backgroundColor = 'rgba(255, 122, 0, 0.4)';  
-        
-        overlay.style.opacity = '1';
-        setTimeout(() => { overlay.style.opacity = '0'; }, 350); 
+        overlay.style.opacity = '1'; setTimeout(() => { overlay.style.opacity = '0'; }, 350); 
       }
 
       try {
         if (!globalAudioCtx) { globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
         if (globalAudioCtx.state === 'suspended') { globalAudioCtx.resume(); }
         
-        let osc = globalAudioCtx.createOscillator();
-        let gain = globalAudioCtx.createGain();
-        osc.connect(gain); gain.connect(globalAudioCtx.destination);
-        let durationSeconds = 0.2;
+        let osc = globalAudioCtx.createOscillator(); let gain = globalAudioCtx.createGain();
+        osc.connect(gain); gain.connect(globalAudioCtx.destination); let durationSeconds = 0.2;
         
         if (type === 'new') {
-          durationSeconds = parseFloat(appSettings.durNew) || 0.1;
-          osc.type = 'sine'; osc.frequency.setValueAtTime(950, globalAudioCtx.currentTime);
-          gain.gain.setValueAtTime(0.08, globalAudioCtx.currentTime);
-          osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
+          durationSeconds = parseFloat(appSettings.durNew) || 0.1; osc.type = 'sine'; osc.frequency.setValueAtTime(950, globalAudioCtx.currentTime);
+          gain.gain.setValueAtTime(0.08, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
           if (navigator.vibrate) navigator.vibrate(durationSeconds * 1000);
         } else if (type === 'repeat') {
-          durationSeconds = parseFloat(appSettings.durRep) || 0.3;
-          osc.type = 'triangle'; osc.frequency.setValueAtTime(580, globalAudioCtx.currentTime);
-          gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime);
-          osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
+          durationSeconds = parseFloat(appSettings.durRep) || 0.3; osc.type = 'triangle'; osc.frequency.setValueAtTime(580, globalAudioCtx.currentTime);
+          gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
           if (navigator.vibrate) { navigator.vibrate([durationSeconds * 500, 100, durationSeconds * 500]); }
         } else if (type === 'error') {
-          durationSeconds = parseFloat(appSettings.durErr) || 0.5;
-          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, globalAudioCtx.currentTime);
-          gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime);
-          osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
+          durationSeconds = parseFloat(appSettings.durErr) || 0.5; osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, globalAudioCtx.currentTime);
+          gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
           if (navigator.vibrate) navigator.vibrate(durationSeconds * 1000);
         }
       } catch (e) { console.log("Касание аудио-движка..."); }
