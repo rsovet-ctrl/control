@@ -39,11 +39,10 @@
     .btn-secondary { background: #e4e6eb; color: #4b4f56; box-shadow: none; }
     .dark-mode .btn-secondary { background: #3a3b3c; color: #e4e6eb; }
     
-    /* ИНТЕРАКТИВНЫЙ КОНТЕЙНЕР ДЛЯ ЖИВОГО ПОТОКА ВИДЕОКАМЕРЫ */
-    .live-stream-container { position: relative; width: 100%; max-width: 440px; margin: 10px auto; background: #000; border-radius: 16px; overflow: hidden; aspect-ratio: 3/4; border: 2px solid #1877f2; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+    /* УМЕНЬШЕННЫЙ КОМПАКТНЫЙ КОНТЕЙНЕР ДЛЯ ПОТОКА ВИДЕОКАМЕРЫ */
+    .live-stream-container { position: relative; width: 100%; max-width: 340px; margin: 10px auto; background: #000; border-radius: 16px; overflow: hidden; aspect-ratio: 3/4; border: 2px solid #1877f2; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
     .live-stream-container video { width: 100%; height: 100%; object-fit: cover; }
     
-    /* ПЛАВАЮЩАЯ КНОПКА ЗАХВАТА КАДРА НА ЭКРАНЕ ТРАНСЛЯЦИИ */
     .floating-capture-btn { position: absolute; bottom: 20px; right: 20px; background: #f02849; color: white; border: 2px solid white; border-radius: 50%; width: 64px; height: 64px; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(0,0,0,0.4); z-index: 500; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
     .floating-capture-btn:active { transform: scale(0.85); background: #c01830; }
 
@@ -124,16 +123,13 @@
     <button class="theme-toggle-btn" onclick="toggleThemeMode()">🌙</button>
   </div>
 
-  <!-- ВКЛАДКА 1: КАМЕРА С ПОСТОЯННОЙ ТРАНСЛЯЦИЕЙ -->
   <div id="scan-tab" class="tab-content active">
     <div class="card" style="text-align: center;">
       <h3>Потоковая фиксация (АЗС-Терминал)</h3>
       <p id="gps-status" style="font-size:13px; color:var(--text-sub);">Ожидание геопозиции...</p>
       
-      <!-- ОКНО ЖИВОГО ПОТОКА КАМЕРЫ -->
       <div class="live-stream-container">
         <video id="live-webcam" autoplay playsinline muted></video>
-        <!-- КНОПКА КЛИКА ПРЯМО НА ЭКРАНЕ ТРАНСЛЯЦИИ -->
         <button class="floating-capture-btn" id="snap-action-btn" onclick="captureLiveFrame()">📸</button>
       </div>
       
@@ -141,7 +137,6 @@
     </div>
   </div>
 
-  <!-- ВКЛАДКА 2: ЖУРНАЛ -->
   <div id="search-tab" class="tab-content">
     <div class="card">
       <h3>Параметры выборки</h3>
@@ -161,7 +156,6 @@
     <div id="journal-container"></div>
   </div>
 
-  <!-- ВКЛАДКА 3: ОПЦИИ -->
   <div id="settings-tab" class="tab-content">
     <div class="card">
       <h3>Датчик геолокации (GPS)</h3>
@@ -185,7 +179,6 @@
     </div>
   </div>
 
-  <!-- ПОЛНОЭКРАННОЕ ОКНО РУЧНОГО ВВОДА -->
   <div id="fullscreen-edit-modal">
     <div class="modal-box">
       <div class="modal-title">СВЕРЬТЕ ЗНАКИ С ВЕРТИКАЛЬНЫМ СНИМКОМ:</div>
@@ -213,7 +206,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "4.0"; 
+    const APP_VERSION = "4.1"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3 };
     let currentCoords = null;
@@ -223,7 +216,7 @@
     let isDbLoaded = false;
     let syncTotalItems = 0; 
     let indexedDatabase = null; 
-    let liveVideoStream = null; // Поток активной камеры
+    let liveVideoStream = null;
 
     let modalZoomScale = 1; let panX = 0; let panY = 0; let isDragging = false; let startX = 0; let startY = 0;
 
@@ -272,34 +265,27 @@
       });
     }
 
-    // ЗАПУСК ПОСТОЯННОЙ ТРАНСЛЯЦИИ КАМЕРЫ (МЕТОД WEBRTC)
     async function startLiveStreaming() {
       const videoEl = document.getElementById('live-webcam');
       if (!videoEl) return;
-      
-      // Если стрим уже работает — не перезапускаем
       if (liveVideoStream && liveVideoStream.active) return;
 
       const constraints = {
-        video: {
-          facingMode: "environment", // Строго задняя камера автомобиля
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        },
+        video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: false
       };
 
       try {
         liveVideoStream = await navigator.mediaDevices.getUserMedia(constraints);
         videoEl.srcObject = liveVideoStream;
-        document.getElementById('snap-action-btn').disabled = false;
+        let btn = document.getElementById('snap-action-btn');
+        if (btn) btn.disabled = false;
       } catch (err) {
-        console.error("Ошибка инициализации трансляции WebRTC: ", err);
+        console.error("Ошибка WebRTC: ", err);
         document.getElementById('gps-status').innerHTML = "<span style='color:#f02849;'>❌ Сбой WebRTC потока камеры</span>";
       }
     }
 
-    // МГНОВЕННЫЙ ЗАХВАТ КАДРА ИЗ ТРАНСЛЯЦИИ (ВМЕСТО УСТАРЕВШЕГО ОБРАБОТЧИКА НА ФАЙЛАХ)
     async function captureLiveFrame() {
       const videoEl = document.getElementById('live-webcam');
       if (!videoEl || !liveVideoStream || !liveVideoStream.active) {
@@ -308,25 +294,17 @@
 
       initAudioEngine();
       const taskId = "task_" + new Date().getTime();
-      
-      // Создаем виртуальный холст для копирования кадра
       const canvas = document.createElement('canvas');
       canvas.width = videoEl.videoWidth || 1280;
       canvas.height = videoEl.videoHeight || 720;
       
       const ctx = canvas.getContext('2d');
       ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-      
-      // Вытягиваем сжатый JPEG в базовом формате Base64
       const rawBase64 = canvas.toDataURL('image/jpeg', 0.75);
 
       let offlineItem = { 
-        taskId: taskId, 
-        action: 'scan', 
-        image: rawBase64, 
-        coords: currentCoords, 
-        timestamp: new Date().getTime(), 
-        manualNumber: null 
+        taskId: taskId, action: 'scan', image: rawBase64, 
+        coords: currentCoords, timestamp: new Date().getTime(), manualNumber: null 
       };
       
       await addIndexedDBItem(offlineItem); 
@@ -375,6 +353,7 @@
       charityTransform();
     }
 
+    // ИСПРАВЛЕННЫЙ ДАТЧИК ГЕОЛОКАЦИИ (БЕЗ СБОЕВ "NULL")
     function reRequestGeolocation(isSilent) {
       let camStatus = document.getElementById('gps-status');
       let optStatus = document.getElementById('settings-gps-status');
@@ -387,14 +366,16 @@
           let successHtml = "<span style='color:#42b72a;'>📍 Спутники GPS активны</span>";
           if (camStatus) camStatus.innerHTML = successHtml;
           if (optStatus) optStatus.innerHTML = successHtml;
-          document.getElementById('snap-action-btn').disabled = false;
+          let btn = document.getElementById('snap-action-btn');
+          if (btn) btn.disabled = false;
         }, function(error) {
           let msg = "<span style='color:#ff7a00;'>⚠️ Геопозиция отключена</span>";
           if (error.code === error.PERMISSION_DENIED) { msg = "<span style='color:#f02849;'>❌ Доступ заблокирован</span>"; } 
           else { msg = "<span style='color:#ffaa00;'>⚠️ Ошибка датчика GPS</span>"; }
           if (camStatus) camStatus.innerHTML = msg;
           if (optStatus) optStatus.innerHTML = msg;
-          document.getElementById('snap-action-btn').disabled = false; 
+          let btn = document.getElementById('snap-action-btn');
+          if (btn) btn.disabled = false; 
         }, { enableHighAccuracy: true, timeout: 8000 });
       }
     }
@@ -407,7 +388,7 @@
       await refreshSyncStatusBar();
       await restoreOfflineCards(); 
       silentLoadJournalCache(); 
-      startLiveStreaming(); // Запуск объектива при старте приложения
+      startLiveStreaming(); 
       setInterval(backgroundSyncLoop, 10000);
 
       document.body.addEventListener('click', initAudioEngine, { once: false });
@@ -465,7 +446,6 @@
       });
     }
 
-    // ПРИ ПЕРЕКЛЮЧЕНИИ ТАБОВ СЛЕДИМ ЗА ПОТОКОМ КАМЕРЫ, ЧТОБЫ СЭКОНОМИТЬ БАТАРЕЮ
     function openTab(tabId, el) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
@@ -475,10 +455,7 @@
         const idx = tabId === 'scan-tab' ? 0 : (tabId === 'search-tab' ? 1 : 2);
         document.querySelectorAll('.tab-link')[idx].classList.add('active');
       }
-
-      if (tabId === 'scan-tab') {
-        startLiveStreaming();
-      }
+      if (tabId === 'scan-tab') { startLiveStreaming(); }
     }
 
     function showInJournal(number) {
@@ -530,15 +507,10 @@
         pastDate.setDate(today.getDate() - days);
         let sDate = pastDate.toISOString().split('T')[0];
 
-        let response = await fetch(API_URL, { 
-          method: 'POST', 
-          body: JSON.stringify({ action: 'search', filters: { startDate: sDate } }) 
-        });
+        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: { startDate: sDate } }) });
         let records = await response.json();
         if (records && records.length) {
-          globalJournalCache = records;
-          isDbLoaded = true;
-          await refreshSyncStatusBar();
+          globalJournalCache = records; isDbLoaded = true; await refreshSyncStatusBar();
         }
       } catch (e) {}
     }
@@ -612,7 +584,6 @@
       
       let displayImg = imgSrc ? `<img src="${imgSrc}">` : `🚗`;
       let thumbHtml = `<div class="thumb-box" onclick="window.open('${photoUrl || '#'}', '_blank')">${displayImg}</div>`;
-      
       let journalBtnHtml = isRep ? `<br><button class="journal-trigger-btn" onclick="showInJournal('${number}')">🔎 Показать в журнале</button>` : "";
 
       cardElement.innerHTML = `
@@ -635,14 +606,12 @@
 
     function openFullscreenEdit(cardId, photoUrl, address, timeStr, imgToDisplay) {
       initAudioEngine(); modalZoomScale = 1; panX = 0; panY = 0; charityTransform();
-
       let textSpan = document.getElementById(`text_${cardId}`);
       let currentNumber = textSpan ? textSpan.innerText : "";
       if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "🤖 АНАЛИЗ..." || currentNumber === "Не распознан") currentNumber = "";
       
       document.getElementById('m-target-img').src = imgToDisplay || "";
       let inputField = document.getElementById('m-plate-field'); inputField.value = currentNumber;
-      
       let saveBtn = document.getElementById('m-save-btn');
       saveBtn.onclick = function() { saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgToDisplay); };
       document.getElementById('fullscreen-edit-modal').style.display = 'block'; inputField.focus();
@@ -660,22 +629,14 @@
         triggerHardwareAlert('error'); alert("ОШИБКА ГОСТа РФ!\nАвтомобильный: А000АА99\nМотоциклетный: 0000АА99"); return;
       }
       
-      closeFullscreenEdit(); 
-      let card = document.getElementById(cardId);
-      let q = await getIndexedDBQueue();
-      let matchIdx = q.findIndex(item => item.taskId === cardId);
+      closeFullscreenEdit(); let card = document.getElementById(cardId);
+      let q = await getIndexedDBQueue(); let matchIdx = q.findIndex(item => item.taskId === cardId);
       
       if (matchIdx !== -1) {
-        q[matchIdx].manualNumber = newNum;
-        await addIndexedDBItem(q[matchIdx]); 
-        await refreshSyncStatusBar();
-        
+        q[matchIdx].manualNumber = newNum; await addIndexedDBItem(q[matchIdx]); await refreshSyncStatusBar();
         let localDupStatus = checkLocalDuplicateText(newNum, cardId, q);
-        if (localDupStatus) {
-          triggerHardwareAlert('repeat'); updateCardUi(card, newNum, localDupStatus, "Проверка в оффлайне", photoUrl, timeStr, imgSrc);
-        } else {
-          triggerHardwareAlert('new'); updateCardUi(card, newNum, "Внесен (ждет сеть) 💾", "Сохранено в телефоне", photoUrl, timeStr, imgSrc);
-        }
+        if (localDupStatus) { triggerHardwareAlert('repeat'); updateCardUi(card, newNum, localDupStatus, "Проверка в оффлайне", photoUrl, timeStr, imgSrc); } 
+        else { triggerHardwareAlert('new'); updateCardUi(card, newNum, "Внесен (ждет сеть) 💾", "Сохранено в телефоне", photoUrl, timeStr, imgSrc); }
         backgroundSyncLoop();
       } else {
         if (card) {
@@ -688,9 +649,7 @@
           if (res.success) {
             function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
             let finalNum = res.number || newNum; let finalStatus = res.status || "Новый объект";
-            
             globalJournalCache.unshift({ taskId: cardId, number: finalNum, date: getGSheetsTimestamp(), address: address, gps: "Изменен в сети" });
-            
             let smartStatus = checkLocalDuplicateText(finalNum, cardId, null) || finalStatus;
             if (smartStatus.includes("Повтор")) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
             updateCardUi(card, finalNum, smartStatus, address, photoUrl, timeStr, imgSrc);
@@ -700,18 +659,14 @@
     }
 
     async function backgroundSyncLoop() {
-      if (isSyncing) return;
-      let q = await getIndexedDBQueue();
+      if (isSyncing) return; let q = await getIndexedDBQueue();
       if (q.length === 0) { syncTotalItems = 0; await refreshSyncStatusBar(); return; }
       if (syncTotalItems < q.length) { syncTotalItems = q.length; }
-      
       isSyncing = true; await refreshSyncStatusBar(); let item = q[0];
       
       try {
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(item) });
-        let res = await response.json();
-        
-        await removeIndexedDBItem(item.taskId); 
+        let res = await response.json(); await removeIndexedDBItem(item.taskId);
         
         function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
         globalJournalCache.unshift({
@@ -723,7 +678,6 @@
         if (card) {
           let isRep = res.status.includes("Повтор"); let isErr = res.number === "Не распознан" || res.number.includes("Ошибка");
           if (isErr) triggerHardwareAlert('error'); else if (isRep) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
-          
           let refreshedQueue = await getIndexedDBQueue();
           let smartStatus = checkLocalDuplicateText(res.number, item.taskId, refreshedQueue) || res.status;
           updateCardUi(card, res.number, smartStatus, res.address, res.photo, "📅 Запись сохранена", item.image);
@@ -742,8 +696,7 @@
       document.getElementById('journal-container').innerHTML = "<p style='text-align:center; color:var(--text-sub);'>⏳ Выборка данных...</p>";
       try {
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: { startDate: sDate, endDate: eDate, number: fNum } }) });
-        let records = await response.json();
-        if (records && records.length) globalJournalCache = records; renderJournal(records);
+        let records = await response.json(); if (records && records.length) globalJournalCache = records; renderJournal(records);
       } catch(e) { document.getElementById('journal-container').innerHTML = "<p style='text-align:center; color:#ff7a00;'>⚠️ Журнал недоступен без интернета</p>"; }
     }
 
@@ -767,20 +720,13 @@
       if (localRecent) appSettings.recentMins = parseInt(localRecent);
       let localDays = localStorage.getItem('settings_days');
       if (localDays) appSettings.days = parseInt(localDays);
-
-      if (!isSilent) { 
-        document.getElementById('settings-recent-mins').value = appSettings.recentMins; 
-        document.getElementById('settings-days').value = appSettings.days;
-      }
+      if (!isSilent) { document.getElementById('settings-recent-mins').value = appSettings.recentMins; document.getElementById('settings-days').value = appSettings.days; }
 
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings' }) })
         .then(r => r.json())
         .then(res => {
           appSettings.durNew = res.durNew; appSettings.durRep = res.durRep; appSettings.durErr = res.durErr;
-          if (!isSilent) {
-            document.getElementById('settings-days').value = res.days; document.getElementById('settings-dur-new').value = res.durNew;
-            document.getElementById('settings-dur-rep').value = res.durRep; document.getElementById('settings-dur-err').value = res.durErr;
-          }
+          if (!isSilent) { document.getElementById('settings-days').value = res.days; document.getElementById('settings-dur-new').value = res.durNew; document.getElementById('settings-dur-rep').value = res.durRep; document.getElementById('settings-dur-err').value = res.durErr; }
         }).catch(e => {});
     }
     
@@ -791,11 +737,8 @@
       localStorage.setItem('settings_recent_mins', rMins); localStorage.setItem('settings_days', days);
 
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', days: days, durNew: document.getElementById('settings-dur-new').value, durRep: document.getElementById('settings-dur-rep').value, durErr: document.getElementById('settings-dur-err').value }) })
-        .then(r => {
-          document.getElementById('settings-status').innerText = "Настройки сохранены!";
-          silentLoadJournalCache(); 
-          setTimeout(() => document.getElementById('settings-status').innerText = "", 3000);
-        }).catch(e => { alert("Локальные параметры сохранены!"); });
+        .then(r => { document.getElementById('settings-status').innerText = "Настройки сохранены!"; silentLoadJournalCache(); setTimeout(() => document.getElementById('settings-status').innerText = "", 3000); })
+        .catch(e => { alert("Локальные параметры сохранены!"); });
     }
     
     function triggerHardwareAlert(type) {
@@ -810,7 +753,6 @@
       try {
         if (!globalAudioCtx) { globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
         if (globalAudioCtx.state === 'suspended') { globalAudioCtx.resume(); }
-        
         let osc = globalAudioCtx.createOscillator(); let gain = globalAudioCtx.createGain();
         osc.connect(gain); gain.connect(globalAudioCtx.destination); let durationSeconds = 0.2;
         
