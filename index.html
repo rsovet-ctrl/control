@@ -61,9 +61,15 @@
     .modal-box { background: white; border-radius: 16px; width: 100%; height: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; padding: 14px; display: flex; flex-direction: column; overflow-y: auto; }
     .modal-title { font-size: 13px; font-weight: bold; color: #65676b; text-align: center; margin-bottom: 6px; }
     
-    .modal-photo-container { width: 100%; height: 52vh; background: #000; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid #ddd; margin-bottom: 12px; }
-    .modal-photo-container img { width: 100%; height: 100%; object-fit: contain; }
+    /* СТИЛИ КОНТЕЙНЕРА С ПОДДЕРЖКОЙ СВОБОДНОГО ЗУМА И ПЕРЕМЕЩЕНИЯ */
+    .modal-photo-container { width: 100%; height: 52vh; background: #000; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid #ddd; margin-bottom: 12px; position: relative; }
+    .modal-photo-container img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.1s ease-out; transform-origin: center center; }
     
+    /* КНОПКИ ЗУМА НА ИЗОБРАЖЕНИИ */
+    .zoom-controls { position: absolute; bottom: 12px; right: 12px; display: flex; gap: 10px; z-index: 3100; }
+    .zoom-btn { background: rgba(0, 0, 0, 0.75); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: 44px; height: 44px; font-size: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); user-select: none; touch-action: none; }
+    .zoom-btn:active { background: #1877f2; }
+
     .modal-plate-input { font-size: 28px; font-weight: bold; text-align: center; letter-spacing: 1px; text-transform: uppercase; padding: 12px; border: 3px solid #1877f2; border-radius: 12px; width: 100%; box-sizing: border-box; background: #f5f6f7; color: #050505; margin-bottom: 12px; }
     .modal-plate-input:focus { background: #fff; outline: none; border-color: #42b72a; }
     
@@ -148,7 +154,7 @@
       <h3>Длительность сигналов (в секундах)</h3>
       <label>Новый объект:</label><input type="number" id="settings-dur-new" min="0.1" max="5" step="0.1">
       <label>Повторный визит:</label><input type="number" id="settings-dur-rep" min="0.1" max="5" step="0.1">
-      <label>Ошибка / Не распознан:</label><input type="number" id="settings-dur-err" min="0.1" max="5" step="0.1">
+      <label>Ошибка / Не распознан:</label><input type="number" id="settings-dur-err" min="0.1" max="0.5" step="0.1">
       <button class="btn" style="margin-top: 10px;" onclick="saveSettings()">Сохранить настройки</button>
       <p id="settings-status" style="color: #42b72a; font-weight: bold; margin-top: 10px; text-align:center;"></p>
     </div>
@@ -157,9 +163,15 @@
   <div id="fullscreen-edit-modal">
     <div class="modal-box">
       <div class="modal-title">СВЕРЬТЕ ЗНАКИ С ВЕРТИКАЛЬНЫМ СНИМКОМ:</div>
+      
       <div class="modal-photo-container">
         <img id="m-target-img" src="" alt="Крупное фото машины">
+        <div class="zoom-controls">
+          <button class="zoom-btn" onclick="zoomModalImage('out', event)">−</button>
+          <button class="zoom-btn" onclick="zoomModalImage('in', event)">+</button>
+        </div>
       </div>
+      
       <label style="text-align: center; color: #1877f2; margin-bottom: 5px; font-size:13px;">КОРРЕКТИРОВКА (СТРОГО НА РУССКОЙ РАСКЛАДКЕ):</label>
       <input type="text" class="modal-plate-input" id="m-plate-field" placeholder="А000АА99" maxlength="9">
       <div class="modal-btn-table">
@@ -175,7 +187,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "3.7"; 
+    const APP_VERSION = "3.8"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30 };
     let currentCoords = null;
@@ -184,6 +196,13 @@
     let globalAudioCtx = null; 
     let isDbLoaded = false;
     let syncTotalItems = 0; 
+
+    // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ КОНТРОЛЯ ЗУМА И ТАСКАНИЯ ФОТО
+    let modalZoomScale = 1;
+    let panX = 0;
+    let panY = 0;
+    let isDragging = false;
+    let startX = 0, startY = 0;
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -200,6 +219,24 @@
       if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
         globalAudioCtx.resume();
       }
+    }
+
+    // ЛОГИКА ФУНКЦИИ ИНТЕРАКТИВНОГО УВЕЛИЧЕНИЯ И СБРОСА КООРДИНАТ
+     charityTransform = function() {
+      const img = document.getElementById('m-target-img');
+      if (img) img.style.transform = `translate(${panX}px, ${panY}px) scale(${modalZoomScale})`;
+    };
+
+    function zoomModalImage(direction, event) {
+      if (event) event.stopPropagation(); // Не запускаем таскание при клике на кнопки
+      
+      if (direction === 'in') {
+        if (modalZoomScale < 5) modalZoomScale += 0.5;
+      } else if (direction === 'out') {
+        if (modalZoomScale > 1) modalZoomScale -= 0.5;
+        if (modalZoomScale <= 1) { modalZoomScale = 1; panX = 0; panY = 0; } // Жесткий сброс центра при 1х
+      }
+      charityTransform();
     }
 
     function compressImage(base64Str, maxWidth, maxHeight, quality, callback) {
@@ -230,7 +267,7 @@
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
           currentCoords = { latitude: position.coords.latitude, longitude: position.coords.longitude };
-          let successHtml = "<span style='color:#42b72a;'>📍 Спутники GPS активны</span>";
+          let successHtml = "<span style='color:#42b72a;'>📍 Спутники GPS active</span>";
           if (camStatus) camStatus.innerHTML = successHtml;
           if (optStatus) optStatus.innerHTML = successHtml;
           document.getElementById('scan-btn').disabled = false;
@@ -257,6 +294,36 @@
       setInterval(backgroundSyncLoop, 10000);
 
       document.body.addEventListener('click', initAudioEngine, { once: false });
+
+      // РЕГИСТРАЦИЯ ДВИЖЕНИЯ ПАЛЬЦА/МЫШКИ ДЛЯ ПАННИНГА КАРТИНКИ
+      const zoomContainer = document.querySelector('.modal-photo-container');
+      if (zoomContainer) {
+        // Мышка
+        zoomContainer.addEventListener('mousedown', (e) => {
+          if (modalZoomScale <= 1 || e.target.classList.contains('zoom-btn')) return;
+          isDragging = true;
+          startX = e.clientX - panX; startY = e.clientY - panY;
+        });
+        window.addEventListener('mousemove', (e) => {
+          if (!isDragging) return;
+          panX = e.clientX - startX; panY = e.clientY - startY;
+          charityTransform();
+        });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        // Тач-экран (телефон)
+        zoomContainer.addEventListener('touchstart', (e) => {
+          if (modalZoomScale <= 1 || e.target.classList.contains('zoom-btn')) return;
+          isDragging = true;
+          startX = e.touches[0].clientX - panX; startY = e.touches[0].clientY - panY;
+        });
+        window.addEventListener('touchmove', (e) => {
+          if (!isDragging) return;
+          panX = e.touches[0].clientX - startX; panY = e.touches[0].clientY - startY;
+          charityTransform();
+        });
+        window.addEventListener('touchend', () => { isDragging = false; });
+      }
 
       document.getElementById('m-plate-field').addEventListener('input', function(e) {
         let value = e.target.value.toUpperCase();
@@ -435,7 +502,7 @@
       }
 
       let dotHtml = isRecent ? `<span class="pulse-dot"></span>` : "";
-      let mapBtnHtml = (latestGps && latestGps !== "Нет GPS") ? `<br><a class="geo-btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(latestGps)}" target="_blank">🗺️ Карта повтора</a>` : "";
+      let mapBtnHtml = (latestGps && latestGps !== "Нет GPS") ? `<br><a class="geo-btn" href="https://maps.google.com/?q=${encodeURIComponent(latestGps)}" target="_blank">🗺️ Карта повтора</a>` : "";
 
       if (count === 1) {
         return `Повтор! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`;
@@ -523,6 +590,11 @@
 
     function openFullscreenEdit(cardId, photoUrl, address, timeStr, imgToDisplay) {
       initAudioEngine();
+      
+      // СБРОС МАСШТАБА ПРИ ОТКРЫТИИ ОКНА КОРРЕКЦИИ
+      modalZoomScale = 1; panX = 0; panY = 0;
+      charityTransform();
+
       let textSpan = document.getElementById(`text_${cardId}`);
       let currentNumber = textSpan ? textSpan.innerText : "";
       if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "🤖 АНАЛИЗ..." || currentNumber === "Не распознан") currentNumber = "";
@@ -539,7 +611,6 @@
 
     function closeFullscreenEdit() { document.getElementById('fullscreen-edit-modal').style.display = 'none'; }
 
-    // ИСПРАВЛЕННЫЙ И НАДЕЖНЫЙ ОБРАБОТЧИК ОНЛАЙН СИНХРОНИЗАЦИИ ПРАВОК
     async function saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgSrc) {
       let newNum = document.getElementById('m-plate-field').value.toUpperCase().trim();
       if (!newNum) return;
@@ -580,7 +651,6 @@
           if (res.success) {
             function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
             
-            // СТРОГОЕ СОПОСТАВЛЕНИЕ ПЕРЕМЕННЫХ С СЕРВЕРОМ GOOGLE (ИСПРАВЛЕН ВИСЯК)
             let finalNum = res.number || newNum;
             let finalStatus = res.status || "Новый объект";
             
@@ -656,7 +726,7 @@
       container.innerHTML = `<p style="font-size:13px; color:#65676b; margin-bottom:10px;">Найдено в общей базе: ${records.length}</p>`;
       records.forEach((r, idx) => {
         let itemId = "journal_item_" + idx;
-        let mapsUrl = r.gps !== "Нет GPS" ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.gps)}` : "#";
+        let mapsUrl = r.gps !== "Нет GPS" ? `https://maps.google.com/?q=${encodeURIComponent(r.gps)}` : "#";
         let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
         updateCardUi(itemDiv, r.number, r.status, r.address, r.photo, "📅 " + r.date, r.thumb);
         if (r.gps !== "Нет GPS") {
