@@ -222,7 +222,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "5.0"; 
+    const APP_VERSION = "5.1"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "⏳ Поиск GPS...";
@@ -362,13 +362,7 @@
       document.querySelector('.theme-toggle-btn').innerText = isDark ? '☀️' : '🌙';
     }
 
-    function loadSavedTheme() {
-      if (localStorage.getItem('theme_dark_mode') === 'yes') {
-        document.body.classList.add('dark-mode');
-        document.querySelector('.theme-toggle-btn').innerText = '☀️';
-      }
-    }
-
+    // Жестко накатываем размеры при первой же секунде старта
     function applyLocalUiDimensions() {
       let w = parseInt(document.getElementById('settings-cam-w').value) || appSettings.camW || 280;
       let h = parseInt(document.getElementById('settings-cam-h').value) || appSettings.camH || 370;
@@ -462,7 +456,7 @@
         
         let localDupStatus = checkLocalDuplicateText(displayNum, item.taskId, q);
         if (localDupStatus) { displayStatus = localDupStatus; displayAddress = "Проверка в оффлайне"; }
-        updateCardUi(itemDiv, displayNum, displayStatus, displayAddress, "", "🕒 Ожидает выгрузку", item.image);
+        updateCardUi(itemDiv, displayNum, displayStatus, displayAddress, "", "🕒 Ожидает выгрузку", item.image, item.taskId);
       });
     }
 
@@ -575,7 +569,7 @@
       else { return `Повтор: ${count} раз! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`; }
     }
 
-    function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc) {
+    function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId) {
       number = number || ""; status = status || "";
       
       let isRep = status.includes("Повтор"); let isPending = status.includes("Ожидание сети");
@@ -594,6 +588,7 @@
       if(!isPending && !isProcessing && !isErr && !isRep) rightHtml = `<div class="status-right status-new">Новый объект</div>`;
       
       if (photoUrl) cardElement.setAttribute('data-server-photo', photoUrl);
+      if (forcedTaskId) cardElement.setAttribute('data-task-id', forcedTaskId);
       
       let displayImg = imgSrc ? `<img src="${imgSrc}">` : `🚗`;
       let thumbHtml = `<div class="thumb-box" onclick="window.open('${photoUrl || '#'}', '_blank')">${displayImg}</div>`;
@@ -623,17 +618,18 @@
       let currentNumber = textSpan ? textSpan.innerText : "";
       if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "🤖 АНАЛИЗ..." || currentNumber.includes("Не распознан") || currentNumber.includes("КОРРЕКТИРОВКА")) currentNumber = "";
       
+      let card = document.getElementById(cardId);
       let backupUrl = photoUrl;
       if (!backupUrl || backupUrl === "null" || backupUrl === "") {
-        let card = document.getElementById(cardId);
         if (card) backupUrl = card.getAttribute('data-server-photo') || "";
       }
+      let savedTaskId = card ? (card.getAttribute('data-task-id') || cardId) : cardId;
 
       document.getElementById('m-target-img').src = imgToDisplay || backupUrl || "";
       let inputField = document.getElementById('m-plate-field'); inputField.value = currentNumber;
       let saveBtn = document.getElementById('m-save-btn');
       
-      saveBtn.onclick = function() { saveFullscreenEdit(cardId, backupUrl, address, timeStr, imgToDisplay); };
+      saveBtn.onclick = function() { saveFullscreenEdit(cardId, backupUrl, address, timeStr, imgToDisplay, savedTaskId); };
       document.getElementById('fullscreen-edit-modal').style.display = 'block'; inputField.focus();
     }
 
@@ -647,8 +643,8 @@
       return carRegex.test(clean) || motoRegex.test(clean);
     }
 
-    // 🕵️‍♂️ ВЫВОД ДЕТАЛЬНОГО ТЕКСТОВОГО ЛОГА ОШИБКИ ОТ ГУГЛА НА ЭКРАН ТЕЛЕФОНА
-    async function saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgSrc) {
+    // ТЕПЕРЬ ОШИБКИ ТРАНСЛИРУЮТСЯ ИЗ КЛЮЧА .error НАПРЯМУЮ НА ЭКРАН СМАРТФОНА
+    async function saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgSrc, savedTaskId) {
       let newNum = document.getElementById('m-plate-field').value.toUpperCase().trim();
       if (!newNum) return;
       
@@ -664,14 +660,14 @@
       const originalClass = card.className;
 
       let q = await getIndexedDBQueue(); 
-      let matchIdx = q.findIndex(item => item.taskId === cardId);
+      let matchIdx = q.findIndex(item => item.taskId === cardId || item.taskId === savedTaskId);
       
       if (matchIdx !== -1) {
         q[matchIdx].manualNumber = newNum; await addIndexedDBItem(q[matchIdx]); await refreshSyncStatusBar();
         let localDupStatus = checkLocalDuplicateText(newNum, cardId, q);
         let finalStatus = localDupStatus || "Внесен (ждет сеть) 💾";
         if (localDupStatus) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
-        updateCardUi(card, newNum, finalStatus, "Проверка в оффлайне", photoUrl, timeStr, imgSrc);
+        updateCardUi(card, newNum, finalStatus, "Проверка в оффлайне", photoUrl, timeStr, imgSrc, savedTaskId);
         backgroundSyncLoop();
       } else {
         card.className = "journal-item local-online-processing";
@@ -687,33 +683,31 @@
             signal: controller.signal,
             body: JSON.stringify({ 
               action: 'editRecord', 
-              photoUrl: photoUrl,
-              photo: photoUrl,
+              taskId: savedTaskId,
+              photo: photoUrl, 
               newNumber: newNum
             }) 
           });
           clearTimeout(timeoutId); 
           
           if (!response.ok) throw new Error("HTTP статус " + response.status);
-          
           let res = await response.json();
-          let isSuccess = res && (res.success === true || res.success === "true" || res.status === "success");
           
-          if (isSuccess) {
+          if (res && res.success === true) {
             function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
-            let finalNum = res.number || newNum; 
-            let finalStatus = res.status || "Новый объект";
+            let finalNum = res.newNumber || newNum; 
+            let finalStatus = res.newStatus || "Новый объект";
             
             globalJournalCache.unshift({ 
-              taskId: cardId, number: finalNum, date: getGSheetsTimestamp(), address: address, gps: "Изменен в сети", photo: photoUrl
+              taskId: savedTaskId, number: finalNum, date: getGSheetsTimestamp(), address: address, gps: "Изменен в сети", photo: photoUrl
             });
             
-            let smartStatus = checkLocalDuplicateText(finalNum, cardId, null) || finalStatus || "";
+            let smartStatus = checkLocalDuplicateText(finalNum, savedTaskId, null) || finalStatus || "";
             if (smartStatus.includes("Повтор")) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
-            updateCardUi(card, finalNum, smartStatus, address, photoUrl, timeStr, imgSrc);
+            updateCardUi(card, finalNum, smartStatus, address, photoUrl, timeStr, imgSrc, savedTaskId);
           } else {
-            // ВЫВОД ИЗВЛЕЧЕННОГО ИЗ ОТВЕТА ЛОГА ОШИБКИ
-            let serverLog = (res && res.message) ? res.message : "Неизвестная ошибка бэкенда";
+            // ЧЕСТНЫЙ ВЫВОД ОШИБКИ ИЗ КЛЮЧА .error
+            let serverLog = (res && res.error) ? res.error : "Неизвестная ошибка бэкенда";
             alert("❌ СЕРВЕР ОТКЛОНИЛ ЗАПИСЬ!\nПричина: " + serverLog);
             card.innerHTML = originalHtml; card.className = originalClass;
           }
@@ -750,7 +744,7 @@
           else { let isRep = finalStatus.includes("Повтор"); if (isRep) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new'); }
           let refreshedQueue = await getIndexedDBQueue();
           let smartStatus = checkLocalDuplicateText(finalNum, item.taskId, refreshedQueue) || finalStatus;
-          updateCardUi(card, finalNum, smartStatus, res.address, res.photo, "📅 Запись сохранена", item.image);
+          updateCardUi(card, finalNum, smartStatus, res.address, res.photo, "📅 Запись сохранена", item.image, item.taskId);
         }
       } catch (error) { console.log("Ждем интернет-канал..."); } 
       finally { isSyncing = false; await refreshSyncStatusBar(); if ((await getIndexedDBQueue()).length > 0 && navigator.onLine) setTimeout(backgroundSyncLoop, 1000); }
@@ -772,13 +766,14 @@
       if (!records.length) { container.innerHTML = "<p style='text-align:center; color:var(--text-sub); margin-top:20px;'>Записей не обнаружено</p>"; return; }
       container.innerHTML = `<p style="font-size:13px; color:var(--text-sub); margin-bottom:10px;">Найдено в общей базе: ${records.length}</p>`;
       records.forEach((r, idx) => {
-        let itemId = "journal_item_" + idx; let mapsUrl = r.gps && r.gps !== "Нет GPS" ? "https://www.google.com/maps/search/?api=1&query=$" + encodeURIComponent(r.gps) : "#";
+        let itemId = r.taskId || ("journal_item_" + idx); 
+        let mapsUrl = r.gps && r.gps !== "Нет GPS" ? "https://www.google.com/maps/search/?api=1&query=$" + encodeURIComponent(r.gps) : "#";
         let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
         
         let finalStatus = r.status;
         if (!validateGostTemplate(r.number) && r.number !== "Не распознан") { finalStatus = "Проверить вручную ⚠️"; }
         
-        updateCardUi(itemDiv, r.number, finalStatus, r.address, r.photo, "📅 " + r.date, r.thumb);
+        updateCardUi(itemDiv, r.number, finalStatus, r.address, r.photo, "📅 " + r.date, r.thumb, r.taskId);
         if (r.gps && r.gps !== "Нет GPS") {
           let geoBtn = document.createElement('a'); geoBtn.className = "geo-btn"; geoBtn.href = mapsUrl; geoBtn.target = "_blank"; geoBtn.innerText = "📍 Карта";
           itemDiv.querySelector('.info-left').appendChild(geoBtn);
@@ -800,6 +795,7 @@
       document.getElementById('settings-days').value = appSettings.days;
       document.getElementById('settings-cam-w').value = appSettings.camW;
       document.getElementById('settings-cam-h').value = appSettings.camH;
+      
       applyLocalUiDimensions();
 
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings' }) })
