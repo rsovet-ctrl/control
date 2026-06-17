@@ -39,6 +39,14 @@
     .btn-secondary { background: #e4e6eb; color: #4b4f56; box-shadow: none; }
     .dark-mode .btn-secondary { background: #3a3b3c; color: #e4e6eb; }
     
+    /* ИНТЕРАКТИВНЫЙ КОНТЕЙНЕР ДЛЯ ЖИВОГО ПОТОКА ВИДЕОКАМЕРЫ */
+    .live-stream-container { position: relative; width: 100%; max-width: 440px; margin: 10px auto; background: #000; border-radius: 16px; overflow: hidden; aspect-ratio: 3/4; border: 2px solid #1877f2; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+    .live-stream-container video { width: 100%; height: 100%; object-fit: cover; }
+    
+    /* ПЛАВАЮЩАЯ КНОПКА ЗАХВАТА КАДРА НА ЭКРАНЕ ТРАНСЛЯЦИИ */
+    .floating-capture-btn { position: absolute; bottom: 20px; right: 20px; background: #f02849; color: white; border: 2px solid white; border-radius: 50%; width: 64px; height: 64px; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(0,0,0,0.4); z-index: 500; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
+    .floating-capture-btn:active { transform: scale(0.85); background: #c01830; }
+
     .journal-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); padding: 12px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 6px solid #1877f2; transition: all 0.3s ease; }
     .journal-item.pending { border-left-color: #ffc107; background: rgba(255, 193, 7, 0.03); }
     .journal-item.repeat { border-left-color: #f02849; background: rgba(240, 40, 73, 0.04); }
@@ -116,16 +124,24 @@
     <button class="theme-toggle-btn" onclick="toggleThemeMode()">🌙</button>
   </div>
 
+  <!-- ВКЛАДКА 1: КАМЕРА С ПОСТОЯННОЙ ТРАНСЛЯЦИЕЙ -->
   <div id="scan-tab" class="tab-content active">
-    <div class="card">
-      <h3>Потоковая фиксация</h3>
+    <div class="card" style="text-align: center;">
+      <h3>Потоковая фиксация (АЗС-Терминал)</h3>
       <p id="gps-status" style="font-size:13px; color:var(--text-sub);">Ожидание геопозиции...</p>
-      <input type="file" accept="image/*" capture="camera" id="main-camera" style="display:none;" onchange="uploadAndProcess(this)">
-      <button class="btn" id="scan-btn" disabled onclick="document.getElementById('main-camera').click()">Сфотографировать машину</button>
-      <div id="scan-result" style="margin-top:15px;"></div>
+      
+      <!-- ОКНО ЖИВОГО ПОТОКА КАМЕРЫ -->
+      <div class="live-stream-container">
+        <video id="live-webcam" autoplay playsinline muted></video>
+        <!-- КНОПКА КЛИКА ПРЯМО НА ЭКРАНЕ ТРАНСЛЯЦИИ -->
+        <button class="floating-capture-btn" id="snap-action-btn" onclick="captureLiveFrame()">📸</button>
+      </div>
+      
+      <div id="scan-result" style="margin-top:15px; text-align: left;"></div>
     </div>
   </div>
 
+  <!-- ВКЛАДКА 2: ЖУРНАЛ -->
   <div id="search-tab" class="tab-content">
     <div class="card">
       <h3>Параметры выборки</h3>
@@ -141,12 +157,11 @@
       </div>
       <label>Поиск по знакам номера:</label>
       <input type="text" id="search-number" oninput="triggerSearch()" placeholder="Например: В744 или 99">
-      <input type="file" accept="image/*" id="search-camera" style="display:none;" onchange="searchByPhoto(this)">
-      <button class="btn btn-secondary" style="margin-top:10px;" onclick="document.getElementById('search-camera').click()">🔍 Найти машину по фото</button>
     </div>
     <div id="journal-container"></div>
   </div>
 
+  <!-- ВКЛАДКА 3: ОПЦИИ -->
   <div id="settings-tab" class="tab-content">
     <div class="card">
       <h3>Датчик геолокации (GPS)</h3>
@@ -170,6 +185,7 @@
     </div>
   </div>
 
+  <!-- ПОЛНОЭКРАННОЕ ОКНО РУЧНОГО ВВОДА -->
   <div id="fullscreen-edit-modal">
     <div class="modal-box">
       <div class="modal-title">СВЕРЬТЕ ЗНАКИ С ВЕРТИКАЛЬНЫМ СНИМКОМ:</div>
@@ -197,7 +213,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "3.9.1"; 
+    const APP_VERSION = "4.0"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3 };
     let currentCoords = null;
@@ -207,6 +223,7 @@
     let isDbLoaded = false;
     let syncTotalItems = 0; 
     let indexedDatabase = null; 
+    let liveVideoStream = null; // Поток активной камеры
 
     let modalZoomScale = 1; let panX = 0; let panY = 0; let isDragging = false; let startX = 0; let startY = 0;
 
@@ -255,6 +272,83 @@
       });
     }
 
+    // ЗАПУСК ПОСТОЯННОЙ ТРАНСЛЯЦИИ КАМЕРЫ (МЕТОД WEBRTC)
+    async function startLiveStreaming() {
+      const videoEl = document.getElementById('live-webcam');
+      if (!videoEl) return;
+      
+      // Если стрим уже работает — не перезапускаем
+      if (liveVideoStream && liveVideoStream.active) return;
+
+      const constraints = {
+        video: {
+          facingMode: "environment", // Строго задняя камера автомобиля
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      };
+
+      try {
+        liveVideoStream = await navigator.mediaDevices.getUserMedia(constraints);
+        videoEl.srcObject = liveVideoStream;
+        document.getElementById('snap-action-btn').disabled = false;
+      } catch (err) {
+        console.error("Ошибка инициализации трансляции WebRTC: ", err);
+        document.getElementById('gps-status').innerHTML = "<span style='color:#f02849;'>❌ Сбой WebRTC потока камеры</span>";
+      }
+    }
+
+    // МГНОВЕННЫЙ ЗАХВАТ КАДРА ИЗ ТРАНСЛЯЦИИ (ВМЕСТО УСТАРЕВШЕГО ОБРАБОТЧИКА НА ФАЙЛАХ)
+    async function captureLiveFrame() {
+      const videoEl = document.getElementById('live-webcam');
+      if (!videoEl || !liveVideoStream || !liveVideoStream.active) {
+        alert("Трансляция не готова!"); return;
+      }
+
+      initAudioEngine();
+      const taskId = "task_" + new Date().getTime();
+      
+      // Создаем виртуальный холст для копирования кадра
+      const canvas = document.createElement('canvas');
+      canvas.width = videoEl.videoWidth || 1280;
+      canvas.height = videoEl.videoHeight || 720;
+      
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+      
+      // Вытягиваем сжатый JPEG в базовом формате Base64
+      const rawBase64 = canvas.toDataURL('image/jpeg', 0.75);
+
+      let offlineItem = { 
+        taskId: taskId, 
+        action: 'scan', 
+        image: rawBase64, 
+        coords: currentCoords, 
+        timestamp: new Date().getTime(), 
+        manualNumber: null 
+      };
+      
+      await addIndexedDBItem(offlineItem); 
+      await refreshSyncStatusBar();
+      
+      let scanResultArea = document.getElementById('scan-result');
+      let itemDiv = document.createElement('div'); itemDiv.id = taskId;
+      scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
+      
+      let isOnline = navigator.onLine;
+      let displayNum = isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ";
+      let displayStatus = isOnline ? "Выгрузка 📡" : "Ожидание сети 🌐";
+      let displayAddress = isOnline ? "Связь с сервером..." : "Сбор координат";
+      
+      let currentQueue = await getIndexedDBQueue();
+      let localDupStatus = checkLocalDuplicateText(displayNum, taskId, currentQueue);
+      if (localDupStatus) { displayStatus = localDupStatus; displayAddress = "Проверка в оффлайне"; }
+
+      updateCardUi(itemDiv, displayNum, displayStatus, displayAddress, "", "🕒 Снимок сделан", rawBase64);
+      backgroundSyncLoop();
+    }
+
     function toggleThemeMode() {
       document.body.classList.toggle('dark-mode');
       let isDark = document.body.classList.contains('dark-mode');
@@ -281,20 +375,6 @@
       charityTransform();
     }
 
-    function compressImage(base64Str, maxWidth, maxHeight, quality, callback) {
-      let img = new Image();
-      img.onload = function() {
-        let canvas = document.createElement('canvas');
-        let width = img.width; let height = img.height;
-        if (width > height) { if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; } } 
-        else { if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; } }
-        canvas.width = width; canvas.height = height;
-        let ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-        callback(canvas.toDataURL('image/jpeg', quality));
-      };
-      img.src = base64Str; 
-    }
-
     function reRequestGeolocation(isSilent) {
       let camStatus = document.getElementById('gps-status');
       let optStatus = document.getElementById('settings-gps-status');
@@ -307,14 +387,14 @@
           let successHtml = "<span style='color:#42b72a;'>📍 Спутники GPS активны</span>";
           if (camStatus) camStatus.innerHTML = successHtml;
           if (optStatus) optStatus.innerHTML = successHtml;
-          document.getElementById('scan-btn').disabled = false;
+          document.getElementById('snap-action-btn').disabled = false;
         }, function(error) {
           let msg = "<span style='color:#ff7a00;'>⚠️ Геопозиция отключена</span>";
           if (error.code === error.PERMISSION_DENIED) { msg = "<span style='color:#f02849;'>❌ Доступ заблокирован</span>"; } 
           else { msg = "<span style='color:#ffaa00;'>⚠️ Ошибка датчика GPS</span>"; }
           if (camStatus) camStatus.innerHTML = msg;
           if (optStatus) optStatus.innerHTML = msg;
-          document.getElementById('scan-btn').disabled = false; 
+          document.getElementById('snap-action-btn').disabled = false; 
         }, { enableHighAccuracy: true, timeout: 8000 });
       }
     }
@@ -327,6 +407,7 @@
       await refreshSyncStatusBar();
       await restoreOfflineCards(); 
       silentLoadJournalCache(); 
+      startLiveStreaming(); // Запуск объектива при старте приложения
       setInterval(backgroundSyncLoop, 10000);
 
       document.body.addEventListener('click', initAudioEngine, { once: false });
@@ -384,6 +465,7 @@
       });
     }
 
+    // ПРИ ПЕРЕКЛЮЧЕНИИ ТАБОВ СЛЕДИМ ЗА ПОТОКОМ КАМЕРЫ, ЧТОБЫ СЭКОНОМИТЬ БАТАРЕЮ
     function openTab(tabId, el) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
@@ -392,6 +474,10 @@
       else {
         const idx = tabId === 'scan-tab' ? 0 : (tabId === 'search-tab' ? 1 : 2);
         document.querySelectorAll('.tab-link')[idx].classList.add('active');
+      }
+
+      if (tabId === 'scan-tab') {
+        startLiveStreaming();
       }
     }
 
@@ -507,46 +593,6 @@
 
       if (count === 1) { return `Повтор! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`; } 
       else { return `Повтор: ${count} раз! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`; }
-    }
-
-    function uploadAndProcess(input) {
-      if (!input.files.length) return;
-      initAudioEngine(); 
-      const file = input.files[0]; const taskId = "task_" + new Date().getTime(); const reader = new FileReader();
-      
-      reader.onload = function(e) {
-        compressImage(e.target.result, 1280, 1280, 0.7, async function(compressedBg64) {
-          // ИСПРАВЛЕНО: ДобавляемtaskId прямо внутрь объекта для жесткого соответствия ключу IndexedDB
-          let offlineItem = { 
-            taskId: taskId, 
-            action: 'scan', 
-            image: compressedBg64, 
-            coords: currentCoords, 
-            timestamp: new Date().getTime(), 
-            manualNumber: null 
-          };
-          
-          await addIndexedDBItem(offlineItem); 
-          await refreshSyncStatusBar();
-          
-          let scanResultArea = document.getElementById('scan-result');
-          let itemDiv = document.createElement('div'); itemDiv.id = taskId;
-          scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
-          
-          let isOnline = navigator.onLine;
-          let displayNum = isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ";
-          let displayStatus = isOnline ? "Выгрузка 📡" : "Ожидание сети 🌐";
-          let displayAddress = isOnline ? "Связь с сервером..." : "Сбор координат";
-          
-          let currentQueue = await getIndexedDBQueue();
-          let localDupStatus = checkLocalDuplicateText(displayNum, taskId, currentQueue);
-          if (localDupStatus) { displayStatus = localDupStatus; displayAddress = "Проверка в оффлайне"; }
-
-          updateCardUi(itemDiv, displayNum, displayStatus, displayAddress, "", "🕒 Снимок сделан", compressedBg64);
-          backgroundSyncLoop();
-        });
-      };
-      reader.readAsDataURL(file); document.getElementById('main-camera').value = "";
     }
 
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc) {
