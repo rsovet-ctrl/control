@@ -35,11 +35,8 @@
     input { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; background: var(--bg-main); color: var(--text-main); margin-bottom: 10px; }
     input:focus { background: var(--bg-card); border-color: #1877f2; outline: none; }
     
-    .btn { background: #1877f2; color: white; padding: 16px; border: none; border-radius: 8px; font-size: 16px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 5px; box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2); }
-    .btn-secondary { background: #e4e6eb; color: #4b4f56; box-shadow: none; }
-    .dark-mode .btn-secondary { background: #3a3b3c; color: #e4e6eb; }
-    
-    .live-stream-container { position: relative; margin: 5px auto; background: #000; border-radius: 16px; overflow: hidden; aspect-ratio: 3/4; border: 3px solid #1877f2; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+    /* 🔥 ЖЕСТКИЕ СТАРТОВЫЕ ОГРАНИЧЕНИЯ РАЗМЕРОВ: ОКНО НЕ БУДЕТ РАЗДУВАТЬСЯ НА ВЕСЬ ЭКРАН ПРИ ЗАПУСКЕ */
+    .live-stream-container { position: relative; width: 280px; height: 370px; margin: 5px auto; background: #000; border-radius: 16px; overflow: hidden; border: 3px solid #1877f2; box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: width 0.2s, height 0.2s; }
     .live-stream-container video { width: 100%; height: 100%; object-fit: cover; }
     
     .stream-overlay-title { position: absolute; top: 10px; left: 12px; background: rgba(0, 0, 0, 0.6); color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; pointer-events: none; letter-spacing: 0.3px; }
@@ -222,7 +219,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "5.1"; 
+    const APP_VERSION = "5.2"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "⏳ Поиск GPS...";
@@ -350,7 +347,7 @@
         let localDupStatus = checkLocalDuplicateText(displayNum, taskId, currentQueue);
         if (localDupStatus) { displayStatus = localDupStatus; displayAddress = "Проверка в оффлайне"; }
 
-        updateCardUi(itemDiv, displayNum, displayStatus, displayAddress, "", "🕒 Снимок сделан", rawBase64);
+        updateCardUi(itemDiv, displayNum, displayStatus, displayAddress, "", "🕒 Снимок сделан", rawBase64, taskId);
         backgroundSyncLoop();
       } catch (err) { alert("Ошибка кадрирования: " + err.message); }
     }
@@ -362,7 +359,13 @@
       document.querySelector('.theme-toggle-btn').innerText = isDark ? '☀️' : '🌙';
     }
 
-    // Жестко накатываем размеры при первой же секунде старта
+    function loadSavedTheme() {
+      if (localStorage.getItem('theme_dark_mode') === 'yes') {
+        document.body.classList.add('dark-mode');
+        document.querySelector('.theme-toggle-btn').innerText = '☀️';
+      }
+    }
+
     function applyLocalUiDimensions() {
       let w = parseInt(document.getElementById('settings-cam-w').value) || appSettings.camW || 280;
       let h = parseInt(document.getElementById('settings-cam-h').value) || appSettings.camH || 370;
@@ -643,7 +646,6 @@
       return carRegex.test(clean) || motoRegex.test(clean);
     }
 
-    // ТЕПЕРЬ ОШИБКИ ТРАНСЛИРУЮТСЯ ИЗ КЛЮЧА .error НАПРЯМУЮ НА ЭКРАН СМАРТФОНА
     async function saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgSrc, savedTaskId) {
       let newNum = document.getElementById('m-plate-field').value.toUpperCase().trim();
       if (!newNum) return;
@@ -706,7 +708,6 @@
             if (smartStatus.includes("Повтор")) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
             updateCardUi(card, finalNum, smartStatus, address, photoUrl, timeStr, imgSrc, savedTaskId);
           } else {
-            // ЧЕСТНЫЙ ВЫВОД ОШИБКИ ИЗ КЛЮЧА .error
             let serverLog = (res && res.error) ? res.error : "Неизвестная ошибка бэкенда";
             alert("❌ СЕРВЕР ОТКЛОНИЛ ЗАПИСЬ!\nПричина: " + serverLog);
             card.innerHTML = originalHtml; card.className = originalClass;
