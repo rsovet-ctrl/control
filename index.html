@@ -9,10 +9,14 @@
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: #f0f2f5; color: #1c1e21; }
     
-    #sync-status-bar { text-align: center; padding: 10px; font-size: 13px; font-weight: bold; color: white; position: sticky; top: 0; z-index: 2000; transition: all 0.4s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    /* СТИЛИ СТАТУС-БАРА И ИНТЕГРИРОВАННОГО ПРОГРЕСС-БАРА */
+    #sync-status-bar { text-align: center; padding: 10px 10px 12px 10px; font-size: 13px; font-weight: bold; color: white; position: sticky; top: 0; z-index: 2000; transition: all 0.4s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     .status-synced { background: #42b72a; }
     .status-offline { background: #ffaa00; }
     .status-uploading { background: #1877f2; }
+
+    .progress-container { width: 90%; height: 6px; background: rgba(255,255,255,0.25); border-radius: 4px; margin: 8px auto 0 auto; display: none; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+    .progress-bar { height: 100%; width: 0%; background: #ffffff; transition: width 0.3s ease; box-shadow: 0 0 4px #fff; }
 
     .nav-tabs { display: flex; background: #fff; border-bottom: 1px solid #e4e6eb; position: sticky; top: 38px; z-index: 1000; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     .tab-link { flex: 1; text-align: center; padding: 16px 0; font-weight: 600; cursor: pointer; color: #65676b; font-size: 15px; }
@@ -72,7 +76,6 @@
 
     #flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; opacity: 0; background: transparent; transition: opacity 0.08s ease-out; }
 
-    /* СТИЛИДЛЯ ПУЛЬСИРУЮЩЕЙ КРАСНОЙ ТОЧКИ "СВЕЖЕГО" ПОВТОРА */
     @keyframes pulse {
       0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(240, 40, 73, 0.7); }
       70% { transform: scale(1.1); box-shadow: 0 0 0 5px rgba(240, 40, 73, 0); }
@@ -84,7 +87,13 @@
 <body>
 
   <div id="flash-overlay"></div>
-  <div id="sync-status-bar" class="status-offline">⏳ Синхронизация базы...</div>
+
+  <div id="sync-status-bar" class="status-offline">
+    <span id="sync-status-text">⏳ Синхронизация базы...</span>
+    <div id="sync-progress-container" class="progress-container">
+      <div id="sync-progress-bar" class="progress-bar"></div>
+    </div>
+  </div>
 
   <div class="nav-tabs">
     <div class="tab-link active" onclick="openTab('scan-tab', this)">📷 Камера</div>
@@ -133,7 +142,6 @@
       <h3>Окно повторов</h3>
       <label>Глубина отслеживания дубликатов (дней):</label>
       <input type="number" id="settings-days" min="1">
-      
       <label style="margin-top:10px;">Интервал "Свежего" повтора (минут):</label>
       <input type="number" id="settings-recent-mins" min="1" max="1440" value="30">
     </div>
@@ -168,7 +176,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "3.5"; 
+    const APP_VERSION = "3.6"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30 };
     let currentCoords = null;
@@ -176,6 +184,7 @@
     let isSyncing = false;       
     let globalAudioCtx = null; 
     let isDbLoaded = false;
+    let syncTotalItems = 0; // Переменная для расчета шага прогресс-бара
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -275,7 +284,7 @@
         let displayStatus = item.manualNumber ? "Внесен (ждет сеть) 💾" : (isOnline ? "Выгрузка 📡" : "Ожидание сети 🌐");
         let displayAddress = item.manualNumber ? "Сохранено в телефоне" : (isOnline ? "Связь с сервером..." : "Сбор координат");
         
-        let localDupStatus = checkLocalDuplicateText(displayNum);
+        let localDupStatus = checkLocalDuplicateText(displayNum, item.taskId);
         if (localDupStatus) { displayStatus = localDupStatus; displayAddress = "Проверка в оффлайне"; }
         
         updateCardUi(itemDiv, displayNum, displayStatus, displayAddress, "", "🕒 Ожидает выгрузку", item.image);
@@ -294,7 +303,6 @@
       }
     }
 
-    // ЛИНК-ФУНКЦИЯ ДЛЯ ПЕРЕХОДА ИЗ КАРТОЧКИ СРАЗУ В ИСТОРИЮ ЖУРНАЛА
     function showInJournal(number) {
       let days = parseInt(document.getElementById('settings-days').value) || 1;
       let today = new Date();
@@ -312,22 +320,34 @@
     function getOfflineQueue() { return JSON.parse(localStorage.getItem('car_sync_queue') || '[]'); }
     function saveOfflineQueue(q) { localStorage.setItem('car_sync_queue', JSON.stringify(q)); refreshSyncStatusBar(); }
 
-    // ИНДИКАТОР ЗАГРУЗКИ БАЗЫ ДАННЫХ В СТАТУС-БАРЕ
+    // ДИНАМИЧЕСКИЙ СТАТУС-БАР С ДЕТЕРМИНИРОВАННЫМ ПРОГРЕСС-БАРОМ ВЫГРУЗКИ
     function refreshSyncStatusBar() {
       let q = getOfflineQueue();
       let bar = document.getElementById('sync-status-bar');
+      let txt = document.getElementById('sync-status-text');
+      let pContainer = document.getElementById('sync-progress-container');
+      let pBar = document.getElementById('sync-progress-bar');
+      
       let dbText = isDbLoaded ? "🟢 База активна" : "⏳ Синхронизация базы...";
       
       if (q.length === 0) {
         bar.className = "status-synced";
-        bar.innerText = `${dbText} | Все файлы в облаке [v${APP_VERSION}]`;
+        txt.innerText = `${dbText} | Все файлы в облаке [v${APP_VERSION}]`;
+        pContainer.style.display = 'none';
+        pBar.style.width = '0%';
       } else {
         if (isSyncing) {
           bar.className = "status-uploading";
-          bar.innerText = `🔵 Выгрузка... (Осталось: ${q.length}) [v${APP_VERSION}]`;
+          txt.innerText = `🔵 Выгрузка... (Осталось: ${q.length}) [v${APP_VERSION}]`;
+          pContainer.style.display = 'block';
+          if (syncTotalItems > 0) {
+            let pct = Math.round(((syncTotalItems - q.length) / syncTotalItems) * 100);
+            pBar.style.width = pct + '%';
+          }
         } else {
           bar.className = "status-offline";
-          bar.innerText = `🟡 В очереди: ${q.length} машин [v${APP_VERSION}]`;
+          txt.innerText = `🟡 В очереди: ${q.length} машин [v${APP_VERSION}]`;
+          pContainer.style.display = 'none';
         }
       }
     }
@@ -344,8 +364,8 @@
       } catch (e) {}
     }
 
-    // ПРОДВИНУТЫЙ ПАРСЕР ДАТЫ ИЗ ГУГЛ ТАБЛИЦЫ С РАСЧЕТОМ ИНТЕРВАЛОВ И СВЕЖЕСТИ
-    function checkLocalDuplicateText(num) {
+    // ИСПРАВЛЕННАЯ ФУНКЦИЯ ПРОВЕРКИ С ИСКЛЮЧЕНИЕМ ТЕКУЩЕГО ID (ЗАЩИТА ОТ "0 МИНУТ")
+    function checkLocalDuplicateText(num, currentTaskId) {
       if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ...") return null;
       let cleanNum = num.toUpperCase().trim();
       let count = 0;
@@ -353,7 +373,6 @@
       let latestAddress = "";
       let latestGps = "";
 
-      // Вспомогательная функция парсинга строки даты DD.MM.YYYY HH:MM:SS
       function parseGSheetsDate(dateStr) {
         if (!dateStr) return 0;
         try {
@@ -364,8 +383,10 @@
         } catch(e) { return 0; }
       }
 
-      // 1. Поиск в онлайн архиве
+      // 1. Поиск в загруженном кэше (пропускаем саму себя, если она уже записана)
       for (let i = 0; i < globalJournalCache.length; i++) {
+        if (globalJournalCache[i].taskId === currentTaskId) continue; 
+        
         if (globalJournalCache[i].number.toUpperCase().trim() === cleanNum) {
           count++;
           let ts = parseGSheetsDate(globalJournalCache[i].date);
@@ -377,9 +398,11 @@
         }
       }
 
-      // 2. Поиск в локальном буфере очереди
+      // 2. Поиск в оффлайн-буфере очереди (пропускаем саму себя по уникальному ID)
       let q = getOfflineQueue();
       for (let i = 0; i < q.length; i++) {
+        if (q[i].taskId === currentTaskId) continue; 
+        
         if (q[i].manualNumber && q[i].manualNumber.toUpperCase().trim() === cleanNum) {
           count++;
           if (q[i].timestamp > latestTimestamp) {
@@ -392,28 +415,26 @@
 
       if (count === 0) return null;
 
-      // Высчитываем разницу во времени
       let nowTs = new Date().getTime();
       let diffMs = nowTs - latestTimestamp;
       let diffMins = Math.floor(diffMs / 60000);
       let timeStatusText = "";
       let isRecent = false;
 
-      // Если прошло меньше 12 часов - включаем смарт-формат
       if (diffMs > 0 && diffMs < 12 * 60 * 60 * 1000) {
-        if (diffMins < 60) {
+        if (diffMins < 1) {
+          timeStatusText = `только что`;
+        } else if (diffMins < 60) {
           timeStatusText = `${diffMins} мин. назад`;
         } else {
           let hrs = Math.floor(diffMins / 60);
           let m = diffMins % 60;
           timeStatusText = `${hrs} ч. ${m} мин. назад`;
         }
-        // Проверяем настройку свежести из опций
         if (diffMins <= appSettings.recentMins) {
           isRecent = true;
         }
       } else {
-        // Если больше 12 часов - выводим обычную дату
         let d = new Date(latestTimestamp);
         timeStatusText = d.toLocaleDateString([], {day:'2-digit', month:'2-digit'}) + " в " + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
       }
@@ -485,7 +506,6 @@
       let displayImg = imgSrc ? `<img src="${imgSrc}">` : `🚗`;
       let thumbHtml = `<div class="thumb-box" onclick="window.open('${photoUrl || '#'}', '_blank')">${displayImg}</div>`;
       
-      // Динамическая кнопка Журнала только для карточек-повторов
       let journalBtnHtml = isRep ? `<br><button class="journal-trigger-btn" onclick="showInJournal('${number}')">🔎 Показать в журнале</button>` : "";
 
       cardElement.innerHTML = `
@@ -543,7 +563,8 @@
       if (matchIdx !== -1) {
         q[matchIdx].manualNumber = newNum;
         saveOfflineQueue(q);
-        let localDupStatus = checkLocalDuplicateText(newNum);
+        
+        let localDupStatus = checkLocalDuplicateText(newNum, cardId);
         if (localDupStatus) {
           triggerHardwareAlert('repeat');
           updateCardUi(card, newNum, localDupStatus, "Проверка в оффлайне", photoUrl, timeStr, imgSrc);
@@ -561,8 +582,13 @@
           let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'editRecord', photo: photoUrl, newNumber: newNum }) });
           let res = await response.json();
           if (res.success) {
-            if (res.newStatus.includes("Повтор")) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
-            updateCardUi(card, res.newNumber, res.newStatus, address, photoUrl, timeStr, imgSrc);
+            // ЖИВОЕ ПОПОЛНЕНИЕ БАЗЫ ПРИ ПРАВКЕ В СЕТИ
+            function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
+            globalJournalCache.unshift({ taskId: cardId, number: res.newNumber, date: getGSheetsTimestamp(), address: address, gps: "Изменен в сети" });
+            
+            let smartStatus = checkLocalDuplicateText(res.newNumber, cardId) || res.newStatus;
+            if (smartStatus.includes("Повтор")) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
+            updateCardUi(card, res.newNumber, smartStatus, address, photoUrl, timeStr, imgSrc);
           }
         } catch (e) { alert("Сбой соединения"); }
       }
@@ -571,22 +597,43 @@
     async function backgroundSyncLoop() {
       if (isSyncing) return;
       let q = getOfflineQueue();
-      if (q.length === 0) return;
+      if (q.length === 0) {
+        syncTotalItems = 0; refreshSyncStatusBar(); return;
+      }
+      // Фиксируем стартовую длину очереди для красивого шага прогресс-бара
+      if (syncTotalItems < q.length) { syncTotalItems = q.length; }
+      
       isSyncing = true; refreshSyncStatusBar();
       let item = q[0];
       
       try {
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(item) });
         let res = await response.json();
+        
         q = getOfflineQueue().filter(i => i.taskId !== item.taskId);
         saveOfflineQueue(q);
+        
+        // МГНОВЕННОЕ АВТО-ПОПОЛНЕНИЕ ЛОКАЛЬНОЙ БАЗЫ ТЕЛЕФОНА ПОСЛЕ ВЫГРУЗКИ
+        function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
+        globalJournalCache.unshift({
+          taskId: item.taskId,
+          number: res.number,
+          date: getGSheetsTimestamp(),
+          address: res.address || "Определено GPS",
+          gps: item.coords ? `${item.coords.latitude},${item.coords.longitude}` : "Нет GPS",
+          thumb: item.image
+        });
+
         let card = document.getElementById(item.taskId);
         if (card) {
           let isRep = res.status.includes("Повтор"); let isErr = res.number === "Не распознан" || res.number.includes("Ошибка");
           if (isErr) triggerHardwareAlert('error'); else if (isRep) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
-          updateCardUi(card, res.number, res.status, res.address, res.photo, "📅 Запись сохранена", item.image);
+          
+          // ПРИНУДИТЕЛЬНЫЙ ПЕРЕСЧЕТ СМАРТ-ВРЕМЕНИ НА ТЕЛЕФОНЕ ПОСЛЕ ОТВЕТА СЕРВЕРА
+          let smartStatus = checkLocalDuplicateText(res.number, item.taskId) || res.status;
+          updateCardUi(card, res.number, smartStatus, res.address, res.photo, "📅 Запись сохранена", item.image);
         }
-      } catch (error) { console.log("Проблема связи, данные в безопасности..."); } 
+      } catch (error) { console.log("Ждем интернет-канал..."); } 
       finally {
         isSyncing = false; refreshSyncStatusBar();
         if (getOfflineQueue().length > 0 && navigator.onLine) setTimeout(backgroundSyncLoop, 1000);
@@ -612,7 +659,7 @@
       container.innerHTML = `<p style="font-size:13px; color:#65676b; margin-bottom:10px;">Найдено в общей базе: ${records.length}</p>`;
       records.forEach((r, idx) => {
         let itemId = "journal_item_" + idx;
-        let mapsUrl = r.gps !== "Нет GPS" ? `http://maps.google.com/?q=${encodeURIComponent(r.gps)}` : "#";
+        let mapsUrl = r.gps !== "Нет GPS" ? `https://maps.google.com/?q=${encodeURIComponent(r.gps)}` : "#";
         let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
         updateCardUi(itemDiv, r.number, r.status, r.address, r.photo, "📅 " + r.date, r.thumb);
         if (r.gps !== "Нет GPS") {
@@ -623,13 +670,9 @@
     }
 
     function loadSettings(isSilent) {
-      // Загрузка кастомного интервала свежести
       let localRecent = localStorage.getItem('settings_recent_mins');
       if (localRecent) appSettings.recentMins = parseInt(localRecent);
-      
-      if (!isSilent) {
-        document.getElementById('settings-recent-mins').value = appSettings.recentMins;
-      }
+      if (!isSilent) { document.getElementById('settings-recent-mins').value = appSettings.recentMins; }
 
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings' }) })
         .then(r => r.json())
@@ -645,8 +688,6 @@
     function saveSettings() {
       let days = document.getElementById('settings-days').value;
       let rMins = parseInt(document.getElementById('settings-recent-mins').value) || 30;
-      
-      // Локальное сохранение переменной свежести
       appSettings.recentMins = rMins;
       localStorage.setItem('settings_recent_mins', rMins);
 
@@ -669,12 +710,8 @@
       }
 
       try {
-        if (!globalAudioCtx) {
-          globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (globalAudioCtx.state === 'suspended') {
-          globalAudioCtx.resume();
-        }
+        if (!globalAudioCtx) { globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        if (globalAudioCtx.state === 'suspended') { globalAudioCtx.resume(); }
         
         let osc = globalAudioCtx.createOscillator();
         let gain = globalAudioCtx.createGain();
@@ -692,9 +729,7 @@
           osc.type = 'triangle'; osc.frequency.setValueAtTime(580, globalAudioCtx.currentTime);
           gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime);
           osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
-          if (navigator.vibrate) {
-            navigator.vibrate([durationSeconds * 500, 100, durationSeconds * 500]);
-          }
+          if (navigator.vibrate) { navigator.vibrate([durationSeconds * 500, 100, durationSeconds * 500]); }
         } else if (type === 'error') {
           durationSeconds = parseFloat(appSettings.durErr) || 0.5;
           osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, globalAudioCtx.currentTime);
@@ -702,9 +737,7 @@
           osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
           if (navigator.vibrate) navigator.vibrate(durationSeconds * 1000);
         }
-      } catch (e) {
-        console.log("Ждем фонового клика...");
-      }
+      } catch (e) { console.log("Касание аудио-движка..."); }
     }
   </script>
 </body>
