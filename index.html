@@ -55,6 +55,14 @@
     .journal-item.local-offline { border-left-color: #ffaa00; background: rgba(255, 170, 0, 0.03); }
     .journal-item.local-online-processing { border-left-color: #1877f2; background: rgba(24, 119, 242, 0.04); }
     
+    /* 🔴 СТИЛИ ДЛЯ АКТИВНО МИГАЮЩЕЙ КАРТОЧКИ ОШИБКИ ИЛИ НЕРАСПОЗНАННОГО ОБЪЕКТА */
+    @keyframes alert-blink-animation {
+      0% { background-color: rgba(255, 122, 0, 0.06); border-left-color: #ff7a00; }
+      50% { background-color: rgba(240, 40, 73, 0.16); border-left-color: #f02849; box-shadow: 0 0 10px rgba(240, 40, 73, 0.3); }
+      100% { background-color: rgba(255, 122, 0, 0.06); border-left-color: #ff7a00; }
+    }
+    .journal-item.error-item-blink { animation: alert-blink-animation 1.2s infinite ease-in-out; }
+
     .thumb-box { width: 75px; height: 105px; min-width: 75px; border-radius: 8px; overflow: hidden; background: #e4e6eb; margin-right: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); cursor: pointer; }
     .thumb-box img { width: 100%; height: 100%; object-fit: cover; }
     .info-left { flex-grow: 1; text-align: left; font-size: 14px; min-width: 0; }
@@ -219,7 +227,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "4.5"; 
+    const APP_VERSION = "4.6"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "⏳ Поиск GPS...";
@@ -306,31 +314,22 @@
           alert("Трансляция недоступна!"); return;
         }
 
-        // Запуск визуально-аудиальной обратной связи фотовспышки
         triggerHardwareAlert('snap');
         
         const taskId = "task_" + new Date().getTime();
         const videoW = videoEl.videoWidth > 0 ? videoEl.videoWidth : 1280;
         const videoH = videoEl.videoHeight > 0 ? videoEl.videoHeight : 720;
-        
-        const boxW = appSettings.camW;
-        const boxH = appSettings.camH;
+        const boxW = appSettings.camW; const boxH = appSettings.camH;
         
         const canvas = document.createElement('canvas');
-        canvas.width = boxW * 2;  
-        canvas.height = boxH * 2;
-        
+        canvas.width = boxW * 2; canvas.height = boxH * 2;
         const ctx = canvas.getContext('2d');
         
         let sx = 0, sy = 0, sWidth = videoW, sHeight = videoH;
-        const videoRatio = videoW / videoH;
-        const boxRatio = boxW / boxH;
+        const videoRatio = videoW / videoH; const boxRatio = boxW / boxH;
         
-        if (videoRatio > boxRatio) {
-          sWidth = videoH * boxRatio; sx = (videoW - sWidth) / 2;
-        } else {
-          sHeight = videoW / boxRatio; sy = (videoH - sHeight) / 2;
-        }
+        if (videoRatio > boxRatio) { sWidth = videoH * boxRatio; sx = (videoW - sWidth) / 2; } 
+        else { sHeight = videoW / boxRatio; sy = (videoH - sHeight) / 2; }
         
         ctx.drawImage(videoEl, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
         const rawBase64 = canvas.toDataURL('image/jpeg', 0.75);
@@ -358,9 +357,7 @@
 
         updateCardUi(itemDiv, displayNum, displayStatus, displayAddress, "", "🕒 Снимок сделан", rawBase64);
         backgroundSyncLoop();
-      } catch (err) {
-        alert("Ошибка кадрирования: " + err.message);
-      }
+      } catch (err) { alert("Ошибка кадрирования: " + err.message); }
     }
 
     function toggleThemeMode() {
@@ -461,8 +458,7 @@
       let isOnline = navigator.onLine;
       q.forEach(item => {
         if (document.getElementById(item.taskId)) return; 
-        let itemDiv = document.createElement('div');
-        itemDiv.id = item.taskId;
+        let itemDiv = document.createElement('div'); itemDiv.id = item.taskId;
         scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
         
         let displayNum = item.manualNumber || (isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ");
@@ -471,7 +467,6 @@
         
         let localDupStatus = checkLocalDuplicateText(displayNum, item.taskId, q);
         if (localDupStatus) { displayStatus = localDupStatus; displayAddress = "Проверка в оффлайне"; }
-        
         updateCardUi(itemDiv, displayNum, displayStatus, displayAddress, "", "🕒 Ожидает выгрузку", item.image);
       });
     }
@@ -490,13 +485,10 @@
 
     function showInJournal(number) {
       let days = parseInt(document.getElementById('settings-days').value) || 3;
-      let today = new Date(); let startDate = new Date();
-      startDate.setDate(today.getDate() - days);
-      
+      let today = new Date(); let startDate = new Date(); startDate.setDate(today.getDate() - days);
       document.getElementById('search-start-date').value = startDate.toISOString().split('T')[0];
       document.getElementById('search-end-date').value = today.toISOString().split('T')[0];
       document.getElementById('search-number').value = number;
-      
       openTab('search-tab', null); triggerSearch();
     }
 
@@ -517,10 +509,7 @@
           bar.className = "status-uploading";
           txt.innerText = `${gpsStatusText} | 🔵 Сброс пакетов (Осталось: ${q.length}) [v${APP_VERSION}]`;
           pContainer.style.display = 'block';
-          if (syncTotalItems > 0) {
-            let pct = Math.round(((syncTotalItems - q.length) / syncTotalItems) * 100);
-            pBar.style.width = pct + '%';
-          }
+          if (syncTotalItems > 0) { let pct = Math.round(((syncTotalItems - q.length) / syncTotalItems) * 100); pBar.style.width = pct + '%'; }
         } else {
           bar.className = "status-offline";
           txt.innerText = `${gpsStatusText} | 🟡 Оффлайн-буфер: ${q.length} объектов [v${APP_VERSION}]`;
@@ -532,13 +521,10 @@
     async function silentLoadJournalCache() {
       try {
         let days = parseInt(localStorage.getItem('settings_days') || '3');
-        let today = new Date(); let pastDate = new Date();
-        pastDate.setDate(today.getDate() - days);
+        let today = new Date(); let pastDate = new Date(); pastDate.setDate(today.getDate() - days);
         let sDate = pastDate.toISOString().split('T')[0];
-
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: { startDate: sDate } }) });
-        let records = await response.json();
-        if (records && records.length) { globalJournalCache = records; isDbLoaded = true; await refreshSyncStatusBar(); }
+        let records = await response.json(); if (records && records.length) { globalJournalCache = records; isDbLoaded = true; await refreshSyncStatusBar(); }
       } catch (e) {}
     }
 
@@ -583,8 +569,7 @@
         else { let hrs = Math.floor(diffMins / 60); let m = diffMins % 60; timeStatusText = `${hrs} ч. ${m} мин. назад`; }
         if (diffMins <= appSettings.recentMins) { isRecent = true; }
       } else {
-        let d = new Date(latestTimestamp);
-        timeStatusText = d.toLocaleDateString([], {day:'2-digit', month:'2-digit'}) + " в " + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        let d = new Date(latestTimestamp); timeStatusText = d.toLocaleDateString([], {day:'2-digit', month:'2-digit'}) + " в " + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
       }
 
       let dotHtml = isRecent ? `<span class="pulse-dot"></span>` : "";
@@ -595,19 +580,26 @@
       else { return `Повтор: ${count} раз! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`; }
     }
 
+    // ⚡ ГАРАНТИРОВАННО СТАБИЛЬНЫЙ ОТРИСОВЩИК БЕЗ ЗАВИСАНИЙ И С МИГАНИЕМ ТРЕВОГИ
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc) {
-      let isRep = status.includes("Повтор"); let isPending = status.includes("Ожидание сети");
+      // Жесткая броня от null/undefined (Убирает висяки)
+      number = number || "";
+      status = status || "";
+      
+      let isRep = status.includes("Повтор"); 
+      let isPending = status.includes("Ожидание сети");
       let isProcessing = number === "🤖 АНАЛИЗ..."; 
       let isErr = number === "Не распознан" || number.includes("Ошибка") || status.includes("Проверить вручную");
       
+      // Накатываем классы тем. Ошибки теперь получают класс error-item-blink для пульсации
       if (isPending) cardElement.className = "journal-item local-offline";
       else if (isProcessing) cardElement.className = "journal-item local-online-processing";
-      else if (isErr) cardElement.className = "journal-item error-item";
+      else if (isErr) cardElement.className = "journal-item error-item error-item-blink";
       else cardElement.className = `journal-item ${isRep ? 'repeat' : 'new'}`;
       
       let rightHtml = isPending ? `<div class="status-right status-offline-text">${status}</div>` : 
                      (isProcessing ? `<div class="status-right status-processing-text">${status}</div>` :
-                     (isErr ? `<div class="status-right status-error">${status || 'Проверить вручную'}</div>` : `<div class="status-right">${status}</div>`));
+                     (isErr ? `<div class="status-right status-error">${status || 'Проверить вручную ⚠️'}</div>` : `<div class="status-right">${status}</div>`));
                      
       if(!isPending && !isProcessing && !isErr && !isRep) rightHtml = `<div class="status-right status-new">Новый объект</div>`;
       
@@ -648,7 +640,6 @@
 
     function closeFullscreenEdit() { document.getElementById('fullscreen-edit-modal').style.display = 'none'; }
 
-    // ФУНКЦИЯ ПРОВЕРКИ СТРОГОГО СООТВЕТСТВИЯ СТАНДАРТУ ГОСТ РФ (ШАБЛОН)
     function validateGostTemplate(num) {
       if (!num || num === "Не распознан") return false;
       let clean = num.toUpperCase().trim();
@@ -671,8 +662,9 @@
       if (matchIdx !== -1) {
         q[matchIdx].manualNumber = newNum; await addIndexedDBItem(q[matchIdx]); await refreshSyncStatusBar();
         let localDupStatus = checkLocalDuplicateText(newNum, cardId, q);
-        if (localDupStatus) { triggerHardwareAlert('repeat'); updateCardUi(card, newNum, localDupStatus, "Проверка в оффлайне", photoUrl, timeStr, imgSrc); } 
-        else { triggerHardwareAlert('new'); updateCardUi(card, newNum, "Внесен (ждет сеть) 💾", "Сохранено в телефоне", photoUrl, timeStr, imgSrc); }
+        let finalStatus = localDupStatus || "Внесен (ждет сеть) 💾";
+        if (localDupStatus) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
+        updateCardUi(card, newNum, finalStatus, "Проверка в оффлайне", photoUrl, timeStr, imgSrc);
         backgroundSyncLoop();
       } else {
         if (card) {
@@ -704,13 +696,8 @@
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(item) });
         let res = await response.json(); await removeIndexedDBItem(item.taskId);
         
-        let finalNum = res.number;
-        let finalStatus = res.status;
-        
-        // ЖЕСТКАЯ БРАКОВКА НЕВЛИДНОЙ "ЕРЕСИ" ИЗ СЕТИ ПО НАШЕМУ ТРАФАРЕТУ ГОСТа
-        if (!validateGostTemplate(finalNum) && finalNum !== "Не распознан") {
-          finalStatus = "Проверить вручную ⚠️";
-        }
+        let finalNum = res.number; let finalStatus = res.status;
+        if (!validateGostTemplate(finalNum) && finalNum !== "Не распознан") { finalStatus = "Проверить вручную ⚠️"; }
 
         function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
         globalJournalCache.unshift({
@@ -720,12 +707,8 @@
 
         let card = document.getElementById(item.taskId);
         if (card) {
-          if (finalStatus.includes("Проверить вручную")) {
-            triggerHardwareAlert('error');
-          } else {
-            let isRep = finalStatus.includes("Повтор");
-            if (isRep) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
-          }
+          if (finalStatus.includes("Проверить вручную")) { triggerHardwareAlert('error'); } 
+          else { let isRep = finalStatus.includes("Повтор"); if (isRep) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new'); }
           let refreshedQueue = await getIndexedDBQueue();
           let smartStatus = checkLocalDuplicateText(finalNum, item.taskId, refreshedQueue) || finalStatus;
           updateCardUi(card, finalNum, smartStatus, res.address, res.photo, "📅 Запись сохранена", item.image);
@@ -750,14 +733,11 @@
       if (!records.length) { container.innerHTML = "<p style='text-align:center; color:var(--text-sub); margin-top:20px;'>Записей не обнаружено</p>"; return; }
       container.innerHTML = `<p style="font-size:13px; color:var(--text-sub); margin-bottom:10px;">Найдено в общей базе: ${records.length}</p>`;
       records.forEach((r, idx) => {
-        let itemId = "journal_item_" + idx; 
-        let mapsUrl = r.gps && r.gps !== "Нет GPS" ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(r.gps) : "#";
+        let itemId = "journal_item_" + idx; let mapsUrl = r.gps && r.gps !== "Нет GPS" ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(r.gps) : "#";
         let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
         
         let finalStatus = r.status;
-        if (!validateGostTemplate(r.number) && r.number !== "Не распознан") {
-          finalStatus = "Проверить вручную ⚠️";
-        }
+        if (!validateGostTemplate(r.number) && r.number !== "Не распознан") { finalStatus = "Проверить вручную ⚠️"; }
         
         updateCardUi(itemDiv, r.number, finalStatus, r.address, r.photo, "📅 " + r.date, r.thumb);
         if (r.gps && r.gps !== "Нет GPS") {
@@ -804,28 +784,12 @@
     
     function triggerHardwareAlert(type) {
       let overlay = document.getElementById('flash-overlay');
-      
-      // 1. СИНХРОННАЯ ВИЗУАЛЬНАЯ И АУДИАЛЬНАЯ СВЯЗЬ ФОТОЗАПИСИ (ЗАТВОР КАМЕРЫ)
       if (type === 'snap') {
-        if (overlay) {
-          overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.85)'; // Яркая белая фотовспышка кадра
-          overlay.style.opacity = '1';
-          setTimeout(() => { overlay.style.opacity = '0'; }, 150);
-        }
+        if (overlay) { overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.85)'; overlay.style.opacity = '1'; setTimeout(() => { overlay.style.opacity = '0'; }, 150); }
         try {
-          initAudioEngine();
-          let osc = globalAudioCtx.createOscillator();
-          let gain = globalAudioCtx.createGain();
-          osc.connect(gain); gain.connect(globalAudioCtx.destination);
-          
-          // Эмуляция звука механического щелчка фотоаппарата
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(1100, globalAudioCtx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(350, globalAudioCtx.currentTime + 0.08);
-          
-          gain.gain.setValueAtTime(0.3, globalAudioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, globalAudioCtx.currentTime + 0.08);
-          
+          initAudioEngine(); let osc = globalAudioCtx.createOscillator(); let gain = globalAudioCtx.createGain(); osc.connect(gain); gain.connect(globalAudioCtx.destination);
+          osc.type = 'triangle'; osc.frequency.setValueAtTime(1100, globalAudioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(350, globalAudioCtx.currentTime + 0.08);
+          gain.gain.setValueAtTime(0.3, globalAudioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, globalAudioCtx.currentTime + 0.08);
           osc.start(); osc.stop(globalAudioCtx.currentTime + 0.08);
         } catch (e) {}
         return;
@@ -841,20 +805,16 @@
       try {
         if (!globalAudioCtx) { globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
         if (globalAudioCtx.state === 'suspended') { globalAudioCtx.resume(); }
-        let osc = globalAudioCtx.createOscillator(); let gain = globalAudioCtx.createGain();
-        osc.connect(gain); gain.connect(globalAudioCtx.destination); let durationSeconds = 0.2;
+        let osc = globalAudioCtx.createOscillator(); let gain = globalAudioCtx.createGain(); osc.connect(gain); gain.connect(globalAudioCtx.destination); let durationSeconds = 0.2;
         
         if (type === 'new') {
-          durationSeconds = parseFloat(appSettings.durNew) || 0.1; osc.type = 'sine'; osc.frequency.setValueAtTime(950, globalAudioCtx.currentTime);
-          gain.gain.setValueAtTime(0.08, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
+          durationSeconds = parseFloat(appSettings.durNew) || 0.1; osc.type = 'sine'; osc.frequency.setValueAtTime(950, globalAudioCtx.currentTime); gain.gain.setValueAtTime(0.08, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
           if (navigator.vibrate) navigator.vibrate(durationSeconds * 1000);
         } else if (type === 'repeat') {
-          durationSeconds = parseFloat(appSettings.durRep) || 0.3; osc.type = 'triangle'; osc.frequency.setValueAtTime(580, globalAudioCtx.currentTime);
-          gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
+          durationSeconds = parseFloat(appSettings.durRep) || 0.3; osc.type = 'triangle'; osc.frequency.setValueAtTime(580, globalAudioCtx.currentTime); gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
           if (navigator.vibrate) { navigator.vibrate([durationSeconds * 500, 100, durationSeconds * 500]); }
         } else if (type === 'error') {
-          durationSeconds = parseFloat(appSettings.durErr) || 0.5; osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, globalAudioCtx.currentTime);
-          gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
+          durationSeconds = parseFloat(appSettings.durErr) || 0.5; osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, globalAudioCtx.currentTime); gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
           if (navigator.vibrate) navigator.vibrate(durationSeconds * 1000);
         }
       } catch (e) { console.log("Касание аудио-движка..."); }
