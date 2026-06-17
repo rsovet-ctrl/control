@@ -7,7 +7,6 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1877f2">
   <style>
-    /* ПЕРЕМЕННЫЕ ДЛЯ ПОДДЕРЖКИ СВЕТЛОЙ И ТЕМНОЙ ТЕМЫ */
     :root { --bg-main: #f0f2f5; --bg-card: #ffffff; --text-main: #1c1e21; --text-sub: #65676b; --border-color: #ced4da; }
     .dark-mode { --bg-main: #18191a; --bg-card: #242526; --text-main: #e4e6eb; --text-sub: #b0b3b8; --border-color: #3a3b3c; }
 
@@ -21,7 +20,6 @@
     .progress-container { width: 90%; height: 6px; background: rgba(255,255,255,0.25); border-radius: 4px; margin: 8px auto 0 auto; display: none; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
     .progress-bar { height: 100%; width: 0%; background: #ffffff; transition: width 0.3s ease; box-shadow: 0 0 4px #fff; }
 
-    /* ШАПКА С НАВИГАЦИЕЙ И КНОПКОЙ НОЧНОЙ СМЕНЫ */
     .header-nav { display: flex; background: var(--bg-card); border-bottom: 1px solid var(--border-color); position: sticky; top: 38px; z-index: 1000; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     .nav-tabs-box { display: flex; flex: 1; }
     .tab-link { flex: 1; text-align: center; padding: 16px 0; font-weight: 600; cursor: pointer; color: var(--text-sub); font-size: 15px; }
@@ -199,7 +197,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "3.9"; 
+    const APP_VERSION = "3.9.1"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3 };
     let currentCoords = null;
@@ -208,11 +206,10 @@
     let globalAudioCtx = null; 
     let isDbLoaded = false;
     let syncTotalItems = 0; 
-    let indexedDatabase = null; // Объект базы IndexedDB
+    let indexedDatabase = null; 
 
     let modalZoomScale = 1; let panX = 0; let panY = 0; let isDragging = false; let startX = 0; let startY = 0;
 
-    // ИНИЦИАЛИЗАЦИЯ ПРОМЫШЛЕННОЙ БАЗЫ ДАННЫХ INDEXEDDB ДЛЯ ТЕЛЕФОНА
     function initIndexedDB() {
       return new Promise((resolve, reject) => {
         let request = indexedDB.open("CarControlDB", 1);
@@ -258,7 +255,6 @@
       });
     }
 
-    // УПРАВЛЕНИЕ НОЧНОЙ СМЕНОЙ
     function toggleThemeMode() {
       document.body.classList.toggle('dark-mode');
       let isDark = document.body.classList.contains('dark-mode');
@@ -325,12 +321,12 @@
 
     window.onload = async function() {
       loadSavedTheme();
-      await initIndexedDB(); // Запускаем базу данных в первую очередь
+      await initIndexedDB(); 
       reRequestGeolocation(true);
       loadSettings(true);
       await refreshSyncStatusBar();
       await restoreOfflineCards(); 
-      silentLoadJournalCache(); // Синхронизируем скользящее окно базы
+      silentLoadJournalCache(); 
       setInterval(backgroundSyncLoop, 10000);
 
       document.body.addEventListener('click', initAudioEngine, { once: false });
@@ -441,7 +437,6 @@
       }
     }
 
-    // СКОЛЬЗЯЩЕЕ ОКНО СИНХРОНИЗАЦИИ БАЗЫ ДАННЫХ
     async function silentLoadJournalCache() {
       try {
         let days = parseInt(localStorage.getItem('settings_days') || '3');
@@ -514,16 +509,24 @@
       else { return `Повтор: ${count} раз! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`; }
     }
 
-    async function uploadAndProcess(input) {
+    function uploadAndProcess(input) {
       if (!input.files.length) return;
       initAudioEngine(); 
       const file = input.files[0]; const taskId = "task_" + new Date().getTime(); const reader = new FileReader();
       
       reader.onload = function(e) {
         compressImage(e.target.result, 1280, 1280, 0.7, async function(compressedBg64) {
-          let offlineItem = { action: 'scan', taskId: taskId, image: compressedBg64, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: null };
+          // ИСПРАВЛЕНО: ДобавляемtaskId прямо внутрь объекта для жесткого соответствия ключу IndexedDB
+          let offlineItem = { 
+            taskId: taskId, 
+            action: 'scan', 
+            image: compressedBg64, 
+            coords: currentCoords, 
+            timestamp: new Date().getTime(), 
+            manualNumber: null 
+          };
           
-          await addIndexedDBItem(offlineItem); // Запись во встроенную IndexedDB базу
+          await addIndexedDBItem(offlineItem); 
           await refreshSyncStatusBar();
           
           let scanResultArea = document.getElementById('scan-result');
@@ -618,7 +621,7 @@
       
       if (matchIdx !== -1) {
         q[matchIdx].manualNumber = newNum;
-        await addIndexedDBItem(q[matchIdx]); // Обновление внутри IndexedDB
+        await addIndexedDBItem(q[matchIdx]); 
         await refreshSyncStatusBar();
         
         let localDupStatus = checkLocalDuplicateText(newNum, cardId, q);
@@ -662,7 +665,7 @@
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(item) });
         let res = await response.json();
         
-        await removeIndexedDBItem(item.taskId); // Стираем из IndexedDB после успешной отправки
+        await removeIndexedDBItem(item.taskId); 
         
         function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
         globalJournalCache.unshift({
@@ -744,7 +747,7 @@
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', days: days, durNew: document.getElementById('settings-dur-new').value, durRep: document.getElementById('settings-dur-rep').value, durErr: document.getElementById('settings-dur-err').value }) })
         .then(r => {
           document.getElementById('settings-status').innerText = "Настройки сохранены!";
-          silentLoadJournalCache(); // Пересчитываем скользящее окно кэша при изменении дней
+          silentLoadJournalCache(); 
           setTimeout(() => document.getElementById('settings-status').innerText = "", 3000);
         }).catch(e => { alert("Локальные параметры сохранены!"); });
     }
