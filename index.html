@@ -55,7 +55,6 @@
     .journal-item.local-offline { border-left-color: #ffaa00; background: rgba(255, 170, 0, 0.03); }
     .journal-item.local-online-processing { border-left-color: #1877f2; background: rgba(24, 119, 242, 0.04); }
     
-    /* 🔴 СТИЛИ ДЛЯ АКТИВНО МИГАЮЩЕЙ КАРТОЧКИ ОШИБКИ ИЛИ НЕРАСПОЗНАННОГО ОБЪЕКТА */
     @keyframes alert-blink-animation {
       0% { background-color: rgba(255, 122, 0, 0.06); border-left-color: #ff7a00; }
       50% { background-color: rgba(240, 40, 73, 0.16); border-left-color: #f02849; box-shadow: 0 0 10px rgba(240, 40, 73, 0.3); }
@@ -135,7 +134,6 @@
     <button class="theme-toggle-btn" onclick="toggleThemeMode()">🌙</button>
   </div>
 
-  <!-- ВКЛАДКА 1: КАМЕРА -->
   <div id="scan-tab" class="tab-content active">
     <div class="card" style="text-align: center; padding: 6px;">
       <div class="live-stream-container" id="stream-box-container">
@@ -147,7 +145,6 @@
     </div>
   </div>
 
-  <!-- ВКЛАДКА 2: ЖУРНАЛ -->
   <div id="search-tab" class="tab-content">
     <div class="card">
       <h3>Параметры выборки</h3>
@@ -167,7 +164,6 @@
     <div id="journal-container"></div>
   </div>
 
-  <!-- ВКЛАДКА 3: ОПЦИИ -->
   <div id="settings-tab" class="tab-content">
     <div class="card">
       <h3>Геометрия окна трансляции (px)</h3>
@@ -199,7 +195,6 @@
     </div>
   </div>
 
-  <!-- ПОЛНОЭКРАННОЕ ОКНО РУЧНОГО ВВОДА -->
   <div id="fullscreen-edit-modal">
     <div class="modal-box">
       <div class="modal-title">СВЕРЬТЕ ЗНАКИ С ВЕРТИКАЛЬНЫМ СНИМКОМ:</div>
@@ -227,7 +222,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "4.6"; 
+    const APP_VERSION = "4.7"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "⏳ Поиск GPS...";
@@ -386,9 +381,10 @@
       charityTransform();
     }
 
+    // ИСПРАВЛЕННО: Считывает данные из глобальной переменной, а не пустых полей ввода
     function applyLocalUiDimensions() {
-      let w = parseInt(document.getElementById('settings-cam-w').value) || 280;
-      let h = parseInt(document.getElementById('settings-cam-h').value) || 370;
+      let w = parseInt(document.getElementById('settings-cam-w').value) || appSettings.camW || 280;
+      let h = parseInt(document.getElementById('settings-cam-h').value) || appSettings.camH || 370;
       appSettings.camW = w; appSettings.camH = h;
       let box = document.getElementById('stream-box-container');
       if (box) { box.style.maxWidth = w + 'px'; box.style.height = h + 'px'; }
@@ -411,7 +407,7 @@
       loadSavedTheme();
       await initIndexedDB(); 
       reRequestGeolocation(true);
-      loadSettings(true);
+      loadSettings(true); // Гарантированно запустит геометрию при старте
       await refreshSyncStatusBar();
       await restoreOfflineCards(); 
       silentLoadJournalCache(); 
@@ -580,18 +576,13 @@
       else { return `Повтор: ${count} раз! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`; }
     }
 
-    // ⚡ ГАРАНТИРОВАННО СТАБИЛЬНЫЙ ОТРИСОВЩИК БЕЗ ЗАВИСАНИЙ И С МИГАНИЕМ ТРЕВОГИ
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc) {
-      // Жесткая броня от null/undefined (Убирает висяки)
-      number = number || "";
-      status = status || "";
+      number = number || ""; status = status || "";
       
-      let isRep = status.includes("Повтор"); 
-      let isPending = status.includes("Ожидание сети");
-      let isProcessing = number === "🤖 АНАЛИЗ..."; 
+      let isRep = status.includes("Повтор"); let isPending = status.includes("Ожидание сети");
+      let isProcessing = number === "🤖 АНАЛИЗ..." || status.includes("Пересчет"); 
       let isErr = number === "Не распознан" || number.includes("Ошибка") || status.includes("Проверить вручную");
       
-      // Накатываем классы тем. Ошибки теперь получают класс error-item-blink для пульсации
       if (isPending) cardElement.className = "journal-item local-offline";
       else if (isProcessing) cardElement.className = "journal-item local-online-processing";
       else if (isErr) cardElement.className = "journal-item error-item error-item-blink";
@@ -629,7 +620,7 @@
       initAudioEngine(); modalZoomScale = 1; panX = 0; panY = 0; charityTransform();
       let textSpan = document.getElementById(`text_${cardId}`);
       let currentNumber = textSpan ? textSpan.innerText : "";
-      if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "🤖 АНАЛИЗ..." || currentNumber.includes("Не распознан")) currentNumber = "";
+      if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "🤖 АНАЛИЗ..." || currentNumber.includes("Не распознан") || currentNumber.includes("КОРРЕКТИРОВКА")) currentNumber = "";
       
       document.getElementById('m-target-img').src = imgToDisplay || "";
       let inputField = document.getElementById('m-plate-field'); inputField.value = currentNumber;
@@ -648,6 +639,7 @@
       return carRegex.test(clean) || motoRegex.test(clean);
     }
 
+    // 🔒 ИСПРАВЛЕННАЯ СУПЕР-ЗАЩИЩЕННАЯ ФУНКЦИЯ СОХРАНЕНИЯ (НИКОГДА НЕ ЗАВИСАЕТ)
     async function saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgSrc) {
       let newNum = document.getElementById('m-plate-field').value.toUpperCase().trim();
       if (!newNum) return;
@@ -656,10 +648,19 @@
         triggerHardwareAlert('error'); alert("ОШИБКА ГОСТа РФ!\nАвтомобильный: А000АА99\nМотоциклетный: 0000АА99"); return;
       }
       
-      closeFullscreenEdit(); let card = document.getElementById(cardId);
-      let q = await getIndexedDBQueue(); let matchIdx = q.findIndex(item => item.taskId === cardId);
+      closeFullscreenEdit(); 
+      let card = document.getElementById(cardId);
+      if (!card) return;
+
+      // Замораживаем и сохраняем исходный HTML-код на случай сбоя облака
+      const originalHtml = card.innerHTML;
+      const originalClass = card.className;
+
+      let q = await getIndexedDBQueue(); 
+      let matchIdx = q.findIndex(item => item.taskId === cardId);
       
       if (matchIdx !== -1) {
+        // Оффлайн буфер
         q[matchIdx].manualNumber = newNum; await addIndexedDBItem(q[matchIdx]); await refreshSyncStatusBar();
         let localDupStatus = checkLocalDuplicateText(newNum, cardId, q);
         let finalStatus = localDupStatus || "Внесен (ждет сеть) 💾";
@@ -667,22 +668,35 @@
         updateCardUi(card, newNum, finalStatus, "Проверка в оффлайне", photoUrl, timeStr, imgSrc);
         backgroundSyncLoop();
       } else {
-        if (card) {
-          card.className = "journal-item pending";
-          let rb = card.querySelector('.status-right'); if (rb) { rb.className = "status-right status-pending"; rb.innerText = "Пересчет..."; }
-        }
+        // Прямой пересчет в сети Google
+        card.className = "journal-item local-online-processing";
+        let rb = card.querySelector('.status-right'); 
+        if (rb) { rb.className = "status-right status-processing-text"; rb.innerText = "Пересчет..."; }
+        
         try {
           let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'editRecord', photo: photoUrl, newNumber: newNum }) });
+          if (!response.ok) throw new Error("Ошибка HTTP");
+          
           let res = await response.json();
-          if (res.success) {
+          if (res && res.success) {
             function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
             let finalNum = res.number || newNum; let finalStatus = res.status || "Новый объект";
+            
             globalJournalCache.unshift({ taskId: cardId, number: finalNum, date: getGSheetsTimestamp(), address: address, gps: "Изменен в сети" });
+            
             let smartStatus = checkLocalDuplicateText(finalNum, cardId, null) || finalStatus;
             if (smartStatus.includes("Повтор")) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
             updateCardUi(card, finalNum, smartStatus, address, photoUrl, timeStr, imgSrc);
+          } else {
+            // Если скрипт вернул ошибку, мягко откатываемся и снимаем зависание
+            alert("Гугл отклонил изменения. Карта восстановлена.");
+            card.innerHTML = originalHtml; card.className = originalClass;
           }
-        } catch (e) { alert("Сбой соединения"); }
+        } catch (e) { 
+          // Полный сетевой откат при потере связи
+          console.error("Сбой сети: ", e);
+          card.innerHTML = originalHtml; card.className = originalClass;
+        }
       }
     }
 
@@ -733,7 +747,8 @@
       if (!records.length) { container.innerHTML = "<p style='text-align:center; color:var(--text-sub); margin-top:20px;'>Записей не обнаружено</p>"; return; }
       container.innerHTML = `<p style="font-size:13px; color:var(--text-sub); margin-bottom:10px;">Найдено в общей базе: ${records.length}</p>`;
       records.forEach((r, idx) => {
-        let itemId = "journal_item_" + idx; let mapsUrl = r.gps && r.gps !== "Нет GPS" ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(r.gps) : "#";
+        let itemId = "journal_item_" + idx; 
+        let mapsUrl = r.gps && r.gps !== "Нет GPS" ? "https://www.google.com/maps/search/?api=1&query=$" + encodeURIComponent(r.gps) : "#";
         let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
         
         let finalStatus = r.status;
@@ -757,7 +772,12 @@
       let localH = localStorage.getItem('settings_cam_h');
       if (localH) appSettings.camH = parseInt(localH);
 
-      if (!isSilent) { document.getElementById('settings-recent-mins').value = appSettings.recentMins; document.getElementById('settings-days').value = appSettings.days; document.getElementById('settings-cam-w').value = appSettings.camW; document.getElementById('settings-cam-h').value = appSettings.camH; }
+      // ЖЕСТКО ЗАБИВАЕМ ИНПУТЫ ПРИ СТАРТЕ, ЧТОБЫ ГЕОМЕТРИЯ СРАБОТАЛА СРАЗУ
+      document.getElementById('settings-recent-mins').value = appSettings.recentMins; 
+      document.getElementById('settings-days').value = appSettings.days;
+      document.getElementById('settings-cam-w').value = appSettings.camW;
+      document.getElementById('settings-cam-h').value = appSettings.camH;
+      
       applyLocalUiDimensions();
 
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings' }) })
