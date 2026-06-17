@@ -39,7 +39,6 @@
     .btn-secondary { background: #e4e6eb; color: #4b4f56; box-shadow: none; }
     .dark-mode .btn-secondary { background: #3a3b3c; color: #e4e6eb; }
     
-    /* ЖЕСТКИЙ УЛЬТРА-КОМПАКТНЫЙ РАЗМЕР ОКНА ОЖИДАНИЯ СТРИМА */
     .live-stream-container { position: relative; width: 100%; max-width: 280px; margin: 10px auto; background: #000; border-radius: 16px; overflow: hidden; aspect-ratio: 3/4; border: 3px solid #1877f2; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
     .live-stream-container video { width: 100%; height: 100%; object-fit: cover; }
     
@@ -206,7 +205,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "4.2"; 
+    const APP_VERSION = "4.3"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3 };
     let currentCoords = null;
@@ -219,6 +218,16 @@
     let liveVideoStream = null;
 
     let modalZoomScale = 1; let panX = 0; let panY = 0; let isDragging = false; let startX = 0; let startY = 0;
+
+    // ВОЗВРАЩЕННАЯ ФУНКЦИЯ ЗВУКОВОГО ДВИЖКА (УСТРАНЯЕТReferenceError)
+    function initAudioEngine() {
+      if (!globalAudioCtx) {
+        globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+        globalAudioCtx.resume();
+      }
+    }
 
     function initIndexedDB() {
       return new Promise((resolve, reject) => {
@@ -284,7 +293,6 @@
       }
     }
 
-    // ИСПРАВЛЕННЫЙ ИГРОК ЗАХВАТА КАДРА С АНТИ-БАГОМ И ПЕРЕХВАТОМ ОШИБОК (TRY/CATCH)
     async function captureLiveFrame() {
       try {
         const videoEl = document.getElementById('live-webcam');
@@ -295,7 +303,6 @@
         initAudioEngine();
         const taskId = "task_" + new Date().getTime();
         
-        // АНТИ-БАГ: Жесткая защита от нулевого кадра Android (0px)
         const w = videoEl.videoWidth > 0 ? videoEl.videoWidth : 640;
         const h = videoEl.videoHeight > 0 ? videoEl.videoHeight : 480;
         
@@ -562,8 +569,8 @@
       }
 
       let dotHtml = isRecent ? `<span class="pulse-dot"></span>` : "";
-      let mapUrl = latestGps ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(latestGps)}` : "#";
-      let mapBtnHtml = (latestGps && latestGps !== "Нет GPS") ? `<br><a class="geo-btn" href="${mapUrl}" target="_blank">🗺️ Карта повтора</a>` : "";
+      let mapsUrl = latestGps ? "https://www.google.com/maps?q=" + encodeURIComponent(latestGps) : "#";
+      let mapBtnHtml = (latestGps && latestGps !== "Нет GPS") ? `<br><a class="geo-btn" href="${mapsUrl}" target="_blank">🗺️ Карта повтора</a>` : "";
 
       if (count === 1) { return `Повтор! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`; } 
       else { return `Повтор: ${count} раз! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`; }
@@ -708,7 +715,7 @@
       container.innerHTML = `<p style="font-size:13px; color:var(--text-sub); margin-bottom:10px;">Найдено в общей базе: ${records.length}</p>`;
       records.forEach((r, idx) => {
         let itemId = "journal_item_" + idx; 
-        let mapsUrl = r.gps && r.gps !== "Нет GPS" ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.gps)}` : "#";
+        let mapsUrl = r.gps && r.gps !== "Нет GPS" ? "https://www.google.com/maps?q=" + encodeURIComponent(r.gps) : "#";
         let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
         updateCardUi(itemDiv, r.number, r.status, r.address, r.photo, "📅 " + r.date, r.thumb);
         if (r.gps && r.gps !== "Нет GPS") {
