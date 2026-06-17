@@ -12,7 +12,10 @@
 
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg-main); color: var(--text-main); transition: background 0.3s, color 0.3s; }
     
-    #sync-status-bar { text-align: center; padding: 10px; font-size: 13px; font-weight: bold; color: white; position: sticky; top: 0; z-index: 2000; transition: all 0.4s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); line-height: 1.3; }
+    /* ИСПРАВЛЕННО: Строка состояния теперь визуально кликабельна */
+    #sync-status-bar { text-align: center; padding: 10px; font-size: 13px; font-weight: bold; color: white; position: sticky; top: 0; z-index: 2000; transition: all 0.4s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); line-height: 1.3; cursor: pointer; user-select: none; }
+    #sync-status-bar:active { filter: brightness(0.9); }
+    
     .status-synced { background: #42b72a; }
     .status-offline { background: #ffaa00; }
     .status-uploading { background: #1877f2; }
@@ -35,7 +38,6 @@
     input { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; background: var(--bg-main); color: var(--text-main); margin-bottom: 10px; }
     input:focus { background: var(--bg-card); border-color: #1877f2; outline: none; }
     
-    /* 🔥 ЖЕСТКИЕ СТАРТОВЫЕ ОГРАНИЧЕНИЯ РАЗМЕРОВ: ОКНО НЕ БУДЕТ РАЗДУВАТЬСЯ НА ВЕСЬ ЭКРАН ПРИ ЗАПУСКЕ */
     .live-stream-container { position: relative; width: 280px; height: 370px; margin: 5px auto; background: #000; border-radius: 16px; overflow: hidden; border: 3px solid #1877f2; box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: width 0.2s, height 0.2s; }
     .live-stream-container video { width: 100%; height: 100%; object-fit: cover; }
     
@@ -102,20 +104,13 @@
 
     .range-container { display: flex; gap: 10px; margin-bottom: 10px; }
     .range-container > div { flex: 1; }
-
-    @keyframes pulse {
-      0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(240, 40, 73, 0.7); }
-      70% { transform: scale(1.1); box-shadow: 0 0 0 5px rgba(240, 40, 73, 0); }
-      100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(240, 40, 73, 0); }
-    }
-    .pulse-dot { display: inline-block; width: 9px; height: 9px; background: #f02849; border-radius: 50%; margin-left: 6px; vertical-align: middle; animation: pulse 1.2s infinite; }
   </style>
 </head>
 <body>
 
   <div id="flash-overlay"></div>
 
-  <div id="sync-status-bar" class="status-offline">
+  <div id="sync-status-bar" class="status-offline" onclick="reRequestGeolocation(false)">
     <span id="sync-status-text">⏳ Ожидание спутников GPS...</span>
     <div id="sync-progress-container" class="progress-container">
       <div id="sync-progress-bar" class="progress-bar"></div>
@@ -163,6 +158,11 @@
 
   <div id="settings-tab" class="tab-content">
     <div class="card">
+      <h3>Спутниковая навигация (GPS)</h3>
+      <p style="font-size:13px; color:var(--text-sub); margin-bottom: 12px;">Высокоточный координатный трекер для фиксации геопозиции АЗС.</p>
+      <button class="btn btn-secondary" onclick="reRequestGeolocation(false)">🔄 Перезапустить спутники GPS</button>
+    </div>
+    <div class="card">
       <h3>Геометрия окна трансляции (px)</h3>
       <div class="range-container">
         <div>
@@ -189,6 +189,10 @@
       <label>Ошибка / Не распознан:</label><input type="number" id="settings-dur-err" min="0.1" max="5" step="0.1">
       <button class="btn" style="margin-top: 10px;" onclick="saveSettings()">Сохранить настройки</button>
       <p id="settings-status" style="color: #42b72a; font-weight: bold; margin-top: 10px; text-align:center;"></p>
+    </div>
+    
+    <div style="text-align: center; font-size: 12px; color: var(--text-sub); margin-top: 25px; opacity: 0.55; letter-spacing: 0.3px; font-weight: 500;">
+      Разработчик: Роман Шантаев | Терминал v5.4
     </div>
   </div>
 
@@ -219,7 +223,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "5.2"; 
+    const APP_VERSION = "5.4"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "⏳ Поиск GPS...";
@@ -391,10 +395,12 @@
         navigator.geolocation.getCurrentPosition(async function(position) {
           currentCoords = { latitude: position.coords.latitude, longitude: position.coords.longitude };
           gpsStatusText = "📍 GPS: Активен"; await refreshSyncStatusBar();
+          if (!isSilent) alert("📍 Геолокация GPS успешно обновлена!");
         }, async function(error) {
           if (error.code === error.PERMISSION_DENIED) { gpsStatusText = "❌ GPS: Заблокирован"; } 
           else { gpsStatusText = "⚠️ GPS: Ошибка датчика"; }
           await refreshSyncStatusBar();
+          if (!isSilent) alert("⚠️ Сбой GPS. Проверьте разрешения геолокации в телефоне!");
         }, { enableHighAccuracy: true, timeout: 8000 });
       }
     }
@@ -721,10 +727,20 @@
     }
 
     async function backgroundSyncLoop() {
-      if (isSyncing) return; let q = await getIndexedDBQueue();
+      if (isSyncing) return; 
+      let q = await getIndexedDBQueue();
       if (q.length === 0) { syncTotalItems = 0; await refreshSyncStatusBar(); return; }
+      
+      if (!navigator.onLine) {
+        isSyncing = false;
+        await refreshSyncStatusBar(); 
+        return; 
+      }
+
       if (syncTotalItems < q.length) { syncTotalItems = q.length; }
-      isSyncing = true; await refreshSyncStatusBar(); let item = q[0];
+      isSyncing = true; 
+      await refreshSyncStatusBar(); 
+      let item = q[0];
       
       try {
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(item) });
