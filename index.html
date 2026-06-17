@@ -39,11 +39,9 @@
     .btn-secondary { background: #e4e6eb; color: #4b4f56; box-shadow: none; }
     .dark-mode .btn-secondary { background: #3a3b3c; color: #e4e6eb; }
     
-    /* НАСТРАИВАЕМЫЙ ДИНАМИЧЕСКИЙ КОНТЕЙНЕР ДЛЯ ПОТОКА КАМЕРЫ */
     .live-stream-container { position: relative; width: 100%; margin: 5px auto; background: #000; border-radius: 16px; overflow: hidden; border: 3px solid #1877f2; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
     .live-stream-container video { width: 100%; height: 100%; object-fit: cover; }
     
-    /* КОМПАКТНЫЙ СЛОЙ С ТЕКСТОМ ПРЯМО ПОВЕРХ ВИДЕОПОТОКА */
     .stream-overlay-title { position: absolute; top: 10px; left: 12px; background: rgba(0, 0, 0, 0.6); color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; pointer-events: none; letter-spacing: 0.3px; }
 
     .floating-capture-btn { position: absolute; bottom: 15px; right: 15px; background: #f02849; color: white; border: 2px solid white; border-radius: 50%; width: 58px; height: 58px; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(0,0,0,0.4); z-index: 500; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
@@ -129,6 +127,7 @@
     <button class="theme-toggle-btn" onclick="toggleThemeMode()">🌙</button>
   </div>
 
+  <!-- ВКЛАДКА 1: КАМЕРА -->
   <div id="scan-tab" class="tab-content active">
     <div class="card" style="text-align: center; padding: 6px;">
       <div class="live-stream-container" id="stream-box-container">
@@ -140,6 +139,7 @@
     </div>
   </div>
 
+  <!-- ВКЛАДКА 2: ЖУРНАЛ -->
   <div id="search-tab" class="tab-content">
     <div class="card">
       <h3>Параметры выборки</h3>
@@ -159,6 +159,7 @@
     <div id="journal-container"></div>
   </div>
 
+  <!-- ВКЛАДКА 3: ОПЦИИ -->
   <div id="settings-tab" class="tab-content">
     <div class="card">
       <h3>Геометрия окна трансляции (px)</h3>
@@ -190,6 +191,7 @@
     </div>
   </div>
 
+  <!-- ПОЛНОЭКРАННОЕ ОКНО РУЧНОГО ВВОДА -->
   <div id="fullscreen-edit-modal">
     <div class="modal-box">
       <div class="modal-title">СВЕРЬТЕ ЗНАКИ С ВЕРТИКАЛЬНЫМ СНИМКОМ:</div>
@@ -217,7 +219,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "4.4"; 
+    const APP_VERSION = "4.5"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "⏳ Поиск GPS...";
@@ -297,7 +299,6 @@
       }
     }
 
-    // ИСПРАВЛЕННАЯ ФУНКЦИЯ ЗАХВАТА С КОРРЕКТНЫМ ЦЕНТРАЛЬНЫМ КАДРИРОВАНИЕМ (КРОП ПОД РАЗМЕР ОКНА)
     async function captureLiveFrame() {
       try {
         const videoEl = document.getElementById('live-webcam');
@@ -305,23 +306,22 @@
           alert("Трансляция недоступна!"); return;
         }
 
-        initAudioEngine();
-        const taskId = "task_" + new Date().getTime();
+        // Запуск визуально-аудиальной обратной связи фотовспышки
+        triggerHardwareAlert('snap');
         
+        const taskId = "task_" + new Date().getTime();
         const videoW = videoEl.videoWidth > 0 ? videoEl.videoWidth : 1280;
         const videoH = videoEl.videoHeight > 0 ? videoEl.videoHeight : 720;
         
-        // Считываем пропорции окна, заданные пользователем в Опциях
         const boxW = appSettings.camW;
         const boxH = appSettings.camH;
         
         const canvas = document.createElement('canvas');
-        canvas.width = boxW * 2;  // Умножаем на 2 для HD плотности
+        canvas.width = boxW * 2;  
         canvas.height = boxH * 2;
         
         const ctx = canvas.getContext('2d');
         
-        // МАТЕМАТИКА КРОПА: Вырезаем только то, что инспектор реально видит в прямоугольнике CSS 'object-fit: cover'
         let sx = 0, sy = 0, sWidth = videoW, sHeight = videoH;
         const videoRatio = videoW / videoH;
         const boxRatio = boxW / boxH;
@@ -389,19 +389,12 @@
       charityTransform();
     }
 
-    // ПРИМЕНЕНИЕ НАСТРОЕК ГЕОМЕТРИИ ОКНА НА ЛЕТУ
     function applyLocalUiDimensions() {
       let w = parseInt(document.getElementById('settings-cam-w').value) || 280;
       let h = parseInt(document.getElementById('settings-cam-h').value) || 370;
-      
-      appSettings.camW = w;
-      appSettings.camH = h;
-      
+      appSettings.camW = w; appSettings.camH = h;
       let box = document.getElementById('stream-box-container');
-      if (box) {
-        box.style.maxWidth = w + 'px';
-        box.style.height = h + 'px';
-      }
+      if (box) { box.style.maxWidth = w + 'px'; box.style.height = h + 'px'; }
     }
 
     function reRequestGeolocation(isSilent) {
@@ -507,7 +500,6 @@
       openTab('search-tab', null); triggerSearch();
     }
 
-    // СКОМПОНОВАННЫЙ ВЫВОД ВСЕХ СТАТУСОВ В ВЕРХНЮЮ СТРОКУ
     async function refreshSyncStatusBar() {
       let q = await getIndexedDBQueue();
       let bar = document.getElementById('sync-status-bar');
@@ -546,14 +538,12 @@
 
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: { startDate: sDate } }) });
         let records = await response.json();
-        if (records && records.length) {
-          globalJournalCache = records; isDbLoaded = true; await refreshSyncStatusBar();
-        }
+        if (records && records.length) { globalJournalCache = records; isDbLoaded = true; await refreshSyncStatusBar(); }
       } catch (e) {}
     }
 
     function checkLocalDuplicateText(num, currentTaskId, preloadedQueue) {
-      if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ...") return null;
+      if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ..." || num.includes("Проверить вручную")) return null;
       let cleanNum = num.toUpperCase().trim();
       let count = 0; let latestTimestamp = 0; let latestAddress = ""; let latestGps = "";
 
@@ -598,7 +588,7 @@
       }
 
       let dotHtml = isRecent ? `<span class="pulse-dot"></span>` : "";
-      let mapsUrl = latestGps ? "https://www.google.com/maps/search/?api=1&query=$" + encodeURIComponent(latestGps) : "#";
+      let mapsUrl = latestGps ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(latestGps) : "#";
       let mapBtnHtml = (latestGps && latestGps !== "Нет GPS") ? `<br><a class="geo-btn" href="${mapsUrl}" target="_blank">🗺️ Карта повтора</a>` : "";
 
       if (count === 1) { return `Повтор! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`; } 
@@ -607,7 +597,8 @@
 
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc) {
       let isRep = status.includes("Повтор"); let isPending = status.includes("Ожидание сети");
-      let isProcessing = number === "🤖 АНАЛИЗ..."; let isErr = number === "Не распознан" || number.includes("Ошибка");
+      let isProcessing = number === "🤖 АНАЛИЗ..."; 
+      let isErr = number === "Не распознан" || number.includes("Ошибка") || status.includes("Проверить вручную");
       
       if (isPending) cardElement.className = "journal-item local-offline";
       else if (isProcessing) cardElement.className = "journal-item local-online-processing";
@@ -616,7 +607,7 @@
       
       let rightHtml = isPending ? `<div class="status-right status-offline-text">${status}</div>` : 
                      (isProcessing ? `<div class="status-right status-processing-text">${status}</div>` :
-                     (isErr ? `<div class="status-right status-error">Проверить вручную</div>` : `<div class="status-right">${status}</div>`));
+                     (isErr ? `<div class="status-right status-error">${status || 'Проверить вручную'}</div>` : `<div class="status-right">${status}</div>`));
                      
       if(!isPending && !isProcessing && !isErr && !isRep) rightHtml = `<div class="status-right status-new">Новый объект</div>`;
       
@@ -646,7 +637,7 @@
       initAudioEngine(); modalZoomScale = 1; panX = 0; panY = 0; charityTransform();
       let textSpan = document.getElementById(`text_${cardId}`);
       let currentNumber = textSpan ? textSpan.innerText : "";
-      if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "🤖 АНАЛИЗ..." || currentNumber === "Не распознан") currentNumber = "";
+      if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "🤖 АНАЛИЗ..." || currentNumber.includes("Не распознан")) currentNumber = "";
       
       document.getElementById('m-target-img').src = imgToDisplay || "";
       let inputField = document.getElementById('m-plate-field'); inputField.value = currentNumber;
@@ -657,13 +648,20 @@
 
     function closeFullscreenEdit() { document.getElementById('fullscreen-edit-modal').style.display = 'none'; }
 
+    // ФУНКЦИЯ ПРОВЕРКИ СТРОГОГО СООТВЕТСТВИЯ СТАНДАРТУ ГОСТ РФ (ШАБЛОН)
+    function validateGostTemplate(num) {
+      if (!num || num === "Не распознан") return false;
+      let clean = num.toUpperCase().trim();
+      let carRegex = /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i; 
+      let motoRegex = /^\d{4}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i;           
+      return carRegex.test(clean) || motoRegex.test(clean);
+    }
+
     async function saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgSrc) {
       let newNum = document.getElementById('m-plate-field').value.toUpperCase().trim();
       if (!newNum) return;
       
-      let carRegex = /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i; 
-      let motoRegex = /^\d{4}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i;           
-      if (!carRegex.test(newNum) && !motoRegex.test(newNum)) {
+      if (!validateGostTemplate(newNum)) {
         triggerHardwareAlert('error'); alert("ОШИБКА ГОСТа РФ!\nАвтомобильный: А000АА99\nМотоциклетный: 0000АА99"); return;
       }
       
@@ -706,25 +704,34 @@
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(item) });
         let res = await response.json(); await removeIndexedDBItem(item.taskId);
         
+        let finalNum = res.number;
+        let finalStatus = res.status;
+        
+        // ЖЕСТКАЯ БРАКОВКА НЕВЛИДНОЙ "ЕРЕСИ" ИЗ СЕТИ ПО НАШЕМУ ТРАФАРЕТУ ГОСТа
+        if (!validateGostTemplate(finalNum) && finalNum !== "Не распознан") {
+          finalStatus = "Проверить вручную ⚠️";
+        }
+
         function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
         globalJournalCache.unshift({
-          taskId: item.taskId, number: res.number, date: getGSheetsTimestamp(), address: res.address || "Определено GPS",
+          taskId: item.taskId, number: finalNum, date: getGSheetsTimestamp(), address: res.address || "Определено GPS",
           gps: item.coords ? `${item.coords.latitude},${item.coords.longitude}` : "Нет GPS", thumb: item.image
         });
 
         let card = document.getElementById(item.taskId);
         if (card) {
-          let isRep = res.status.includes("Повтор"); let isErr = res.number === "Не распознан" || res.number.includes("Ошибка");
-          if (isErr) triggerHardwareAlert('error'); else if (isRep) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
+          if (finalStatus.includes("Проверить вручную")) {
+            triggerHardwareAlert('error');
+          } else {
+            let isRep = finalStatus.includes("Повтор");
+            if (isRep) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
+          }
           let refreshedQueue = await getIndexedDBQueue();
-          let smartStatus = checkLocalDuplicateText(res.number, item.taskId, refreshedQueue) || res.status;
-          updateCardUi(card, res.number, smartStatus, res.address, res.photo, "📅 Запись сохранена", item.image);
+          let smartStatus = checkLocalDuplicateText(finalNum, item.taskId, refreshedQueue) || finalStatus;
+          updateCardUi(card, finalNum, smartStatus, res.address, res.photo, "📅 Запись сохранена", item.image);
         }
       } catch (error) { console.log("Ждем интернет-канал..."); } 
-      finally {
-        isSyncing = false; await refreshSyncStatusBar();
-        if ((await getIndexedDBQueue()).length > 0 && navigator.onLine) setTimeout(backgroundSyncLoop, 1000);
-      }
+      finally { isSyncing = false; await refreshSyncStatusBar(); if ((await getIndexedDBQueue()).length > 0 && navigator.onLine) setTimeout(backgroundSyncLoop, 1000); }
     }
 
     async function triggerSearch() {
@@ -744,9 +751,15 @@
       container.innerHTML = `<p style="font-size:13px; color:var(--text-sub); margin-bottom:10px;">Найдено в общей базе: ${records.length}</p>`;
       records.forEach((r, idx) => {
         let itemId = "journal_item_" + idx; 
-        let mapsUrl = r.gps && r.gps !== "Нет GPS" ? "https://www.google.com/maps/search/?api=1&query=$" + encodeURIComponent(r.gps) : "#";
+        let mapsUrl = r.gps && r.gps !== "Нет GPS" ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(r.gps) : "#";
         let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
-        updateCardUi(itemDiv, r.number, r.status, r.address, r.photo, "📅 " + r.date, r.thumb);
+        
+        let finalStatus = r.status;
+        if (!validateGostTemplate(r.number) && r.number !== "Не распознан") {
+          finalStatus = "Проверить вручную ⚠️";
+        }
+        
+        updateCardUi(itemDiv, r.number, finalStatus, r.address, r.photo, "📅 " + r.date, r.thumb);
         if (r.gps && r.gps !== "Нет GPS") {
           let geoBtn = document.createElement('a'); geoBtn.className = "geo-btn"; geoBtn.href = mapsUrl; geoBtn.target = "_blank"; geoBtn.innerText = "📍 Карта";
           itemDiv.querySelector('.info-left').appendChild(geoBtn);
@@ -759,18 +772,12 @@
       if (localRecent) appSettings.recentMins = parseInt(localRecent);
       let localDays = localStorage.getItem('settings_days');
       if (localDays) appSettings.days = parseInt(localDays);
-      
       let localW = localStorage.getItem('settings_cam_w');
       if (localW) appSettings.camW = parseInt(localW);
       let localH = localStorage.getItem('settings_cam_h');
       if (localH) appSettings.camH = parseInt(localH);
 
-      if (!isSilent) { 
-        document.getElementById('settings-recent-mins').value = appSettings.recentMins; 
-        document.getElementById('settings-days').value = appSettings.days;
-        document.getElementById('settings-cam-w').value = appSettings.camW;
-        document.getElementById('settings-cam-h').value = appSettings.camH;
-      }
+      if (!isSilent) { document.getElementById('settings-recent-mins').value = appSettings.recentMins; document.getElementById('settings-days').value = appSettings.days; document.getElementById('settings-cam-w').value = appSettings.camW; document.getElementById('settings-cam-h').value = appSettings.camH; }
       applyLocalUiDimensions();
 
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings' }) })
@@ -786,15 +793,8 @@
       let rMins = parseInt(document.getElementById('settings-recent-mins').value) || 30;
       let w = parseInt(document.getElementById('settings-cam-w').value) || 280;
       let h = parseInt(document.getElementById('settings-cam-h').value) || 370;
-
-      appSettings.recentMins = rMins; appSettings.days = parseInt(days);
-      appSettings.camW = w; appSettings.camH = h;
-
-      localStorage.setItem('settings_recent_mins', rMins); 
-      localStorage.setItem('settings_days', days);
-      localStorage.setItem('settings_cam_w', w);
-      localStorage.setItem('settings_cam_h', h);
-
+      appSettings.recentMins = rMins; appSettings.days = parseInt(days); appSettings.camW = w; appSettings.camH = h;
+      localStorage.setItem('settings_recent_mins', rMins); localStorage.setItem('settings_days', days); localStorage.setItem('settings_cam_w', w); localStorage.setItem('settings_cam_h', h);
       applyLocalUiDimensions();
 
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', days: days, durNew: document.getElementById('settings-dur-new').value, durRep: document.getElementById('settings-dur-rep').value, durErr: document.getElementById('settings-dur-err').value }) })
@@ -804,6 +804,33 @@
     
     function triggerHardwareAlert(type) {
       let overlay = document.getElementById('flash-overlay');
+      
+      // 1. СИНХРОННАЯ ВИЗУАЛЬНАЯ И АУДИАЛЬНАЯ СВЯЗЬ ФОТОЗАПИСИ (ЗАТВОР КАМЕРЫ)
+      if (type === 'snap') {
+        if (overlay) {
+          overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.85)'; // Яркая белая фотовспышка кадра
+          overlay.style.opacity = '1';
+          setTimeout(() => { overlay.style.opacity = '0'; }, 150);
+        }
+        try {
+          initAudioEngine();
+          let osc = globalAudioCtx.createOscillator();
+          let gain = globalAudioCtx.createGain();
+          osc.connect(gain); gain.connect(globalAudioCtx.destination);
+          
+          // Эмуляция звука механического щелчка фотоаппарата
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(1100, globalAudioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(350, globalAudioCtx.currentTime + 0.08);
+          
+          gain.gain.setValueAtTime(0.3, globalAudioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, globalAudioCtx.currentTime + 0.08);
+          
+          osc.start(); osc.stop(globalAudioCtx.currentTime + 0.08);
+        } catch (e) {}
+        return;
+      }
+
       if (overlay) {
         if (type === 'new') overlay.style.backgroundColor = 'rgba(66, 183, 42, 0.35)';      
         else if (type === 'repeat') overlay.style.backgroundColor = 'rgba(240, 40, 73, 0.45)'; 
