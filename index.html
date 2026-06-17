@@ -222,7 +222,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "4.9"; 
+    const APP_VERSION = "5.0"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "⏳ Поиск GPS...";
@@ -593,7 +593,6 @@
                      
       if(!isPending && !isProcessing && !isErr && !isRep) rightHtml = `<div class="status-right status-new">Новый объект</div>`;
       
-      // Страховка сохранения исходного URL фотографии внутри data-атрибута плашки
       if (photoUrl) cardElement.setAttribute('data-server-photo', photoUrl);
       
       let displayImg = imgSrc ? `<img src="${imgSrc}">` : `🚗`;
@@ -624,7 +623,6 @@
       let currentNumber = textSpan ? textSpan.innerText : "";
       if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "🤖 АНАЛИЗ..." || currentNumber.includes("Не распознан") || currentNumber.includes("КОРРЕКТИРОВКА")) currentNumber = "";
       
-      // Если URL пустой — вытягиваем сохраненный бэкап ссылки из data-атрибута плашки
       let backupUrl = photoUrl;
       if (!backupUrl || backupUrl === "null" || backupUrl === "") {
         let card = document.getElementById(cardId);
@@ -649,7 +647,7 @@
       return carRegex.test(clean) || motoRegex.test(clean);
     }
 
-    // 🔒 ЖЕСТКИЙ АНТИ-ЗАВИСАЮЩИЙ ДВИЖОК ИЗМЕНЕНИЙ С ПОИСКОМ СТРОКИ СТРОГО ПО URL ФОТОГРАФИИ
+    // 🕵️‍♂️ ВЫВОД ДЕТАЛЬНОГО ТЕКСТОВОГО ЛОГА ОШИБКИ ОТ ГУГЛА НА ЭКРАН ТЕЛЕФОНА
     async function saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgSrc) {
       let newNum = document.getElementById('m-plate-field').value.toUpperCase().trim();
       if (!newNum) return;
@@ -664,11 +662,6 @@
 
       const originalHtml = card.innerHTML;
       const originalClass = card.className;
-      
-      // Страховой фикс: Если photoUrl пуст — берём бэкап из самой карточки
-      if (!photoUrl || photoUrl === "null") {
-        photoUrl = card.getAttribute('data-server-photo') || "";
-      }
 
       let q = await getIndexedDBQueue(); 
       let matchIdx = q.findIndex(item => item.taskId === cardId);
@@ -694,22 +687,21 @@
             signal: controller.signal,
             body: JSON.stringify({ 
               action: 'editRecord', 
-              photo: photoUrl, 
-              photoUrl: photoUrl, // Дублируем ключи для гарантированного нахождения совпадений
-              newNumber: newNum,
-              number: newNum
+              photoUrl: photoUrl,
+              photo: photoUrl,
+              newNumber: newNum
             }) 
           });
           clearTimeout(timeoutId); 
           
-          if (!response.ok) throw new Error("Ошибка HTTP");
-          let res = await response.json();
+          if (!response.ok) throw new Error("HTTP статус " + response.status);
           
-          let isSuccess = res && (res.success === true || res.success === "true" || res.status === "success" || res.number || res.newNumber);
+          let res = await response.json();
+          let isSuccess = res && (res.success === true || res.success === "true" || res.status === "success");
           
           if (isSuccess) {
             function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
-            let finalNum = res.number || res.newNumber || newNum; 
+            let finalNum = res.number || newNum; 
             let finalStatus = res.status || "Новый объект";
             
             globalJournalCache.unshift({ 
@@ -720,13 +712,14 @@
             if (smartStatus.includes("Повтор")) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
             updateCardUi(card, finalNum, smartStatus, address, photoUrl, timeStr, imgSrc);
           } else {
-            alert("Гугл отклонил изменения. Проверьте скрипт Таблицы.");
+            // ВЫВОД ИЗВЛЕЧЕННОГО ИЗ ОТВЕТА ЛОГА ОШИБКИ
+            let serverLog = (res && res.message) ? res.message : "Неизвестная ошибка бэкенда";
+            alert("❌ СЕРВЕР ОТКЛОНИЛ ЗАПИСЬ!\nПричина: " + serverLog);
             card.innerHTML = originalHtml; card.className = originalClass;
           }
         } catch (e) { 
           clearTimeout(timeoutId);
-          console.error("Сбой: ", e);
-          alert("Ошибка соединения! Карта восстановлена.");
+          alert("❌ СБОЙ СЕТИ ТЕЛЕФОНА!\nДетали: " + e.message);
           card.innerHTML = originalHtml; card.className = originalClass;
         }
       }
@@ -807,8 +800,7 @@
       document.getElementById('settings-days').value = appSettings.days;
       document.getElementById('settings-cam-w').value = appSettings.camW;
       document.getElementById('settings-cam-h').value = appSettings.camH;
-      
-      applyLocalUiDimensions(); 
+      applyLocalUiDimensions();
 
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings' }) })
         .then(r => r.json())
