@@ -220,9 +220,9 @@
     </div>
   </div>
 
-  <script {nonce}>
+  <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "4.8"; 
+    const APP_VERSION = "4.9"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "⏳ Поиск GPS...";
@@ -593,6 +593,9 @@
                      
       if(!isPending && !isProcessing && !isErr && !isRep) rightHtml = `<div class="status-right status-new">Новый объект</div>`;
       
+      // Страховка сохранения исходного URL фотографии внутри data-атрибута плашки
+      if (photoUrl) cardElement.setAttribute('data-server-photo', photoUrl);
+      
       let displayImg = imgSrc ? `<img src="${imgSrc}">` : `🚗`;
       let thumbHtml = `<div class="thumb-box" onclick="window.open('${photoUrl || '#'}', '_blank')">${displayImg}</div>`;
       let journalBtnHtml = isRep ? `<br><button class="journal-trigger-btn" onclick="showInJournal('${number}')">🔎 Показать в журнале</button>` : "";
@@ -621,10 +624,18 @@
       let currentNumber = textSpan ? textSpan.innerText : "";
       if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "🤖 АНАЛИЗ..." || currentNumber.includes("Не распознан") || currentNumber.includes("КОРРЕКТИРОВКА")) currentNumber = "";
       
-      document.getElementById('m-target-img').src = imgToDisplay || "";
+      // Если URL пустой — вытягиваем сохраненный бэкап ссылки из data-атрибута плашки
+      let backupUrl = photoUrl;
+      if (!backupUrl || backupUrl === "null" || backupUrl === "") {
+        let card = document.getElementById(cardId);
+        if (card) backupUrl = card.getAttribute('data-server-photo') || "";
+      }
+
+      document.getElementById('m-target-img').src = imgToDisplay || backupUrl || "";
       let inputField = document.getElementById('m-plate-field'); inputField.value = currentNumber;
       let saveBtn = document.getElementById('m-save-btn');
-      saveBtn.onclick = function() { saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgToDisplay); };
+      
+      saveBtn.onclick = function() { saveFullscreenEdit(cardId, backupUrl, address, timeStr, imgToDisplay); };
       document.getElementById('fullscreen-edit-modal').style.display = 'block'; inputField.focus();
     }
 
@@ -638,7 +649,7 @@
       return carRegex.test(clean) || motoRegex.test(clean);
     }
 
-    // 🔒 ЖЕСТКИЙ АНТИ-ЗАВИСАЮЩИЙ ДВИЖОК С ВЕЕРНЫМ СОПОСТАВЛЕНИЕМ ПАРАМЕТРОВ (ВЕРСИЯ v4.8)
+    // 🔒 ЖЕСТКИЙ АНТИ-ЗАВИСАЮЩИЙ ДВИЖОК ИЗМЕНЕНИЙ С ПОИСКОМ СТРОКИ СТРОГО ПО URL ФОТОГРАФИИ
     async function saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgSrc) {
       let newNum = document.getElementById('m-plate-field').value.toUpperCase().trim();
       if (!newNum) return;
@@ -653,8 +664,11 @@
 
       const originalHtml = card.innerHTML;
       const originalClass = card.className;
-      let textSpan = document.getElementById(`text_${cardId}`);
-      let currentNumber = textSpan ? textSpan.innerText : "";
+      
+      // Страховой фикс: Если photoUrl пуст — берём бэкап из самой карточки
+      if (!photoUrl || photoUrl === "null") {
+        photoUrl = card.getAttribute('data-server-photo') || "";
+      }
 
       let q = await getIndexedDBQueue(); 
       let matchIdx = q.findIndex(item => item.taskId === cardId);
@@ -675,18 +689,15 @@
         const timeoutId = setTimeout(() => controller.abort(), 12000); 
         
         try {
-          // КОВРОВАЯ БОМБАРДИРОВКА ПАРАМЕТРОВ ДЛЯ ЛЮБЫХ ВЕРСИЙ СКРИПТОВ ГУГЛА
           let response = await fetch(API_URL, { 
             method: 'POST', 
             signal: controller.signal,
             body: JSON.stringify({ 
               action: 'editRecord', 
               photo: photoUrl, 
-              photoUrl: photoUrl,
+              photoUrl: photoUrl, // Дублируем ключи для гарантированного нахождения совпадений
               newNumber: newNum,
-              number: newNum,
-              oldNumber: currentNumber,
-              date: timeStr ? timeStr.replace("📅 ", "").trim() : ""
+              number: newNum
             }) 
           });
           clearTimeout(timeoutId); 
@@ -694,7 +705,6 @@
           if (!response.ok) throw new Error("Ошибка HTTP");
           let res = await response.json();
           
-          // УМНАЯ СУПЕР-ПРОВЕРКА: Любое текстовое подтверждение номера от Гугла трактуется как УСПЕХ
           let isSuccess = res && (res.success === true || res.success === "true" || res.status === "success" || res.number || res.newNumber);
           
           if (isSuccess) {
@@ -702,27 +712,21 @@
             let finalNum = res.number || res.newNumber || newNum; 
             let finalStatus = res.status || "Новый объект";
             
-            // Жестко фиксируем photoUrl в памяти, чтобы не потерять его на следующем круге правок
             globalJournalCache.unshift({ 
-              taskId: cardId, 
-              number: finalNum, 
-              date: getGSheetsTimestamp(), 
-              address: address, 
-              gps: "Изменен в сети",
-              photo: photoUrl
+              taskId: cardId, number: finalNum, date: getGSheetsTimestamp(), address: address, gps: "Изменен в сети", photo: photoUrl
             });
             
             let smartStatus = checkLocalDuplicateText(finalNum, cardId, null) || finalStatus || "";
             if (smartStatus.includes("Повтор")) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
             updateCardUi(card, finalNum, smartStatus, address, photoUrl, timeStr, imgSrc);
           } else {
-            alert("Гугл отклонил изменения. Карта восстановлена автоматически.");
+            alert("Гугл отклонил изменения. Проверьте скрипт Таблицы.");
             card.innerHTML = originalHtml; card.className = originalClass;
           }
         } catch (e) { 
           clearTimeout(timeoutId);
-          console.error("Сбой облака или тайм-аут: ", e);
-          alert("Превышено время ожидания! Карта восстановлена.");
+          console.error("Сбой: ", e);
+          alert("Ошибка соединения! Карта восстановлена.");
           card.innerHTML = originalHtml; card.className = originalClass;
         }
       }
@@ -744,8 +748,7 @@
         function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
         globalJournalCache.unshift({
           taskId: item.taskId, number: finalNum, date: getGSheetsTimestamp(), address: res.address || "Определено GPS",
-          gps: item.coords ? `${item.coords.latitude},${item.coords.longitude}` : "Нет GPS", thumb: item.image,
-          photo: res.photo // Защита памяти: сохраняем URL фото в локальный кэш
+          gps: item.coords ? `${item.coords.latitude},${item.coords.longitude}` : "Нет GPS", thumb: item.image, photo: res.photo
         });
 
         let card = document.getElementById(item.taskId);
@@ -776,8 +779,7 @@
       if (!records.length) { container.innerHTML = "<p style='text-align:center; color:var(--text-sub); margin-top:20px;'>Записей не обнаружено</p>"; return; }
       container.innerHTML = `<p style="font-size:13px; color:var(--text-sub); margin-bottom:10px;">Найдено в общей базе: ${records.length}</p>`;
       records.forEach((r, idx) => {
-        let itemId = "journal_item_" + idx; 
-        let mapsUrl = r.gps && r.gps !== "Нет GPS" ? "https://www.google.com/maps?q=" + encodeURIComponent(r.gps) : "#";
+        let itemId = "journal_item_" + idx; let mapsUrl = r.gps && r.gps !== "Нет GPS" ? "https://www.google.com/maps/search/?api=1&query=$" + encodeURIComponent(r.gps) : "#";
         let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
         
         let finalStatus = r.status;
@@ -806,7 +808,7 @@
       document.getElementById('settings-cam-w').value = appSettings.camW;
       document.getElementById('settings-cam-h').value = appSettings.camH;
       
-      applyLocalUiDimensions(); // Гарантированный запуск окна правильного размера при старте!
+      applyLocalUiDimensions(); 
 
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings' }) })
         .then(r => r.json())
