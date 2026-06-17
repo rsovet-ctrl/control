@@ -28,14 +28,14 @@
     .btn { background: #1877f2; color: white; padding: 16px; border: none; border-radius: 8px; font-size: 16px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 5px; box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2); }
     .btn-secondary { background: #e4e6eb; color: #4b4f56; box-shadow: none; }
     
-    .journal-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 14px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 6px solid #1877f2; transition: all 0.3s ease; }
+    .journal-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 12px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 6px solid #1877f2; transition: all 0.3s ease; }
     .journal-item.pending { border-left-color: #ffc107; background: #fffdf5; }
     .journal-item.repeat { border-left-color: #f02849; background: #fff5f6; }
     .journal-item.new { border-left-color: #42b72a; background: #f6fff5; }
     .journal-item.error-item { border-left-color: #ff7a00; background: #fffaf5; }
     .journal-item.local-offline { border-left-color: #ffaa00; background: #fffaee; }
     
-    .thumb-box { width: 75px; height: 75px; min-width: 75px; border-radius: 8px; overflow: hidden; background: #e4e6eb; margin-right: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid #ced4da; cursor: pointer; }
+    .thumb-box { width: 75px; height: 105px; min-width: 75px; border-radius: 8px; overflow: hidden; background: #e4e6eb; margin-right: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid #ced4da; cursor: pointer; }
     .thumb-box img { width: 100%; height: 100%; object-fit: cover; }
     .info-left { flex-grow: 1; text-align: left; font-size: 14px; min-width: 0; }
     
@@ -51,7 +51,6 @@
     .status-right.status-offline-text { color: #ffaa00; font-size: 13px; }
     .geo-btn { margin-top: 5px; background: #e4e6eb; border-radius: 6px; padding: 4px 8px; font-size: 11px; text-decoration: none; color: #1c1e21; font-weight: bold; display: inline-block; }
 
-    /* ОПТИМИЗИРОВАННЫЙ ВЕРТИКАЛЬНЫЙ ПОЛНОЭКРАННЫЙ ЭКРАН ПРАВКИ */
     #fullscreen-edit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 3000; box-sizing: border-box; padding: 8px; }
     .modal-box { background: white; border-radius: 16px; width: 100%; height: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; padding: 14px; display: flex; flex-direction: column; overflow-y: auto; }
     .modal-title { font-size: 13px; font-weight: bold; color: #65676b; text-align: center; margin-bottom: 6px; }
@@ -161,12 +160,11 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
-          .then(reg => console.log('PWA Сервис-Воркер запущен!', reg))
+          .then(reg => console.log('PWA Сервис-Воркер запущен!'))
           .catch(err => console.log('Сбой Сервис-Воркера', err));
       });
     }
 
-    // ИСПРАВЛЕННЫЙ МИКРО-КОМПРЕССОР (ДАТЧИК ONLOAD СТРОГО ПЕРЕД SRC)
     function compressImage(base64Str, maxWidth, maxHeight, quality, callback) {
       let img = new Image();
       img.onload = function() {
@@ -183,7 +181,7 @@
         ctx.drawImage(img, 0, 0, width, height);
         callback(canvas.toDataURL('image/jpeg', quality));
       };
-      img.src = base64Str; // Источник назначается строго в самом конце!
+      img.src = base64Str; 
     }
 
     function reRequestGeolocation(isSilent) {
@@ -195,19 +193,16 @@
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
           currentCoords = { latitude: position.coords.latitude, longitude: position.coords.longitude };
-          let successHtml = "<span style='color:#42b72a;'>📍 Спутники GPS active</span>";
+          let successHtml = "<span style='color:#42b72a;'>📍 Спутники GPS активны</span>";
           if (camStatus) camStatus.innerHTML = successHtml;
           if (optStatus) optStatus.innerHTML = successHtml;
           document.getElementById('scan-btn').disabled = false;
         }, function(error) {
           let msg = "<span style='color:#ff7a00;'>⚠️ Геопозиция отключена</span>";
           if (error.code === error.PERMISSION_DENIED) {
-            msg = "<span style='color:#f02849;'>❌ Доступ заблокирован браузером</span>";
-            if (!isSilent) {
-              alert("ВНИМАНИЕ!\nБраузер заблокировал доступ к GPS датчику на этом сайте.\n\nНажмите на значок ползунков слева в адресной строке Chrome и разрешите 'Геопозицию'.");
-            }
+            msg = "<span style='color:#f02849;'>❌ Доступ заблокирован</span>";
           } else {
-            msg = "<span style='color:#ffaa00;'>⚠️ Ошибка датчика (проверьте GPS телефона)</span>";
+            msg = "<span style='color:#ffaa00;'>⚠️ Ошибка датчика GPS</span>";
           }
           if (camStatus) camStatus.innerHTML = msg;
           if (optStatus) optStatus.innerHTML = msg;
@@ -220,6 +215,7 @@
       reRequestGeolocation(true);
       loadSettings(true);
       refreshSyncStatusBar();
+      restoreOfflineCards(); // СРАЗУ ВОССТАНАВЛИВАЕМ КАРТОЧКИ ИЗ ПАМЯТИ ПРИ ЗАГРУЗКЕ
       silentLoadJournalCache();
       setInterval(backgroundSyncLoop, 10000);
 
@@ -231,6 +227,33 @@
         e.target.value = converted.replace(/[^АВЕКМНОРСТУХ0-9]/g, '');
       });
     };
+
+    // ФУНКЦИЯ ВОССТАНОВЛЕНИЯ КАРТОЧКЕК НА ЭКРАНЕ ПОСЛЕ ПЕРЕЗАГРУЗКИ СТРАНИЦЫ
+    function restoreOfflineCards() {
+      let q = getOfflineQueue();
+      let scanResultArea = document.getElementById('scan-result');
+      if (!scanResultArea || q.length === 0) return;
+      
+      q.forEach(item => {
+        if (document.getElementById(item.taskId)) return; // Подстраховка от дублирования
+        
+        let itemDiv = document.createElement('div');
+        itemDiv.id = item.taskId;
+        scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
+        
+        let displayNum = item.manualNumber || "⏳ ЖДЕТ СЕТЬ";
+        let displayStatus = item.manualNumber ? "Внесен (ждет сеть) 💾" : "Ожидание сети 🌐";
+        let displayAddress = item.manualNumber ? "Сохранено в телефоне" : "Сбор координат";
+        
+        let localDupStatus = checkLocalDuplicateText(displayNum);
+        if (localDupStatus) {
+          displayStatus = localDupStatus;
+          displayAddress = "Проверка в оффлайне";
+        }
+        
+        updateCardUi(itemDiv, displayNum, displayStatus, displayAddress, "", "🕒 Ожидает выгрузку", item.image);
+      });
+    }
 
     function openTab(tabId, el) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -268,7 +291,7 @@
     }
 
     function checkLocalDuplicateText(num) {
-      if (!num || num === "Не распознан" || num === "Распознавание...") return null;
+      if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ") return null;
       let cleanNum = num.toUpperCase().trim();
       for (let i = 0; i < globalJournalCache.length; i++) {
         if (globalJournalCache[i].number.toUpperCase().trim() === cleanNum) {
@@ -307,7 +330,8 @@
           let itemDiv = document.createElement('div');
           itemDiv.id = taskId;
           scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
-          updateCardUi(itemDiv, "Распознавание...", "Ожидание сети 🌐", "Сбор координат", "", "🕒 Снимок сделан", compressedBg64);
+          
+          updateCardUi(itemDiv, "⏳ ЖДЕТ СЕТЬ", "Ожидание сети 🌐", "Сбор координат", "", "🕒 Снимок сделан", compressedBg64);
           backgroundSyncLoop();
         });
       };
@@ -350,7 +374,7 @@
     function openFullscreenEdit(cardId, photoUrl, address, timeStr, imgToDisplay) {
       let textSpan = document.getElementById(`text_${cardId}`);
       let currentNumber = textSpan ? textSpan.innerText : "";
-      if (currentNumber === "Распознавание..." || currentNumber === "Не распознан") currentNumber = "";
+      if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "Не распознан") currentNumber = "";
       
       document.getElementById('m-target-img').src = imgToDisplay || "";
       let inputField = document.getElementById('m-plate-field');
