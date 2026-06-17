@@ -12,7 +12,6 @@
 
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg-main); color: var(--text-main); transition: background 0.3s, color 0.3s; }
     
-    /* ИСПРАВЛЕННО: Строка состояния теперь визуально кликабельна */
     #sync-status-bar { text-align: center; padding: 10px; font-size: 13px; font-weight: bold; color: white; position: sticky; top: 0; z-index: 2000; transition: all 0.4s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); line-height: 1.3; cursor: pointer; user-select: none; }
     #sync-status-bar:active { filter: brightness(0.9); }
     
@@ -25,7 +24,7 @@
 
     .header-nav { display: flex; background: var(--bg-card); border-bottom: 1px solid var(--border-color); position: sticky; top: 38px; z-index: 1000; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     .nav-tabs-box { display: flex; flex: 1; }
-    .tab-link { flex: 1; text-align: center; padding: 16px 0; font-weight: 600; cursor: pointer; color: var(--text-sub); font-size: 15px; }
+    .tab-link { flex: 1; text-align: center; padding: 16px 0; font-weight: 600; cursor: pointer; color: var(--text-sub); font-size: 14px; }
     .tab-link.active { color: #1877f2; border-bottom: 3px solid #1877f2; background: rgba(24, 119, 242, 0.03); }
     
     .theme-toggle-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 0 15px; color: var(--text-main); user-select: none; }
@@ -104,6 +103,10 @@
 
     .range-container { display: flex; gap: 10px; margin-bottom: 10px; }
     .range-container > div { flex: 1; }
+    
+    /* СТИЛИ ДЛЯ ИНТЕРФЕЙСА СПРАВКИ */
+    .help-header { font-size: 14px; font-weight: bold; color: #1877f2; margin-top: 14px; margin-bottom: 4px; }
+    .help-text { font-size: 13px; line-height: 1.45; margin-top: 0; color: var(--text-main); }
   </style>
 </head>
 <body>
@@ -122,6 +125,7 @@
       <div class="tab-link active" onclick="openTab('scan-tab', this)">📷 Камера</div>
       <div class="tab-link" onclick="openTab('search-tab', this); triggerSearch();">📋 Журнал</div>
       <div class="tab-link" onclick="openTab('settings-tab', this); loadSettings();">⚙️ Опции</div>
+      <div class="tab-link" onclick="openTab('help-tab', this)">❓ Справка</div>
     </div>
     <button class="theme-toggle-btn" onclick="toggleThemeMode()">🌙</button>
   </div>
@@ -190,9 +194,31 @@
       <button class="btn" style="margin-top: 10px;" onclick="saveSettings()">Сохранить настройки</button>
       <p id="settings-status" style="color: #42b72a; font-weight: bold; margin-top: 10px; text-align:center;"></p>
     </div>
-    
     <div style="text-align: center; font-size: 12px; color: var(--text-sub); margin-top: 25px; opacity: 0.55; letter-spacing: 0.3px; font-weight: 500;">
-      Разработчик: Роман Шантаев | Терминал v5.4
+      Разработчик: Роман Шантаев | Терминал v5.5
+    </div>
+  </div>
+
+  <div id="help-tab" class="tab-content">
+    <div class="card">
+      <h3>📖 Быстрое руководство АЗС-Терминала</h3>
+      <p style="font-size:13.5px; line-height:1.5; margin-bottom:10px;">Эта система создана для моментальной потоковой фиксации машин. Вот всё, что нужно для работы:</p>
+      
+      <div class="help-header">1. Как сделать снимок?</div>
+      <p class="help-text">На вкладке <b>"Камера"</b> направьте прямоугольник прицела на госномер машины и нажмите круглую кнопку 📸. Экран выдаст вспышку, раздастся щелчок — кадр пойман и сохранен.</p>
+      
+      <div class="help-header" style="color:#42b72a;">2. Что значат цвета карточек в ленте?</div>
+      <ul style="font-size:13px; padding-left:18px; margin-top:0; line-height:1.45; color:var(--text-main);">
+        <li><b style="color:#42b72a;">Зелёная:</b> Новый автомобиль, ранее за эти дни не заезжал.</li>
+        <li><b style="color:#f02849;">Красная:</b> Повторный визит! Машина уже была в базе. Нажмите кнопку 🗺️, чтобы увидеть карту предыдущего заезда.</li>
+        <li><b style="color:#ff7a00;">Мигающая оранжевая:</b> ИИ сомневается в буквах или номер грязный. Требуется ручная проверка человека.</li>
+      </ul>
+      
+      <div class="help-header" style="color:#1877f2;">3. Как исправить ошибку ИИ?</div>
+      <p class="help-text">Если робот прочитал знаки неверно, нажмите кнопку <b>"✏️ Поправить номер"</b>. Картинку на экране можно увеличивать и двигать пальцами для сверки. Введите правильный номер (строго русские буквы) и нажмите <b>«Сохранить»</b> — данные мгновенно обновятся на экране.</p>
+      
+      <div class="help-header" style="color:#ffaa00;">4. Что делать, если пропал интернет?</div>
+      <p class="help-text">Продолжайте снимать в обычном режиме! Программа накопит машины в памяти телефона (вверху загорится желтый статус буфера). Как только сеть появится, терминал сам незаметно выгрузит всю очередь в облачную таблицу.</p>
     </div>
   </div>
 
@@ -223,7 +249,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "5.4"; 
+    const APP_VERSION = "5.5"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "⏳ Поиск GPS...";
@@ -339,7 +365,8 @@
         await refreshSyncStatusBar();
         
         let scanResultArea = document.getElementById('scan-result');
-        let itemDiv = document.createElement('div'); itemDiv.id = taskId;
+        let itemDiv = document.createElement('div'); 
+        itemDiv.id = "cam_" + taskId; // 🔥 ИСПРАВЛЕННО: Изолированный ID для вкладки Камеры
         scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
         
         let isOnline = navigator.onLine;
@@ -455,8 +482,8 @@
       
       let isOnline = navigator.onLine;
       q.forEach(item => {
-        if (document.getElementById(item.taskId)) return; 
-        let itemDiv = document.createElement('div'); itemDiv.id = item.taskId;
+        if (document.getElementById("cam_" + item.taskId)) return; 
+        let itemDiv = document.createElement('div'); itemDiv.id = "cam_" + item.taskId;
         scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
         
         let displayNum = item.manualNumber || (isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ");
@@ -475,8 +502,8 @@
       document.getElementById(tabId).classList.add('active');
       if (el) { el.classList.add('active'); } 
       else {
-        const idx = tabId === 'scan-tab' ? 0 : (tabId === 'search-tab' ? 1 : 2);
-        document.querySelectorAll('.tab-link')[idx].classList.add('active');
+        const tabMap = { 'scan-tab': 0, 'search-tab': 1, 'settings-tab': 2, 'help-tab': 3 };
+        document.querySelectorAll('.tab-link')[tabMap[tabId]].classList.add('active');
       }
       if (tabId === 'scan-tab') { startLiveStreaming(); }
     }
@@ -632,7 +659,14 @@
       if (!backupUrl || backupUrl === "null" || backupUrl === "") {
         if (card) backupUrl = card.getAttribute('data-server-photo') || "";
       }
-      let savedTaskId = card ? (card.getAttribute('data-task-id') || cardId) : cardId;
+      
+      // Вырезаем чистый taskId для сервера, убирая локальные префиксы cam_ или jour_
+      let savedTaskId = cardId;
+      if (card && card.getAttribute('data-task-id')) {
+        savedTaskId = card.getAttribute('data-task-id');
+      } else {
+        savedTaskId = cardId.replace("cam_", "").replace("jour_", "");
+      }
 
       document.getElementById('m-target-img').src = imgToDisplay || backupUrl || "";
       let inputField = document.getElementById('m-plate-field'); inputField.value = currentNumber;
@@ -642,15 +676,7 @@
       document.getElementById('fullscreen-edit-modal').style.display = 'block'; inputField.focus();
     }
 
-    function closeFullscreenEdit() { document.getElementById('fullscreen-edit-modal').style.display = 'none'; }
-
-    function validateGostTemplate(num) {
-      if (!num || num === "Не распознан") return false;
-      let clean = num.toUpperCase().trim();
-      let carRegex = /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i; 
-      let motoRegex = /^\d{4}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i;           
-      return carRegex.test(clean) || motoRegex.test(clean);
-    }
+    closeFullscreenEdit = function() { document.getElementById('fullscreen-edit-modal').style.display = 'none'; }
 
     async function saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgSrc, savedTaskId) {
       let newNum = document.getElementById('m-plate-field').value.toUpperCase().trim();
@@ -661,18 +687,18 @@
       }
       
       closeFullscreenEdit(); 
-      let card = document.getElementById(cardId);
+      let card = document.getElementById(cardId); // 🔥 ИСПРАВЛЕННО: Теперь жестко и уникально находит cam_... или jour_...
       if (!card) return;
 
       const originalHtml = card.innerHTML;
       const originalClass = card.className;
 
       let q = await getIndexedDBQueue(); 
-      let matchIdx = q.findIndex(item => item.taskId === cardId || item.taskId === savedTaskId);
+      let matchIdx = q.findIndex(item => item.taskId === savedTaskId);
       
       if (matchIdx !== -1) {
         q[matchIdx].manualNumber = newNum; await addIndexedDBItem(q[matchIdx]); await refreshSyncStatusBar();
-        let localDupStatus = checkLocalDuplicateText(newNum, cardId, q);
+        let localDupStatus = checkLocalDuplicateText(newNum, savedTaskId, q);
         let finalStatus = localDupStatus || "Внесен (ждет сеть) 💾";
         if (localDupStatus) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
         updateCardUi(card, newNum, finalStatus, "Проверка в оффлайне", photoUrl, timeStr, imgSrc, savedTaskId);
@@ -712,6 +738,8 @@
             
             let smartStatus = checkLocalDuplicateText(finalNum, savedTaskId, null) || finalStatus || "";
             if (smartStatus.includes("Повтор")) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
+            
+            // 🔥 ЭФФЕКТ МГНОВЕННОГО ПЕРЕКРАШИВАНИЯ КАРТОЧКИ ЖУРНАЛА
             updateCardUi(card, finalNum, smartStatus, address, photoUrl, timeStr, imgSrc, savedTaskId);
           } else {
             let serverLog = (res && res.error) ? res.error : "Неизвестная ошибка бэкенда";
@@ -731,15 +759,9 @@
       let q = await getIndexedDBQueue();
       if (q.length === 0) { syncTotalItems = 0; await refreshSyncStatusBar(); return; }
       
-      if (!navigator.onLine) {
-        isSyncing = false;
-        await refreshSyncStatusBar(); 
-        return; 
-      }
-
+      if (!navigator.onLine) { isSyncing = false; await refreshSyncStatusBar(); return; }
       if (syncTotalItems < q.length) { syncTotalItems = q.length; }
-      isSyncing = true; 
-      await refreshSyncStatusBar(); 
+      isSyncing = true; await refreshSyncStatusBar(); 
       let item = q[0];
       
       try {
@@ -755,7 +777,7 @@
           gps: item.coords ? `${item.coords.latitude},${item.coords.longitude}` : "Нет GPS", thumb: item.image, photo: res.photo
         });
 
-        let card = document.getElementById(item.taskId);
+        let card = document.getElementById("cam_" + item.taskId);
         if (card) {
           if (finalStatus.includes("Проверить вручную")) { triggerHardwareAlert('error'); } 
           else { let isRep = finalStatus.includes("Повтор"); if (isRep) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new'); }
@@ -783,7 +805,8 @@
       if (!records.length) { container.innerHTML = "<p style='text-align:center; color:var(--text-sub); margin-top:20px;'>Записей не обнаружено</p>"; return; }
       container.innerHTML = `<p style="font-size:13px; color:var(--text-sub); margin-bottom:10px;">Найдено в общей базе: ${records.length}</p>`;
       records.forEach((r, idx) => {
-        let itemId = r.taskId || ("journal_item_" + idx); 
+        // 🔥 ИСПРАВЛЕННО: Изолированный префикс для ID карточек в Журнале
+        let itemId = "jour_" + (r.taskId || ("item_" + idx)); 
         let mapsUrl = r.gps && r.gps !== "Нет GPS" ? "https://www.google.com/maps/search/?api=1&query=$" + encodeURIComponent(r.gps) : "#";
         let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
         
@@ -812,7 +835,6 @@
       document.getElementById('settings-days').value = appSettings.days;
       document.getElementById('settings-cam-w').value = appSettings.camW;
       document.getElementById('settings-cam-h').value = appSettings.camH;
-      
       applyLocalUiDimensions();
 
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings' }) })
