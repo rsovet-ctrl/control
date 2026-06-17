@@ -34,6 +34,7 @@
     .journal-item.new { border-left-color: #42b72a; background: #f6fff5; }
     .journal-item.error-item { border-left-color: #ff7a00; background: #fffaf5; }
     .journal-item.local-offline { border-left-color: #ffaa00; background: #fffaee; }
+    .journal-item.local-online-processing { border-left-color: #1877f2; background: #f4f8ff; }
     
     .thumb-box { width: 75px; height: 105px; min-width: 75px; border-radius: 8px; overflow: hidden; background: #e4e6eb; margin-right: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid #ced4da; cursor: pointer; }
     .thumb-box img { width: 100%; height: 100%; object-fit: cover; }
@@ -42,6 +43,7 @@
     .plate-wrapper { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
     .plate-display { font-size: 19px; font-weight: bold; color: #050505; letter-spacing: 0.5px; }
     .edit-trigger-btn { background: #f0f2f5; border: none; font-size: 12px; cursor: pointer; padding: 6px 10px; color: #1877f2; border-radius: 6px; font-weight: bold; margin-top: 2px; transition: background 0.2s; }
+    .journal-trigger-btn { background: #1877f2; border: none; font-size: 12px; cursor: pointer; padding: 6px 10px; color: white; border-radius: 6px; font-weight: bold; margin-top: 5px; display: inline-block; transition: background 0.2s; box-shadow: 0 2px 5px rgba(24,119,242,0.2); }
     
     .info-date { color: #65676b; font-size: 12px; margin-top: 2px; }
     .info-address { font-size: 12px; color: #4b4f56; margin-top: 2px; font-weight: 500; }
@@ -49,7 +51,8 @@
     .status-right.status-new { color: #42b72a; font-size: 13px; }
     .status-right.status-pending { color: #b8860b; font-size: 13px; }
     .status-right.status-offline-text { color: #ffaa00; font-size: 13px; }
-    .geo-btn { margin-top: 5px; background: #e4e6eb; border-radius: 6px; padding: 4px 8px; font-size: 11px; text-decoration: none; color: #1c1e21; font-weight: bold; display: inline-block; }
+    .status-right.status-processing-text { color: #1877f2; font-size: 13px; }
+    .geo-btn { margin-top: 5px; background: #e4e6eb; border-radius: 6px; padding: 4px 8px; font-size: 11px; text-decoration: none; color: #1c1e21; font-weight: bold; display: inline-block; margin-right: 5px; }
 
     #fullscreen-edit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 3000; box-sizing: border-box; padding: 8px; }
     .modal-box { background: white; border-radius: 16px; width: 100%; height: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; padding: 14px; display: flex; flex-direction: column; overflow-y: auto; }
@@ -68,12 +71,20 @@
     .m-btn-cancel { background: #e4e6eb; color: #4b4f56; }
 
     #flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; opacity: 0; background: transparent; transition: opacity 0.08s ease-out; }
+
+    /* СТИЛИДЛЯ ПУЛЬСИРУЮЩЕЙ КРАСНОЙ ТОЧКИ "СВЕЖЕГО" ПОВТОРА */
+    @keyframes pulse {
+      0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(240, 40, 73, 0.7); }
+      70% { transform: scale(1.1); box-shadow: 0 0 0 5px rgba(240, 40, 73, 0); }
+      100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(240, 40, 73, 0); }
+    }
+    .pulse-dot { display: inline-block; width: 9px; height: 9px; background: #f02849; border-radius: 50%; margin-left: 6px; vertical-align: middle; animation: pulse 1.2s infinite; }
   </style>
 </head>
 <body>
 
   <div id="flash-overlay"></div>
-  <div id="sync-status-bar" class="status-synced">🟢 Все данные сохранены в облаке</div>
+  <div id="sync-status-bar" class="status-offline">⏳ Синхронизация базы...</div>
 
   <div class="nav-tabs">
     <div class="tab-link active" onclick="openTab('scan-tab', this)">📷 Камера</div>
@@ -122,6 +133,9 @@
       <h3>Окно повторов</h3>
       <label>Глубина отслеживания дубликатов (дней):</label>
       <input type="number" id="settings-days" min="1">
+      
+      <label style="margin-top:10px;">Интервал "Свежего" повтора (минут):</label>
+      <input type="number" id="settings-recent-mins" min="1" max="1440" value="30">
     </div>
     <div class="card">
       <h3>Длительность сигналов (в секундах)</h3>
@@ -154,13 +168,14 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "3.3"; 
+    const APP_VERSION = "3.5"; 
     
-    let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5 };
+    let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30 };
     let currentCoords = null;
     let globalJournalCache = []; 
     let isSyncing = false;       
     let globalAudioCtx = null; 
+    let isDbLoaded = false;
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -249,15 +264,16 @@
       let scanResultArea = document.getElementById('scan-result');
       if (!scanResultArea || q.length === 0) return;
       
+      let isOnline = navigator.onLine;
       q.forEach(item => {
         if (document.getElementById(item.taskId)) return; 
         let itemDiv = document.createElement('div');
         itemDiv.id = item.taskId;
         scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
         
-        let displayNum = item.manualNumber || "⏳ ЖДЕТ СЕТЬ";
-        let displayStatus = item.manualNumber ? "Внесен (ждет сеть) 💾" : "Ожидание сети 🌐";
-        let displayAddress = item.manualNumber ? "Сохранено в телефоне" : "Сбор координат";
+        let displayNum = item.manualNumber || (isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ");
+        let displayStatus = item.manualNumber ? "Внесен (ждет сеть) 💾" : (isOnline ? "Выгрузка 📡" : "Ожидание сети 🌐");
+        let displayAddress = item.manualNumber ? "Сохранено в телефоне" : (isOnline ? "Связь с сервером..." : "Сбор координат");
         
         let localDupStatus = checkLocalDuplicateText(displayNum);
         if (localDupStatus) { displayStatus = localDupStatus; displayAddress = "Проверка в оффлайне"; }
@@ -266,30 +282,52 @@
       });
     }
 
-    // ИСПРАВЛЕННЫЙ ТАБ-МЕНЕДЖЕР (БЕЗ ДВОЙНОГО .EL)
     function openTab(tabId, el) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
-      el.classList.add('active');
+      if (el) {
+        el.classList.add('active');
+      } else {
+        const idx = tabId === 'scan-tab' ? 0 : (tabId === 'search-tab' ? 1 : 2);
+        document.querySelectorAll('.tab-link')[idx].classList.add('active');
+      }
+    }
+
+    // ЛИНК-ФУНКЦИЯ ДЛЯ ПЕРЕХОДА ИЗ КАРТОЧКИ СРАЗУ В ИСТОРИЮ ЖУРНАЛА
+    function showInJournal(number) {
+      let days = parseInt(document.getElementById('settings-days').value) || 1;
+      let today = new Date();
+      let startDate = new Date();
+      startDate.setDate(today.getDate() - days);
+      
+      document.getElementById('search-start-date').value = startDate.toISOString().split('T')[0];
+      document.getElementById('search-end-date').value = today.toISOString().split('T')[0];
+      document.getElementById('search-number').value = number;
+      
+      openTab('search-tab', null);
+      triggerSearch();
     }
 
     function getOfflineQueue() { return JSON.parse(localStorage.getItem('car_sync_queue') || '[]'); }
     function saveOfflineQueue(q) { localStorage.setItem('car_sync_queue', JSON.stringify(q)); refreshSyncStatusBar(); }
 
+    // ИНДИКАТОР ЗАГРУЗКИ БАЗЫ ДАННЫХ В СТАТУС-БАРЕ
     function refreshSyncStatusBar() {
       let q = getOfflineQueue();
       let bar = document.getElementById('sync-status-bar');
+      let dbText = isDbLoaded ? "🟢 База активна" : "⏳ Синхронизация базы...";
+      
       if (q.length === 0) {
         bar.className = "status-synced";
-        bar.innerText = `🟢 Все данные сохранены в облаке [v${APP_VERSION}]`;
+        bar.innerText = `${dbText} | Все файлы в облаке [v${APP_VERSION}]`;
       } else {
         if (isSyncing) {
           bar.className = "status-uploading";
-          bar.innerText = `🔵 Фоновая выгрузка... (Осталось: ${q.length}) [v${APP_VERSION}]`;
+          bar.innerText = `🔵 Выгрузка... (Осталось: ${q.length}) [v${APP_VERSION}]`;
         } else {
           bar.className = "status-offline";
-          bar.innerText = `🟡 Оффлайн-очередь: ${q.length} объектов [v${APP_VERSION}]`;
+          bar.innerText = `🟡 В очереди: ${q.length} машин [v${APP_VERSION}]`;
         }
       }
     }
@@ -298,47 +336,95 @@
       try {
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: {} }) });
         let records = await response.json();
-        if (records && records.length) globalJournalCache = records;
+        if (records && records.length) {
+          globalJournalCache = records;
+          isDbLoaded = true;
+          refreshSyncStatusBar();
+        }
       } catch (e) {}
     }
 
-    // НОВАЯ ИНТЕЛЛЕКТУАЛЬНАЯ ЛОГИКА ПОДСЧЕТА ПОВТОРОВ, ВРЕМЕНИ И АДРЕСОВ
+    // ПРОДВИНУТЫЙ ПАРСЕР ДАТЫ ИЗ ГУГЛ ТАБЛИЦЫ С РАСЧЕТОМ ИНТЕРВАЛОВ И СВЕЖЕСТИ
     function checkLocalDuplicateText(num) {
-      if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ") return null;
+      if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ...") return null;
       let cleanNum = num.toUpperCase().trim();
       let count = 0;
-      let latestTimeStr = "";
+      let latestTimestamp = 0;
       let latestAddress = "";
+      let latestGps = "";
 
-      // 1. Считаем по общему архиву (истории рейда)
+      // Вспомогательная функция парсинга строки даты DD.MM.YYYY HH:MM:SS
+      function parseGSheetsDate(dateStr) {
+        if (!dateStr) return 0;
+        try {
+          let parts = dateStr.split(' ');
+          let dParts = parts[0].split('.');
+          let tParts = parts[1].split(':');
+          return new Date(dParts[2], dParts[1] - 1, dParts[0], tParts[0], tParts[1], tParts[2] || 0).getTime();
+        } catch(e) { return 0; }
+      }
+
+      // 1. Поиск в онлайн архиве
       for (let i = 0; i < globalJournalCache.length; i++) {
         if (globalJournalCache[i].number.toUpperCase().trim() === cleanNum) {
           count++;
-          if (!latestTimeStr) {
-            latestTimeStr = globalJournalCache[i].date || "Ранее";
-            latestAddress = globalJournalCache[i].address || "База данных";
+          let ts = parseGSheetsDate(globalJournalCache[i].date);
+          if (ts > latestTimestamp) {
+            latestTimestamp = ts;
+            latestAddress = globalJournalCache[i].address || "Архив рейда";
+            latestGps = globalJournalCache[i].gps || "";
           }
         }
       }
 
-      // 2. Считаем по накопившейся оффлайн-очереди в памяти
+      // 2. Поиск в локальном буфере очереди
       let q = getOfflineQueue();
       for (let i = 0; i < q.length; i++) {
         if (q[i].manualNumber && q[i].manualNumber.toUpperCase().trim() === cleanNum) {
           count++;
-          let t = new Date(q[i].timestamp);
-          let timeFormatted = t.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-          latestTimeStr = "Недавно в " + timeFormatted;
-          latestAddress = "Текущий рейд (в очереди)";
+          if (q[i].timestamp > latestTimestamp) {
+            latestTimestamp = q[i].timestamp;
+            latestAddress = "Текущий рейд (в очереди)";
+            latestGps = q[i].coords ? `${q[i].coords.latitude},${q[i].coords.longitude}` : "";
+          }
         }
       }
 
       if (count === 0) return null;
 
-      if (count === 1) {
-        return `Повтор! Изв.:<br>🕒 ${latestTimeStr}<br>📍 ${latestAddress}`;
+      // Высчитываем разницу во времени
+      let nowTs = new Date().getTime();
+      let diffMs = nowTs - latestTimestamp;
+      let diffMins = Math.floor(diffMs / 60000);
+      let timeStatusText = "";
+      let isRecent = false;
+
+      // Если прошло меньше 12 часов - включаем смарт-формат
+      if (diffMs > 0 && diffMs < 12 * 60 * 60 * 1000) {
+        if (diffMins < 60) {
+          timeStatusText = `${diffMins} мин. назад`;
+        } else {
+          let hrs = Math.floor(diffMins / 60);
+          let m = diffMins % 60;
+          timeStatusText = `${hrs} ч. ${m} мин. назад`;
+        }
+        // Проверяем настройку свежести из опций
+        if (diffMins <= appSettings.recentMins) {
+          isRecent = true;
+        }
       } else {
-        return `Повтор: ${count} раз!<br>🕒 Последний: ${latestTimeStr}<br>📍 ${latestAddress}`;
+        // Если больше 12 часов - выводим обычную дату
+        let d = new Date(latestTimestamp);
+        timeStatusText = d.toLocaleDateString([], {day:'2-digit', month:'2-digit'}) + " в " + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      }
+
+      let dotHtml = isRecent ? `<span class="pulse-dot"></span>` : "";
+      let mapBtnHtml = (latestGps && latestGps !== "Нет GPS") ? `<br><a class="geo-btn" href="https://maps.google.com/?q=${encodeURIComponent(latestGps)}" target="_blank">🗺️ Карта повтора</a>` : "";
+
+      if (count === 1) {
+        return `Повтор! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`;
+      } else {
+        return `Повтор: ${count} раз! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`;
       }
     }
 
@@ -366,7 +452,12 @@
           itemDiv.id = taskId;
           scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
           
-          updateCardUi(itemDiv, "⏳ ЖДЕТ СЕТЬ", "Ожидание сети 🌐", "Сбор координат", "", "🕒 Снимок сделан", compressedBg64);
+          let isOnline = navigator.onLine;
+          let displayNum = isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ";
+          let displayStatus = isOnline ? "Выгрузка 📡" : "Ожидание сети 🌐";
+          let displayAddress = isOnline ? "Связь с сервером..." : "Сбор координат";
+          
+          updateCardUi(itemDiv, displayNum, displayStatus, displayAddress, "", "🕒 Снимок сделан", compressedBg64);
           backgroundSyncLoop();
         });
       };
@@ -377,18 +468,26 @@
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc) {
       let isRep = status.includes("Повтор");
       let isPending = status.includes("Ожидание сети");
+      let isProcessing = number === "🤖 АНАЛИЗ...";
       let isErr = number === "Не распознан" || number.includes("Ошибка");
       
       if (isPending) cardElement.className = "journal-item local-offline";
+      else if (isProcessing) cardElement.className = "journal-item local-online-processing";
       else if (isErr) cardElement.className = "journal-item error-item";
       else cardElement.className = `journal-item ${isRep ? 'repeat' : 'new'}`;
       
-      let rightHtml = isPending ? `<div class="status-right status-offline-text">${status}</div>` : (isErr ? `<div class="status-right status-error">Проверить вручную</div>` : `<div class="status-right">${status}</div>`);
-      if(!isPending && !isErr && !isRep) rightHtml = `<div class="status-right status-new">Новый объект</div>`;
+      let rightHtml = isPending ? `<div class="status-right status-offline-text">${status}</div>` : 
+                     (isProcessing ? `<div class="status-right status-processing-text">${status}</div>` :
+                     (isErr ? `<div class="status-right status-error">Проверить вручную</div>` : `<div class="status-right">${status}</div>`));
+                     
+      if(!isPending && !isProcessing && !isErr && !isRep) rightHtml = `<div class="status-right status-new">Новый объект</div>`;
       
       let displayImg = imgSrc ? `<img src="${imgSrc}">` : `🚗`;
       let thumbHtml = `<div class="thumb-box" onclick="window.open('${photoUrl || '#'}', '_blank')">${displayImg}</div>`;
       
+      // Динамическая кнопка Журнала только для карточек-повторов
+      let journalBtnHtml = isRep ? `<br><button class="journal-trigger-btn" onclick="showInJournal('${number}')">🔎 Показать в журнале</button>` : "";
+
       cardElement.innerHTML = `
         ${thumbHtml}
         <div class="info-left">
@@ -397,6 +496,7 @@
               <span class="plate-display" id="text_${cardElement.id}">${number}</span>
               <br>
               <button class="edit-trigger-btn" onclick="openFullscreenEdit('${cardElement.id}', '${photoUrl}', '${address}', '${timeStr}', '${imgSrc || photoUrl}')">✏️ Поправить номер</button>
+              ${journalBtnHtml}
             </div>
           </div>
           <div class="info-date">${timeStr}</div>
@@ -410,7 +510,7 @@
       initAudioEngine();
       let textSpan = document.getElementById(`text_${cardId}`);
       let currentNumber = textSpan ? textSpan.innerText : "";
-      if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "Не распознан") currentNumber = "";
+      if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "🤖 АНАЛИЗ..." || currentNumber === "Не распознан") currentNumber = "";
       
       document.getElementById('m-target-img').src = imgToDisplay || "";
       let inputField = document.getElementById('m-plate-field');
@@ -522,23 +622,39 @@
       });
     }
 
-    async function loadSettings(isSilent) {
-      try {
-        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings' }) });
-        let res = await response.json();
-        appSettings.durNew = res.durNew; appSettings.durRep = res.durRep; appSettings.durErr = res.durErr;
-        if (!isSilent) {
-          document.getElementById('settings-days').value = res.days; document.getElementById('settings-dur-new').value = res.durNew;
-          document.getElementById('settings-dur-rep').value = res.durRep; document.getElementById('settings-dur-err').value = res.durErr;
-        }
-      } catch (e) {}
+    function loadSettings(isSilent) {
+      // Загрузка кастомного интервала свежести
+      let localRecent = localStorage.getItem('settings_recent_mins');
+      if (localRecent) appSettings.recentMins = parseInt(localRecent);
+      
+      if (!isSilent) {
+        document.getElementById('settings-recent-mins').value = appSettings.recentMins;
+      }
+
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings' }) })
+        .then(r => r.json())
+        .then(res => {
+          appSettings.durNew = res.durNew; appSettings.durRep = res.durRep; appSettings.durErr = res.durErr;
+          if (!isSilent) {
+            document.getElementById('settings-days').value = res.days; document.getElementById('settings-dur-new').value = res.durNew;
+            document.getElementById('settings-dur-rep').value = res.durRep; document.getElementById('settings-dur-err').value = res.durErr;
+          }
+        }).catch(e => {});
     }
     
-    async function saveSettings() {
+    function saveSettings() {
       let days = document.getElementById('settings-days').value;
-      let msg = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', days: days, durNew: document.getElementById('settings-dur-new').value, durRep: document.getElementById('settings-dur-rep').value, durErr: document.getElementById('settings-dur-err').value }) }).then(r => r.text());
-      document.getElementById('settings-status').innerText = "Настройки сохранены!";
-      setTimeout(() => document.getElementById('settings-status').innerText = "", 3000);
+      let rMins = parseInt(document.getElementById('settings-recent-mins').value) || 30;
+      
+      // Локальное сохранение переменной свежести
+      appSettings.recentMins = rMins;
+      localStorage.setItem('settings_recent_mins', rMins);
+
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', days: days, durNew: document.getElementById('settings-dur-new').value, durRep: document.getElementById('settings-dur-rep').value, durErr: document.getElementById('settings-dur-err').value }) })
+        .then(r => {
+          document.getElementById('settings-status').innerText = "Настройки сохранены!";
+          setTimeout(() => document.getElementById('settings-status').innerText = "", 3000);
+        }).catch(e => { alert("Локальные параметры сохранены!"); });
     }
     
     function triggerHardwareAlert(type) {
