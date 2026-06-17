@@ -151,7 +151,6 @@
   </div>
 
   <script>
-    // === ВСТАВЬ СЮДА СВОЙ РАБОЧИЙ URL МАКРОСА ===
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5 };
@@ -167,10 +166,9 @@
       });
     }
 
-    // НАХОДУ СЖИМАЕТ ТЯЖЕЛЫЕ СНИМКИ С КАМЕРЫ (СПАСАЕТ ПАМЯТЬ КЭША ТЕЛЕФОНА)
+    // ИСПРАВЛЕННЫЙ МИКРО-КОМПРЕССОР (ДАТЧИК ONLOAD СТРОГО ПЕРЕД SRC)
     function compressImage(base64Str, maxWidth, maxHeight, quality, callback) {
       let img = new Image();
-      img.src = base64Str;
       img.onload = function() {
         let canvas = document.createElement('canvas');
         let width = img.width;
@@ -185,6 +183,7 @@
         ctx.drawImage(img, 0, 0, width, height);
         callback(canvas.toDataURL('image/jpeg', quality));
       };
+      img.src = base64Str; // Источник назначается строго в самом конце!
     }
 
     function reRequestGeolocation(isSilent) {
@@ -196,7 +195,7 @@
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
           currentCoords = { latitude: position.coords.latitude, longitude: position.coords.longitude };
-          let successHtml = "<span style='color:#42b72a;'>📍 Спутники GPS активны</span>";
+          let successHtml = "<span style='color:#42b72a;'>📍 Спутники GPS active</span>";
           if (camStatus) camStatus.innerHTML = successHtml;
           if (optStatus) optStatus.innerHTML = successHtml;
           document.getElementById('scan-btn').disabled = false;
@@ -292,7 +291,6 @@
       const reader = new FileReader();
       
       reader.onload = function(e) {
-        // Запускаем принудительное сжатие до 1280px (вес упадет с 5Мб до 180Кб)
         compressImage(e.target.result, 1280, 1280, 0.7, function(compressedBg64) {
           let offlineItem = { action: 'scan', taskId: taskId, image: compressedBg64, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: null };
           
@@ -301,7 +299,7 @@
             q.push(offlineItem);
             saveOfflineQueue(q);
           } catch(err) {
-            alert("Критическая ошибка памяти телефона! Очистите кэш или очередь.");
+            alert("Критическая ошибка памяти телефона!");
             return;
           }
           
