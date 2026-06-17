@@ -66,9 +66,14 @@
     .m-btn { width: 100%; padding: 16px; font-size: 16px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
     .m-btn-save { background: #42b72a; color: white; }
     .m-btn-cancel { background: #e4e6eb; color: #4b4f56; }
+
+    /* СТИЛИ ДЛЯ СВЕТОВОЙ ВСПЫШКИ ЭКРАНА */
+    #flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; opacity: 0; background: transparent; transition: opacity 0.08s ease-out; }
   </style>
 </head>
 <body>
+
+  <div id="flash-overlay"></div>
 
   <div id="sync-status-bar" class="status-synced">🟢 Все данные сохранены в облаке</div>
 
@@ -151,11 +156,13 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
+    const APP_VERSION = "3.1"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5 };
     let currentCoords = null;
     let globalJournalCache = []; 
     let isSyncing = false;       
+    let globalAudioCtx = null; // Глобальный аудио-движок
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -163,6 +170,16 @@
           .then(reg => console.log('PWA Сервис-Воркер запущен!'))
           .catch(err => console.log('Сбой Сервис-Воркера', err));
       });
+    }
+
+    // ФУНКЦИЯ ЖЕСТКОЙ РАЗБЛОКИРОВКИ АУДИО ОДНИМ ТАПОМ
+    function initAudioEngine() {
+      if (!globalAudioCtx) {
+        globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+        globalAudioCtx.resume();
+      }
     }
 
     function compressImage(base64Str, maxWidth, maxHeight, quality, callback) {
@@ -215,9 +232,12 @@
       reRequestGeolocation(true);
       loadSettings(true);
       refreshSyncStatusBar();
-      restoreOfflineCards(); // СРАЗУ ВОССТАНАВЛИВАЕМ КАРТОЧКИ ИЗ ПАМЯТИ ПРИ ЗАГРУЗКЕ
+      restoreOfflineCards(); 
       silentLoadJournalCache();
       setInterval(backgroundSyncLoop, 10000);
+
+      // Вешаем разблокировку звука на любое касание экрана приложения
+      document.body.addEventListener('click', initAudioEngine, { once: false });
 
       document.getElementById('m-plate-field').addEventListener('input', function(e) {
         let value = e.target.value.toUpperCase();
@@ -228,15 +248,13 @@
       });
     };
 
-    // ФУНКЦИЯ ВОССТАНОВЛЕНИЯ КАРТОЧКЕК НА ЭКРАНЕ ПОСЛЕ ПЕРЕЗАГРУЗКИ СТРАНИЦЫ
     function restoreOfflineCards() {
       let q = getOfflineQueue();
       let scanResultArea = document.getElementById('scan-result');
       if (!scanResultArea || q.length === 0) return;
       
       q.forEach(item => {
-        if (document.getElementById(item.taskId)) return; // Подстраховка от дублирования
-        
+        if (document.getElementById(item.taskId)) return; 
         let itemDiv = document.createElement('div');
         itemDiv.id = item.taskId;
         scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
@@ -246,10 +264,7 @@
         let displayAddress = item.manualNumber ? "Сохранено в телефоне" : "Сбор координат";
         
         let localDupStatus = checkLocalDuplicateText(displayNum);
-        if (localDupStatus) {
-          displayStatus = localDupStatus;
-          displayAddress = "Проверка в оффлайне";
-        }
+        if (localDupStatus) { displayStatus = localDupStatus; displayAddress = "Проверка в оффлайне"; }
         
         updateCardUi(itemDiv, displayNum, displayStatus, displayAddress, "", "🕒 Ожидает выгрузку", item.image);
       });
@@ -270,14 +285,14 @@
       let bar = document.getElementById('sync-status-bar');
       if (q.length === 0) {
         bar.className = "status-synced";
-        bar.innerText = "🟢 Все данные сохранены в облаке";
+        bar.innerText = `🟢 Все данные сохранены в облаке [v${APP_VERSION}]`;
       } else {
         if (isSyncing) {
           bar.className = "status-uploading";
-          bar.innerText = `🔵 Идет фоновая выгрузка... (Осталось объектов: ${q.length})`;
+          bar.innerText = `🔵 Фоновая выгрузка... (Осталось: ${q.length}) [v${APP_VERSION}]`;
         } else {
           bar.className = "status-offline";
-          bar.innerText = `🟡 Оффлайн-очередь: ${q.length} объектов ждут сеть`;
+          bar.innerText = `🟡 Оффлайн-очередь: ${q.length} объектов [v${APP_VERSION}]`;
         }
       }
     }
@@ -309,6 +324,7 @@
 
     function uploadAndProcess(input) {
       if (!input.files.length) return;
+      initAudioEngine(); // Разблокируем звук в момент нажатия на затвор камеры
       const file = input.files[0];
       const taskId = "task_" + new Date().getTime(); 
       const reader = new FileReader();
@@ -322,8 +338,7 @@
             q.push(offlineItem);
             saveOfflineQueue(q);
           } catch(err) {
-            alert("Критическая ошибка памяти телефона!");
-            return;
+            alert("Критическая ошибка памяти телефона!"); return;
           }
           
           let scanResultArea = document.getElementById('scan-result');
@@ -372,6 +387,7 @@
     }
 
     function openFullscreenEdit(cardId, photoUrl, address, timeStr, imgToDisplay) {
+      initAudioEngine();
       let textSpan = document.getElementById(`text_${cardId}`);
       let currentNumber = textSpan ? textSpan.innerText : "";
       if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "Не распознан") currentNumber = "";
@@ -396,8 +412,7 @@
       let motoRegex = /^\d{4}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i;           
       if (!carRegex.test(newNum) && !motoRegex.test(newNum)) {
         triggerHardwareAlert('error');
-        alert("ОШИБКА ГОСТа РФ!\nАвтомобильный: А000АА99\nМотоциклетный: 0000АА99");
-        return;
+        alert("ОШИБКА ГОСТа РФ!\nАвтомобильный: А000АА99\nМотоциклетный: 0000АА99"); return;
       }
       
       closeFullscreenEdit(); 
@@ -506,35 +521,58 @@
       setTimeout(() => document.getElementById('settings-status').innerText = "", 3000);
     }
     
+    // НАДЕЖНЫЙ ОБЪЕДИНЕННЫЙ МОДУЛЬ: ЗВУК + ВИБРО + СВЕТОВАЯ ВСПЫШКА ЭКРАНА
     function triggerHardwareAlert(type) {
+      // 1. СВЕТОВАЯ ВСПЫШКА
+      let overlay = document.getElementById('flash-overlay');
+      if (overlay) {
+        if (type === 'new') overlay.style.backgroundColor = 'rgba(66, 183, 42, 0.35)';      // Мягкий зеленый
+        else if (type === 'repeat') overlay.style.backgroundColor = 'rgba(240, 40, 73, 0.45)'; // Плотный красный для повтора
+        else if (type === 'error') overlay.style.backgroundColor = 'rgba(255, 122, 0, 0.4)';  // Оранжевый
+        
+        overlay.style.opacity = '1';
+        setTimeout(() => { overlay.style.opacity = '0'; }, 350); // Плавное исчезновение вспышки
+      }
+
+      // 2. ОПТИМИЗИРОВАННЫЙ ЗВУК И ВИБРАЦИЯ ЧЕРЕЗ ГЛОБАЛЬНЫЙ МАКРОС
       try {
-        let AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        let ctx = new AudioContext();
-        let osc = ctx.createOscillator();
-        let gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
+        if (!globalAudioCtx) {
+          globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (globalAudioCtx.state === 'suspended') {
+          globalAudioCtx.resume();
+        }
+        
+        let osc = globalAudioCtx.createOscillator();
+        let gain = globalAudioCtx.createGain();
+        osc.connect(gain); gain.connect(globalAudioCtx.destination);
         let durationSeconds = 0.2;
+        
         if (type === 'new') {
           durationSeconds = parseFloat(appSettings.durNew) || 0.1;
-          osc.type = 'sine'; osc.frequency.setValueAtTime(950, ctx.currentTime);
-          gain.gain.setValueAtTime(0.08, ctx.currentTime);
-          osc.start(); osc.stop(ctx.currentTime + durationSeconds);
+          osc.type = 'sine'; osc.frequency.setValueAtTime(950, globalAudioCtx.currentTime);
+          gain.gain.setValueAtTime(0.08, globalAudioCtx.currentTime);
+          osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
           if (navigator.vibrate) navigator.vibrate(durationSeconds * 1000);
         } else if (type === 'repeat') {
           durationSeconds = parseFloat(appSettings.durRep) || 0.3;
-          osc.type = 'triangle'; osc.frequency.setValueAtTime(580, ctx.currentTime);
-          gain.gain.setValueAtTime(0.12, ctx.currentTime);
+          osc.type = 'triangle'; osc.frequency.setValueAtTime(580, globalAudioCtx.currentTime);
+          gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime);
           osc.start(); osc.stop(ctx.currentTime + durationSeconds);
-          if (navigator.vibrate) navigator.vibrate(durationSeconds * 1000);
+          if (navigator.vibrate) {
+            // Двойной вибропульс для повтора (Внимание!)
+            navigator.vibrate([durationSeconds * 500, 100, durationSeconds * 500]);
+          }
         } else if (type === 'error') {
           durationSeconds = parseFloat(appSettings.durErr) || 0.5;
-          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, ctx.currentTime);
-          gain.gain.setValueAtTime(0.15, ctx.currentTime);
-          osc.start(); osc.stop(ctx.currentTime + durationSeconds);
+          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, globalAudioCtx.currentTime);
+          gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime);
+          osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
           if (navigator.vibrate) navigator.vibrate(durationSeconds * 1000);
         }
-      } catch (e) {}
+      } catch (e) {
+        console.log("Аудио-контекст ожидает касания экрана");
+      }
     }
   </script>
 </body>
