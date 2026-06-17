@@ -19,7 +19,7 @@
     .status-offline { background: #ffaa00; }
     .status-uploading { background: #1877f2; }
 
-    .top-bar-moon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 15px; cursor: pointer; padding: 4px; color: white; transition: transform 0.1s; line-height: 1; }
+    .top-bar-moon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 15px; cursor: pointer; padding: 4px; color: white; transition: transform 0.1s; line-height: 1; -webkit-tap-highlight-color: transparent; }
     .top-bar-moon:active { transform: scale(0.85); }
 
     .progress-container { width: 90%; height: 6px; background: rgba(255,255,255,0.25); border-radius: 4px; margin: 8px auto 0 auto; display: none; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
@@ -38,7 +38,6 @@
     input { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; background: var(--bg-main); color: var(--text-main); margin-bottom: 10px; }
     input:focus { background: var(--bg-card); border-color: #1877f2; outline: none; }
     
-    /* 🔥 КРАСИВЫЕ ГРАДИЕНТНЫЕ КНОПКИ НОВОГО СТАНДАРТА */
     .btn-premium-blue { background: linear-gradient(135deg, #1877f2 0%, #0c56be 100%); color: white; padding: 15px; border: none; border-radius: 12px; font-size: 15px; width: 100%; cursor: pointer; font-weight: bold; box-shadow: 0 4px 14px rgba(24, 119, 242, 0.3); transition: all 0.15s ease; -webkit-tap-highlight-color: transparent; }
     .btn-premium-blue:active { transform: scale(0.97); box-shadow: 0 2px 5px rgba(24, 119, 242, 0.15); }
 
@@ -115,7 +114,6 @@
     .help-header { font-size: 14px; font-weight: bold; color: #1877f2; margin-top: 14px; margin-bottom: 4px; }
     .help-text { font-size: 13px; line-height: 1.45; margin-top: 0; color: var(--text-main); }
 
-    /* 🔥 СКВОЗНОЙ ГЛЯНЦЕВЫЙ ПОДВАЛ (ФУТЕР) С КЛИКАБЕЛЬНОЙ ССЫЛКОЙ */
     .premium-fixed-footer { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(240, 242, 245, 0.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); text-align: center; padding: 11px 0; font-size: 12px; color: var(--text-sub); border-top: 1px solid var(--border-color); z-index: 1500; font-weight: 500; letter-spacing: 0.3px; }
     .dark-mode .premium-fixed-footer { background: rgba(24, 25, 26, 0.85); }
     .premium-fixed-footer a { color: #1877f2; text-decoration: none; font-weight: bold; transition: color 0.2s; }
@@ -233,7 +231,7 @@
   </div>
 
   <div class="premium-fixed-footer">
-    Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v5.6
+    Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v5.7
   </div>
 
   <div id="fullscreen-edit-modal">
@@ -263,7 +261,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "5.6"; 
+    const APP_VERSION = "5.7"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "⏳ Поиск GPS...";
@@ -397,7 +395,6 @@
       } catch (err) { alert("Ошибка кадрирования: " + err.message); }
     }
 
-    // 🔥 ИСПРАВЛЕННО: Изолированное переключение луны без ложного пинга GPS
     function toggleThemeMode(event) {
       if (event) event.stopPropagation(); 
       document.body.classList.toggle('dark-mode');
@@ -651,7 +648,7 @@
             <div class="plate-container">
               <span class="plate-display" id="text_${cardElement.id}">${number}</span>
               <br>
-              <button class="edit-trigger-btn" onclick="openFullscreenEdit('${cardElement.id}', '${photoUrl}', '${address}', '${timeStr}', '${imgSrc || photoUrl}')">✏️ Поправить номер</button>
+              <button class="edit-trigger-btn" onclick="openFullscreenEdit('${cardElement.id}', '${photoUrl}', '__address_placeholder__', '${timeStr}', '${imgSrc || photoUrl}')">✏️ Поправить номер</button>
               ${journalBtnHtml}
             </div>
           </div>
@@ -660,6 +657,17 @@
         </div>
         ${rightHtml}
       `;
+      // Тонкий страховой фикс адреса, чтобы не ломать кавычки в onclick
+      cardElement.innerHTML = cardElement.innerHTML.replace('__address_placeholder__', address.replace(/'/g, "\\'").replace(/"/g, '\\"'));
+    }
+
+    // 🔥 ИСПРАВЛЕННО: Возвращена функция проверки ГОСТ шаблонов РФ (Фикс главной ошибки)
+    function validateGostTemplate(num) {
+      if (!num || num === "Не распознан") return false;
+      let clean = num.toUpperCase().trim();
+      let carRegex = /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i; 
+      let motoRegex = /^\d{4}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i;           
+      return carRegex.test(clean) || motoRegex.test(clean);
     }
 
     function openFullscreenEdit(cardId, photoUrl, address, timeStr, imgToDisplay) {
@@ -752,7 +760,6 @@
             let smartStatus = checkLocalDuplicateText(finalNum, savedTaskId, null) || finalStatus || "";
             if (smartStatus.includes("Повтор")) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
             
-            // 🔥 ЖЕСТКОЕ СИНХРОННОЕ ПЕРЕКРАШИВАНИЕ ЭКРАНА В РЕАЛЬНОМ ВРЕМЕНИ ДЛЯ ВСЕХ ВКЛАДОК
             updateCardUi(card, finalNum, smartStatus, address, photoUrl, timeStr, imgSrc, savedTaskId);
           } else {
             let serverLog = (res && res.error) ? res.error : "Запись отклонена";
@@ -767,13 +774,13 @@
       }
     }
 
-    // 🔒 ЖЕСТКО ЗАЩИЩЕННЫЙ ДВИЖОК СИНХРОНИЗАЦИИ (АНТИ-МИГАНИЕ ПРИ ОФФЛАЙНЕ)
+    // 🔥 ИСПРАВЛЕННО: Абсолютная защита от ложных синих миганий в оффлайне
     async function backgroundSyncLoop() {
       if (isSyncing) return; 
       let q = await getIndexedDBQueue();
       if (q.length === 0) { syncTotalItems = 0; await refreshSyncStatusBar(); return; }
       
-      // 🔥 ЖЕСТКИЙ ШЛАГБАУМ: Если связи нет — гасим функцию мгновенно, не переключая статус-бар в синий!
+      // Жесткий шлагбаум: Если датчик Хрома видит оффлайн — функция тихо засыпает
       if (!navigator.onLine) {
         isSyncing = false;
         await refreshSyncStatusBar(); 
@@ -827,8 +834,7 @@
         if (records && records.length) globalJournalCache = records; 
         renderJournal(records);
       } catch(e) { 
-        // 🔥 ИСПРАВЛЕННО: Выводим ЧЕСТНЫЙ технический лог вместо слепой маски про шапку
-        document.getElementById('journal-container').innerHTML = "<p style='text-align:center; color:#ff7a00; font-weight:bold; padding: 10px;'>⚠️ СБОЙ СЕРВЕРА ТАБЛИЦЫ:<br><span style='font-size:12px; font-family:monospace;'>" + e.message + "</span></p>"; 
+        document.getElementById('journal-container').innerHTML = "<p style='text-align:center; color:#ff7a00; font-weight:bold; padding: 10px;'>⚠️ ОШИБКА БАЗЫ ДАННЫХ:<br><span style='font-size:12px; font-family:monospace; font-weight:normal;'>" + e.message + "</span></p>"; 
       }
     }
 
@@ -837,7 +843,6 @@
       if (!records.length) { container.innerHTML = "<p style='text-align:center; color:var(--text-sub); margin-top:20px;'>Записей не обнаружено</p>"; return; }
       container.innerHTML = `<p style="font-size:13px; color:var(--text-sub); margin-bottom:10px;">Найдено в общей базе: ${records.length}</p>`;
       records.forEach((r, idx) => {
-        // 🔥 ИСПРАВЛЕННО: Префиксная изоляция ID для вкладки Журнала (jour_...)
         let itemId = "jour_" + (r.taskId || ("item_" + idx)); 
         let mapsUrl = r.gps && r.gps !== "Нет GPS" ? "https://www.google.com/maps/search/?api=1&query=$" + encodeURIComponent(r.gps) : "#";
         let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
