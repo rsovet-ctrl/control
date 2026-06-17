@@ -67,14 +67,12 @@
     .m-btn-save { background: #42b72a; color: white; }
     .m-btn-cancel { background: #e4e6eb; color: #4b4f56; }
 
-    /* СТИЛИ ДЛЯ СВЕТОВОЙ ВСПЫШКИ ЭКРАНА */
     #flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; opacity: 0; background: transparent; transition: opacity 0.08s ease-out; }
   </style>
 </head>
 <body>
 
   <div id="flash-overlay"></div>
-
   <div id="sync-status-bar" class="status-synced">🟢 Все данные сохранены в облаке</div>
 
   <div class="nav-tabs">
@@ -156,13 +154,13 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "3.1"; 
+    const APP_VERSION = "3.3"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5 };
     let currentCoords = null;
     let globalJournalCache = []; 
     let isSyncing = false;       
-    let globalAudioCtx = null; // Глобальный аудио-движок
+    let globalAudioCtx = null; 
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -172,7 +170,6 @@
       });
     }
 
-    // ФУНКЦИЯ ЖЕСТКОЙ РАЗБЛОКИРОВКИ АУДИО ОДНИМ ТАПОМ
     function initAudioEngine() {
       if (!globalAudioCtx) {
         globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -236,7 +233,6 @@
       silentLoadJournalCache();
       setInterval(backgroundSyncLoop, 10000);
 
-      // Вешаем разблокировку звука на любое касание экрана приложения
       document.body.addEventListener('click', initAudioEngine, { once: false });
 
       document.getElementById('m-plate-field').addEventListener('input', function(e) {
@@ -270,6 +266,7 @@
       });
     }
 
+    // ИСПРАВЛЕННЫЙ ТАБ-МЕНЕДЖЕР (БЕЗ ДВОЙНОГО .EL)
     function openTab(tabId, el) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
@@ -305,26 +302,49 @@
       } catch (e) {}
     }
 
+    // НОВАЯ ИНТЕЛЛЕКТУАЛЬНАЯ ЛОГИКА ПОДСЧЕТА ПОВТОРОВ, ВРЕМЕНИ И АДРЕСОВ
     function checkLocalDuplicateText(num) {
       if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ") return null;
       let cleanNum = num.toUpperCase().trim();
+      let count = 0;
+      let latestTimeStr = "";
+      let latestAddress = "";
+
+      // 1. Считаем по общему архиву (истории рейда)
       for (let i = 0; i < globalJournalCache.length; i++) {
         if (globalJournalCache[i].number.toUpperCase().trim() === cleanNum) {
-          return `Повтор (из архива):<br>📍 ${globalJournalCache[i].address}`;
+          count++;
+          if (!latestTimeStr) {
+            latestTimeStr = globalJournalCache[i].date || "Ранее";
+            latestAddress = globalJournalCache[i].address || "База данных";
+          }
         }
       }
+
+      // 2. Считаем по накопившейся оффлайн-очереди в памяти
       let q = getOfflineQueue();
       for (let i = 0; i < q.length; i++) {
         if (q[i].manualNumber && q[i].manualNumber.toUpperCase().trim() === cleanNum) {
-          return `Повтор (из оффлайн очереди):<br>🕒 Зафиксирован пару минут назад`;
+          count++;
+          let t = new Date(q[i].timestamp);
+          let timeFormatted = t.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+          latestTimeStr = "Недавно в " + timeFormatted;
+          latestAddress = "Текущий рейд (в очереди)";
         }
       }
-      return null;
+
+      if (count === 0) return null;
+
+      if (count === 1) {
+        return `Повтор! Изв.:<br>🕒 ${latestTimeStr}<br>📍 ${latestAddress}`;
+      } else {
+        return `Повтор: ${count} раз!<br>🕒 Последний: ${latestTimeStr}<br>📍 ${latestAddress}`;
+      }
     }
 
     function uploadAndProcess(input) {
       if (!input.files.length) return;
-      initAudioEngine(); // Разблокируем звук в момент нажатия на затвор камеры
+      initAudioEngine(); 
       const file = input.files[0];
       const taskId = "task_" + new Date().getTime(); 
       const reader = new FileReader();
@@ -464,9 +484,9 @@
         if (card) {
           let isRep = res.status.includes("Повтор"); let isErr = res.number === "Не распознан" || res.number.includes("Ошибка");
           if (isErr) triggerHardwareAlert('error'); else if (isRep) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
-          updateCardUi(card, res.number, res.status, res.address, res.photo, "🕒 Спасен из оффлайна", item.image);
+          updateCardUi(card, res.number, res.status, res.address, res.photo, "📅 Запись сохранена", item.image);
         }
-      } catch (error) { console.log("Ждем сеть..."); } 
+      } catch (error) { console.log("Проблема связи, данные в безопасности..."); } 
       finally {
         isSyncing = false; refreshSyncStatusBar();
         if (getOfflineQueue().length > 0 && navigator.onLine) setTimeout(backgroundSyncLoop, 1000);
@@ -521,20 +541,17 @@
       setTimeout(() => document.getElementById('settings-status').innerText = "", 3000);
     }
     
-    // НАДЕЖНЫЙ ОБЪЕДИНЕННЫЙ МОДУЛЬ: ЗВУК + ВИБРО + СВЕТОВАЯ ВСПЫШКА ЭКРАНА
     function triggerHardwareAlert(type) {
-      // 1. СВЕТОВАЯ ВСПЫШКА
       let overlay = document.getElementById('flash-overlay');
       if (overlay) {
-        if (type === 'new') overlay.style.backgroundColor = 'rgba(66, 183, 42, 0.35)';      // Мягкий зеленый
-        else if (type === 'repeat') overlay.style.backgroundColor = 'rgba(240, 40, 73, 0.45)'; // Плотный красный для повтора
-        else if (type === 'error') overlay.style.backgroundColor = 'rgba(255, 122, 0, 0.4)';  // Оранжевый
+        if (type === 'new') overlay.style.backgroundColor = 'rgba(66, 183, 42, 0.35)';      
+        else if (type === 'repeat') overlay.style.backgroundColor = 'rgba(240, 40, 73, 0.45)'; 
+        else if (type === 'error') overlay.style.backgroundColor = 'rgba(255, 122, 0, 0.4)';  
         
         overlay.style.opacity = '1';
-        setTimeout(() => { overlay.style.opacity = '0'; }, 350); // Плавное исчезновение вспышки
+        setTimeout(() => { overlay.style.opacity = '0'; }, 350); 
       }
 
-      // 2. ОПТИМИЗИРОВАННЫЙ ЗВУК И ВИБРАЦИЯ ЧЕРЕЗ ГЛОБАЛЬНЫЙ МАКРОС
       try {
         if (!globalAudioCtx) {
           globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -558,9 +575,8 @@
           durationSeconds = parseFloat(appSettings.durRep) || 0.3;
           osc.type = 'triangle'; osc.frequency.setValueAtTime(580, globalAudioCtx.currentTime);
           gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime);
-          osc.start(); osc.stop(ctx.currentTime + durationSeconds);
+          osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
           if (navigator.vibrate) {
-            // Двойной вибропульс для повтора (Внимание!)
             navigator.vibrate([durationSeconds * 500, 100, durationSeconds * 500]);
           }
         } else if (type === 'error') {
@@ -571,7 +587,7 @@
           if (navigator.vibrate) navigator.vibrate(durationSeconds * 1000);
         }
       } catch (e) {
-        console.log("Аудио-контекст ожидает касания экрана");
+        console.log("Ждем фонового клика...");
       }
     }
   </script>
