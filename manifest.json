@@ -1,0 +1,18 @@
+{
+  "name": "Контроль Автопарка",
+  "short_name": "АвтоКонтроль",
+  "description": "Автономный терминал потоковой фиксации госномеров авто и мотоциклов",
+  "start_url": "index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f0f2f5",
+  "theme_color": "#1877f2",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/744/744465.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
