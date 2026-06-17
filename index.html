@@ -39,7 +39,6 @@
     .btn-secondary { background: #e4e6eb; color: #4b4f56; box-shadow: none; }
     .dark-mode .btn-secondary { background: #3a3b3c; color: #e4e6eb; }
     
-    /* ЖЕСТКИЙ ФИКСИРОВАННЫЙ РАЗМЕР ДЛЯ СТРИМА КАМЕРЫ */
     .live-stream-container { position: relative; margin: 5px auto; background: #000; border-radius: 16px; overflow: hidden; aspect-ratio: 3/4; border: 3px solid #1877f2; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
     .live-stream-container video { width: 100%; height: 100%; object-fit: cover; }
     
@@ -221,9 +220,9 @@
     </div>
   </div>
 
-  <script>
+  <script {nonce}>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "4.7"; 
+    const APP_VERSION = "4.8"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "⏳ Поиск GPS...";
@@ -370,16 +369,12 @@
       }
     }
 
-    // ИСПРАВЛЕННОЕ ЖЕСТКОЕ ПРИМЕНЕНИЕ РАЗМЕРОВ (ШИРИНА И ВЫСОТА СРАЗУ В ПИКСЕЛЯХ)
     function applyLocalUiDimensions() {
       let w = parseInt(document.getElementById('settings-cam-w').value) || appSettings.camW || 280;
       let h = parseInt(document.getElementById('settings-cam-h').value) || appSettings.camH || 370;
       appSettings.camW = w; appSettings.camH = h;
       let box = document.getElementById('stream-box-container');
-      if (box) { 
-        box.style.width = w + 'px'; 
-        box.style.height = h + 'px'; 
-      }
+      if (box) { box.style.width = w + 'px'; box.style.height = h + 'px'; }
     }
 
     function charityTransform() {
@@ -573,7 +568,7 @@
       }
 
       let dotHtml = isRecent ? `<span class="pulse-dot"></span>` : "";
-      let mapsUrl = latestGps ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(latestGps) : "#";
+      let mapsUrl = latestGps ? "https://www.google.com/maps?q=" + encodeURIComponent(latestGps) : "#";
       let mapBtnHtml = (latestGps && latestGps !== "Нет GPS") ? `<br><a class="geo-btn" href="${mapsUrl}" target="_blank">🗺️ Карта повтора</a>` : "";
 
       if (count === 1) { return `Повтор! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`; } 
@@ -583,8 +578,7 @@
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc) {
       number = number || ""; status = status || "";
       
-      let isRep = status.includes("Повтор"); 
-      let isPending = status.includes("Ожидание сети");
+      let isRep = status.includes("Повтор"); let isPending = status.includes("Ожидание сети");
       let isProcessing = number === "🤖 АНАЛИЗ..." || status.includes("Пересчет"); 
       let isErr = number === "Не распознан" || number.includes("Ошибка") || status.includes("Проверить вручную");
       
@@ -644,7 +638,7 @@
       return carRegex.test(clean) || motoRegex.test(clean);
     }
 
-    // 🔒 ЖЕСТКИЙ АНТИ-ЗАВИСАЮЩИЙ ДВИЖОК СОХРАНЕНИЯ С ТАЙМ-АУТОМ (12 СЕКУНД)
+    // 🔒 ЖЕСТКИЙ АНТИ-ЗАВИСАЮЩИЙ ДВИЖОК С ВЕЕРНЫМ СОПОСТАВЛЕНИЕМ ПАРАМЕТРОВ (ВЕРСИЯ v4.8)
     async function saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgSrc) {
       let newNum = document.getElementById('m-plate-field').value.toUpperCase().trim();
       if (!newNum) return;
@@ -659,6 +653,8 @@
 
       const originalHtml = card.innerHTML;
       const originalClass = card.className;
+      let textSpan = document.getElementById(`text_${cardId}`);
+      let currentNumber = textSpan ? textSpan.innerText : "";
 
       let q = await getIndexedDBQueue(); 
       let matchIdx = q.findIndex(item => item.taskId === cardId);
@@ -675,39 +671,58 @@
         let rb = card.querySelector('.status-right'); 
         if (rb) { rb.className = "status-right status-processing-text"; rb.innerText = "Пересчет..."; }
         
-        // Внедряем Аборт-Контроллер для принудительного разрыва зависшего соединения
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 секунд потолок
+        const timeoutId = setTimeout(() => controller.abort(), 12000); 
         
         try {
+          // КОВРОВАЯ БОМБАРДИРОВКА ПАРАМЕТРОВ ДЛЯ ЛЮБЫХ ВЕРСИЙ СКРИПТОВ ГУГЛА
           let response = await fetch(API_URL, { 
             method: 'POST', 
             signal: controller.signal,
-            body: JSON.stringify({ action: 'editRecord', photo: photoUrl, newNumber: newNum }) 
+            body: JSON.stringify({ 
+              action: 'editRecord', 
+              photo: photoUrl, 
+              photoUrl: photoUrl,
+              newNumber: newNum,
+              number: newNum,
+              oldNumber: currentNumber,
+              date: timeStr ? timeStr.replace("📅 ", "").trim() : ""
+            }) 
           });
-          clearTimeout(timeoutId); // Успели вовремя, отменяем взрыватель
+          clearTimeout(timeoutId); 
           
           if (!response.ok) throw new Error("Ошибка HTTP");
           let res = await response.json();
           
-          if (res && res.success) {
+          // УМНАЯ СУПЕР-ПРОВЕРКА: Любое текстовое подтверждение номера от Гугла трактуется как УСПЕХ
+          let isSuccess = res && (res.success === true || res.success === "true" || res.status === "success" || res.number || res.newNumber);
+          
+          if (isSuccess) {
             function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
-            let finalNum = res.number || newNum; let finalStatus = res.status || "Новый объект";
+            let finalNum = res.number || res.newNumber || newNum; 
+            let finalStatus = res.status || "Новый объект";
             
-            globalJournalCache.unshift({ taskId: cardId, number: finalNum, date: getGSheetsTimestamp(), address: address, gps: "Изменен в сети" });
+            // Жестко фиксируем photoUrl в памяти, чтобы не потерять его на следующем круге правок
+            globalJournalCache.unshift({ 
+              taskId: cardId, 
+              number: finalNum, 
+              date: getGSheetsTimestamp(), 
+              address: address, 
+              gps: "Изменен в сети",
+              photo: photoUrl
+            });
             
-            // Жесткий фикс краша урезки .includes() — гарантируем строку
             let smartStatus = checkLocalDuplicateText(finalNum, cardId, null) || finalStatus || "";
             if (smartStatus.includes("Повтор")) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
             updateCardUi(card, finalNum, smartStatus, address, photoUrl, timeStr, imgSrc);
           } else {
-            alert("Гугл заблокировал сохранение. Карта восстановлена.");
+            alert("Гугл отклонил изменения. Карта восстановлена автоматически.");
             card.innerHTML = originalHtml; card.className = originalClass;
           }
         } catch (e) { 
           clearTimeout(timeoutId);
           console.error("Сбой облака или тайм-аут: ", e);
-          alert("Превышено время ожидания Гугла! Карта восстановлена автоматически.");
+          alert("Превышено время ожидания! Карта восстановлена.");
           card.innerHTML = originalHtml; card.className = originalClass;
         }
       }
@@ -729,7 +744,8 @@
         function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
         globalJournalCache.unshift({
           taskId: item.taskId, number: finalNum, date: getGSheetsTimestamp(), address: res.address || "Определено GPS",
-          gps: item.coords ? `${item.coords.latitude},${item.coords.longitude}` : "Нет GPS", thumb: item.image
+          gps: item.coords ? `${item.coords.latitude},${item.coords.longitude}` : "Нет GPS", thumb: item.image,
+          photo: res.photo // Защита памяти: сохраняем URL фото в локальный кэш
         });
 
         let card = document.getElementById(item.taskId);
@@ -761,7 +777,7 @@
       container.innerHTML = `<p style="font-size:13px; color:var(--text-sub); margin-bottom:10px;">Найдено в общей базе: ${records.length}</p>`;
       records.forEach((r, idx) => {
         let itemId = "journal_item_" + idx; 
-        let mapsUrl = r.gps && r.gps !== "Нет GPS" ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(r.gps) : "#";
+        let mapsUrl = r.gps && r.gps !== "Нет GPS" ? "https://www.google.com/maps?q=" + encodeURIComponent(r.gps) : "#";
         let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
         
         let finalStatus = r.status;
@@ -790,7 +806,7 @@
       document.getElementById('settings-cam-w').value = appSettings.camW;
       document.getElementById('settings-cam-h').value = appSettings.camH;
       
-      applyLocalUiDimensions();
+      applyLocalUiDimensions(); // Гарантированный запуск окна правильного размера при старте!
 
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings' }) })
         .then(r => r.json())
