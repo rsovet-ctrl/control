@@ -10,17 +10,16 @@
     :root { --bg-main: #f0f2f5; --bg-card: #ffffff; --text-main: #1c1e21; --text-sub: #65676b; --border-color: #ced4da; }
     .dark-mode { --bg-main: #18191a; --bg-card: #242526; --text-main: #e4e6eb; --text-sub: #b0b3b8; --border-color: #3a3b3c; }
 
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg-main); color: var(--text-main); transition: background 0.3s, color 0.3s; padding-bottom: 50px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg-main); color: var(--text-main); transition: background 0.3s, color 0.3s; padding-bottom: 55px; }
     
-    #sync-status-bar { text-align: center; padding: 10px; font-size: 13px; font-weight: bold; color: white; position: sticky; top: 0; z-index: 2000; transition: all 0.4s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); line-height: 1.3; cursor: pointer; user-select: none; }
+    #sync-status-bar { position: relative; text-align: center; padding: 10px; font-size: 13px; font-weight: bold; color: white; sticky; top: 0; z-index: 2000; transition: all 0.4s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); line-height: 1.3; cursor: pointer; user-select: none; }
     #sync-status-bar:active { filter: brightness(0.9); }
     
     .status-synced { background: #42b72a; }
     .status-offline { background: #ffaa00; }
     .status-uploading { background: #1877f2; }
 
-    /* Дизайнерская кнопка луны внутри верхней статус-строки */
-    .top-bar-moon { float: right; background: none; border: none; font-size: 15px; cursor: pointer; padding: 0; color: white; margin-top: -1px; transition: transform 0.1s; }
+    .top-bar-moon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 15px; cursor: pointer; padding: 4px; color: white; transition: transform 0.1s; line-height: 1; }
     .top-bar-moon:active { transform: scale(0.85); }
 
     .progress-container { width: 90%; height: 6px; background: rgba(255,255,255,0.25); border-radius: 4px; margin: 8px auto 0 auto; display: none; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
@@ -39,11 +38,11 @@
     input { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; background: var(--bg-main); color: var(--text-main); margin-bottom: 10px; }
     input:focus { background: var(--bg-card); border-color: #1877f2; outline: none; }
     
-    /* 🔥 КРАСИВЫЕ КНОПКИ НОВОГО СТАНДАРТА */
-    .btn-premium-blue { background: linear-gradient(135deg, #1877f2 0%, #0c56be 100%); color: white; padding: 15px; border: none; border-radius: 10px; font-size: 15px; width: 100%; cursor: pointer; font-weight: bold; box-shadow: 0 4px 14px rgba(24, 119, 242, 0.3); transition: all 0.15s ease; }
+    /* 🔥 КРАСИВЫЕ ГРАДИЕНТНЫЕ КНОПКИ НОВОГО СТАНДАРТА */
+    .btn-premium-blue { background: linear-gradient(135deg, #1877f2 0%, #0c56be 100%); color: white; padding: 15px; border: none; border-radius: 12px; font-size: 15px; width: 100%; cursor: pointer; font-weight: bold; box-shadow: 0 4px 14px rgba(24, 119, 242, 0.3); transition: all 0.15s ease; -webkit-tap-highlight-color: transparent; }
     .btn-premium-blue:active { transform: scale(0.97); box-shadow: 0 2px 5px rgba(24, 119, 242, 0.15); }
 
-    .btn-premium-steel { background: linear-gradient(135deg, #4b5563 0%, #374151 100%); color: white; padding: 15px; border: none; border-radius: 10px; font-size: 15px; width: 100%; cursor: pointer; font-weight: bold; box-shadow: 0 4px 14px rgba(55, 65, 81, 0.25); transition: all 0.15s ease; }
+    .btn-premium-steel { background: linear-gradient(135deg, #4b5563 0%, #27303f 100%); color: white; padding: 15px; border: none; border-radius: 12px; font-size: 15px; width: 100%; cursor: pointer; font-weight: bold; box-shadow: 0 4px 14px rgba(75, 85, 99, 0.25); transition: all 0.15s ease; -webkit-tap-highlight-color: transparent; }
     .btn-premium-steel:active { transform: scale(0.97); box-shadow: 0 2px 5px rgba(55, 65, 81, 0.15); }
 
     .live-stream-container { position: relative; width: 280px; height: 370px; margin: 5px auto; background: #000; border-radius: 16px; overflow: hidden; border: 3px solid #1877f2; box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: width 0.2s, height 0.2s; }
@@ -116,9 +115,9 @@
     .help-header { font-size: 14px; font-weight: bold; color: #1877f2; margin-top: 14px; margin-bottom: 4px; }
     .help-text { font-size: 13px; line-height: 1.45; margin-top: 0; color: var(--text-main); }
 
-    /* 🔥 СКВОЗНОЙ ПРОЗРАЧНЫЙ ПОДВАЛ (ФУТЕР) */
-    .premium-fixed-footer { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(240, 242, 245, 0.82); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); text-align: center; padding: 10px 0; font-size: 12px; color: var(--text-sub); border-top: 1px solid var(--border-color); z-index: 1500; font-weight: 500; letter-spacing: 0.3px; }
-    .dark-mode .premium-fixed-footer { background: rgba(24, 25, 26, 0.82); }
+    /* 🔥 СКВОЗНОЙ ГЛЯНЦЕВЫЙ ПОДВАЛ (ФУТЕР) С КЛИКАБЕЛЬНОЙ ССЫЛКОЙ */
+    .premium-fixed-footer { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(240, 242, 245, 0.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); text-align: center; padding: 11px 0; font-size: 12px; color: var(--text-sub); border-top: 1px solid var(--border-color); z-index: 1500; font-weight: 500; letter-spacing: 0.3px; }
+    .dark-mode .premium-fixed-footer { background: rgba(24, 25, 26, 0.85); }
     .premium-fixed-footer a { color: #1877f2; text-decoration: none; font-weight: bold; transition: color 0.2s; }
     .premium-fixed-footer a:hover { text-decoration: underline; }
   </style>
@@ -127,7 +126,6 @@
 
   <div id="flash-overlay"></div>
 
-  <!-- 🔥 ИСПРАВЛЕННО: ТОЛЬКО ЧИСТЫЙ БОЕВОЙ СТАТУС + КНОПКА ЛУНЫ -->
   <div id="sync-status-bar" class="status-offline" onclick="reRequestGeolocation(false)">
     <span id="sync-status-text">⏳ Ожидание спутников GPS...</span>
     <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>
@@ -136,7 +134,6 @@
     </div>
   </div>
 
-  <!-- 🔥 НАВИГАЦИЯ С КОМПАКТНЫМ МАРКЕРОМ СПРАВКИ -->
   <div class="header-nav">
     <div class="nav-tabs-box">
       <div class="tab-link active" onclick="openTab('scan-tab', this)">📷 Камера</div>
@@ -146,7 +143,6 @@
     </div>
   </div>
 
-  <!-- ВКЛАДКА 1: КАМЕРА -->
   <div id="scan-tab" class="tab-content active">
     <div class="card" style="text-align: center; padding: 6px;">
       <div class="live-stream-container" id="stream-box-container">
@@ -158,7 +154,6 @@
     </div>
   </div>
 
-  <!-- ВКЛАДКА 2: ЖУРНАЛ -->
   <div id="search-tab" class="tab-content">
     <div class="card">
       <h3>Параметры выборки</h3>
@@ -178,9 +173,7 @@
     <div id="journal-container"></div>
   </div>
 
-  <!-- ВКЛАДКА 3: ОПЦИИ -->
   <div id="settings-tab" class="tab-content">
-    <!-- 🔥 ПЕРЕРАБОТАННАЯ ПРЕМИАЛЬНАЯ СТАЛЬНАЯ КНОПКА GPS -->
     <div class="card">
       <h3>Спутниковая навигация (GPS)</h3>
       <p style="font-size:13px; color:var(--text-sub); margin-bottom: 12px;">Высокоточный координатный трекер для фиксации геопозиции АЗС.</p>
@@ -206,8 +199,7 @@
       <label style="margin-top:10px;">Интервал "Свежего" повтора (минут):</label>
       <input type="number" id="settings-recent-mins" min="1" max="1440" value="30">
     </div>
-    <!-- 🔥 ПЕРЕРАБОТАННАЯ ПРЕМИАЛЬНАЯ СИНЯЯ КНОПКА НАСТРОЕК -->
-    <div class="card" style="margin-bottom: 30px;">
+    <div class="card" style="margin-bottom: 35px;">
       <h3>Длительность сигналов (в секундах)</h3>
       <label>Новый объект:</label><input type="number" id="settings-dur-new" min="0.1" max="5" step="0.1">
       <label>Повторный визит:</label><input type="number" id="settings-dur-rep" min="0.1" max="5" step="0.1">
@@ -217,9 +209,8 @@
     </div>
   </div>
 
-  <!-- ВКЛАДКА 4: СПРАВКА -->
   <div id="help-tab" class="tab-content">
-    <div class="card" style="margin-bottom: 30px;">
+    <div class="card" style="margin-bottom: 35px;">
       <h3>📖 Быстрое руководство АЗС-Терминала</h3>
       <p style="font-size:13.5px; line-height:1.5; margin-bottom:10px;">Эта система создана для моментальной потоковой фиксации машин. Вот всё, что нужно для работы:</p>
       
@@ -241,12 +232,10 @@
     </div>
   </div>
 
-  <!-- 🔥 КЛИКАБЕЛЬНЫЙ АДРЕС ССЫЛКИ И ВЕРСИЯ В ФИКСИРОВАННОМ ФУТЕРЕ -->
   <div class="premium-fixed-footer">
     Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v5.6
   </div>
 
-  <!-- ПОЛНОЭКРАННОЕ ОКНО РУЧНОГО ВВОДА -->
   <div id="fullscreen-edit-modal">
     <div class="modal-box">
       <div class="modal-title">СВЕРЬТЕ ЗНАКИ С ВЕРТИКАЛЬНЫМ СНИМКОМ:</div>
@@ -408,7 +397,7 @@
       } catch (err) { alert("Ошибка кадрирования: " + err.message); }
     }
 
-    // 🔥 ИСПРАВЛЕННО: Переключение темы больше не перезапускает GPS
+    // 🔥 ИСПРАВЛЕННО: Изолированное переключение луны без ложного пинга GPS
     function toggleThemeMode(event) {
       if (event) event.stopPropagation(); 
       document.body.classList.toggle('dark-mode');
@@ -447,12 +436,12 @@
         navigator.geolocation.getCurrentPosition(async function(position) {
           currentCoords = { latitude: position.coords.latitude, longitude: position.coords.longitude };
           gpsStatusText = "📍 GPS: Активен"; await refreshSyncStatusBar();
-          if (!isSilent) alert("📍 Геологикация GPS успешно обновлена!");
+          if (!isSilent) alert("📍 Геолокация GPS успешно обновлена!");
         }, async function(error) {
           if (error.code === error.PERMISSION_DENIED) { gpsStatusText = "❌ GPS: Заблокирован"; } 
           else { gpsStatusText = "⚠️ GPS: Ошибка датчика"; }
           await refreshSyncStatusBar();
-          if (!isSilent) alert("⚠️ Сбой GPS. Проверьте права доступа.");
+          if (!isSilent) alert("⚠️ Сбой GPS. Проверьте права доступа устройства.");
         }, { enableHighAccuracy: true, timeout: 8000 });
       }
     }
@@ -552,17 +541,17 @@
       
       if (q.length === 0) {
         bar.className = "status-synced";
-        txt.innerText = `${gpsStatusText} | ${dbText} | ☁️ Облако в норме`;
+        txt.innerHTML = `📍 GPS: Активен | ${dbText} | ☁️ Облако в норме <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
         pContainer.style.display = 'none'; pBar.style.width = '0%';
       } else {
         if (isSyncing) {
           bar.className = "status-uploading";
-          txt.innerText = `${gpsStatusText} | 🔵 Сброс пакетов (Осталось: ${q.length})`;
+          txt.innerHTML = `📍 GPS | 🔵 Сброс пакетов (Осталось: ${q.length}) <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
           pContainer.style.display = 'block';
           if (syncTotalItems > 0) { let pct = Math.round(((syncTotalItems - q.length) / syncTotalItems) * 100); pBar.style.width = pct + '%'; }
         } else {
           bar.className = "status-offline";
-          txt.innerText = `${gpsStatusText} | 🟡 Оффлайн-буфер: ${q.length} объектов`;
+          txt.innerHTML = `📍 GPS | 🟡 Оффлайн-буфер: ${q.length} объектов <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
           pContainer.style.display = 'none';
         }
       }
@@ -763,7 +752,7 @@
             let smartStatus = checkLocalDuplicateText(finalNum, savedTaskId, null) || finalStatus || "";
             if (smartStatus.includes("Повтор")) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
             
-            // 🔥 ЖЕСТКОЕ ВИЗУАЛЬНОЕ ОБНОВЛЕНИЕ ЭКРАНА В РЕАЛЬНОМ ВРЕМЕНИ
+            // 🔥 ЖЕСТКОЕ СИНХРОННОЕ ПЕРЕКРАШИВАНИЕ ЭКРАНА В РЕАЛЬНОМ ВРЕМЕНИ ДЛЯ ВСЕХ ВКЛАДОК
             updateCardUi(card, finalNum, smartStatus, address, photoUrl, timeStr, imgSrc, savedTaskId);
           } else {
             let serverLog = (res && res.error) ? res.error : "Запись отклонена";
@@ -778,14 +767,22 @@
       }
     }
 
+    // 🔒 ЖЕСТКО ЗАЩИЩЕННЫЙ ДВИЖОК СИНХРОНИЗАЦИИ (АНТИ-МИГАНИЕ ПРИ ОФФЛАЙНЕ)
     async function backgroundSyncLoop() {
       if (isSyncing) return; 
       let q = await getIndexedDBQueue();
       if (q.length === 0) { syncTotalItems = 0; await refreshSyncStatusBar(); return; }
       
-      if (!navigator.onLine) { isSyncing = false; await refreshSyncStatusBar(); return; }
+      // 🔥 ЖЕСТКИЙ ШЛАГБАУМ: Если связи нет — гасим функцию мгновенно, не переключая статус-бар в синий!
+      if (!navigator.onLine) {
+        isSyncing = false;
+        await refreshSyncStatusBar(); 
+        return; 
+      }
+
       if (syncTotalItems < q.length) { syncTotalItems = q.length; }
-      isSyncing = true; await refreshSyncStatusBar(); 
+      isSyncing = true; 
+      await refreshSyncStatusBar(); 
       let item = q[0];
       
       try {
@@ -819,9 +816,20 @@
       let fNum = document.getElementById('search-number').value;
       document.getElementById('journal-container').innerHTML = "<p style='text-align:center; color:var(--text-sub);'>⏳ Выборка данных...</p>";
       try {
-        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: { startDate: sDate, endDate: eDate, number: fNum } }) });
-        let records = await response.json(); if (records && records.length) globalJournalCache = records; renderJournal(records);
-      } catch(e) { document.getElementById('journal-container').innerHTML = "<p style='text-align:center; color:#ff7a00;'>⚠️ Ошибка парсинга шапки таблицы</p>"; }
+        let response = await fetch(API_URL, { 
+          method: 'POST', 
+          body: JSON.stringify({ action: 'search', filters: { startDate: sDate, endDate: eDate, number: fNum } }) 
+        });
+        
+        if (!response.ok) throw new Error("HTTP статус " + response.status);
+        let records = await response.json(); 
+        
+        if (records && records.length) globalJournalCache = records; 
+        renderJournal(records);
+      } catch(e) { 
+        // 🔥 ИСПРАВЛЕННО: Выводим ЧЕСТНЫЙ технический лог вместо слепой маски про шапку
+        document.getElementById('journal-container').innerHTML = "<p style='text-align:center; color:#ff7a00; font-weight:bold; padding: 10px;'>⚠️ СБОЙ СЕРВЕРА ТАБЛИЦЫ:<br><span style='font-size:12px; font-family:monospace;'>" + e.message + "</span></p>"; 
+      }
     }
 
     function renderJournal(records) {
@@ -829,6 +837,7 @@
       if (!records.length) { container.innerHTML = "<p style='text-align:center; color:var(--text-sub); margin-top:20px;'>Записей не обнаружено</p>"; return; }
       container.innerHTML = `<p style="font-size:13px; color:var(--text-sub); margin-bottom:10px;">Найдено в общей базе: ${records.length}</p>`;
       records.forEach((r, idx) => {
+        // 🔥 ИСПРАВЛЕННО: Префиксная изоляция ID для вкладки Журнала (jour_...)
         let itemId = "jour_" + (r.taskId || ("item_" + idx)); 
         let mapsUrl = r.gps && r.gps !== "Нет GPS" ? "https://www.google.com/maps/search/?api=1&query=$" + encodeURIComponent(r.gps) : "#";
         let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
