@@ -39,11 +39,11 @@
     .btn-secondary { background: #e4e6eb; color: #4b4f56; box-shadow: none; }
     .dark-mode .btn-secondary { background: #3a3b3c; color: #e4e6eb; }
     
-    /* УМЕНЬШЕННЫЙ КОМПАКТНЫЙ КОНТЕЙНЕР ДЛЯ ПОТОКА ВИДЕОКАМЕРЫ */
-    .live-stream-container { position: relative; width: 100%; max-width: 340px; margin: 10px auto; background: #000; border-radius: 16px; overflow: hidden; aspect-ratio: 3/4; border: 2px solid #1877f2; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+    /* ЖЕСТКИЙ УЛЬТРА-КОМПАКТНЫЙ РАЗМЕР ОКНА ОЖИДАНИЯ СТРИМА */
+    .live-stream-container { position: relative; width: 100%; max-width: 280px; margin: 10px auto; background: #000; border-radius: 16px; overflow: hidden; aspect-ratio: 3/4; border: 3px solid #1877f2; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
     .live-stream-container video { width: 100%; height: 100%; object-fit: cover; }
     
-    .floating-capture-btn { position: absolute; bottom: 20px; right: 20px; background: #f02849; color: white; border: 2px solid white; border-radius: 50%; width: 64px; height: 64px; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(0,0,0,0.4); z-index: 500; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
+    .floating-capture-btn { position: absolute; bottom: 15px; right: 15px; background: #f02849; color: white; border: 2px solid white; border-radius: 50%; width: 58px; height: 58px; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(0,0,0,0.4); z-index: 500; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
     .floating-capture-btn:active { transform: scale(0.85); background: #c01830; }
 
     .journal-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); padding: 12px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 6px solid #1877f2; transition: all 0.3s ease; }
@@ -206,7 +206,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "4.1"; 
+    const APP_VERSION = "4.2"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3 };
     let currentCoords = null;
@@ -278,53 +278,60 @@
       try {
         liveVideoStream = await navigator.mediaDevices.getUserMedia(constraints);
         videoEl.srcObject = liveVideoStream;
-        let btn = document.getElementById('snap-action-btn');
-        if (btn) btn.disabled = false;
       } catch (err) {
         console.error("Ошибка WebRTC: ", err);
         document.getElementById('gps-status').innerHTML = "<span style='color:#f02849;'>❌ Сбой WebRTC потока камеры</span>";
       }
     }
 
+    // ИСПРАВЛЕННЫЙ ИГРОК ЗАХВАТА КАДРА С АНТИ-БАГОМ И ПЕРЕХВАТОМ ОШИБОК (TRY/CATCH)
     async function captureLiveFrame() {
-      const videoEl = document.getElementById('live-webcam');
-      if (!videoEl || !liveVideoStream || !liveVideoStream.active) {
-        alert("Трансляция не готова!"); return;
+      try {
+        const videoEl = document.getElementById('live-webcam');
+        if (!videoEl || !liveVideoStream || !liveVideoStream.active) {
+          alert("Камера ещё не запустилась или доступ заблокирован!"); return;
+        }
+
+        initAudioEngine();
+        const taskId = "task_" + new Date().getTime();
+        
+        // АНТИ-БАГ: Жесткая защита от нулевого кадра Android (0px)
+        const w = videoEl.videoWidth > 0 ? videoEl.videoWidth : 640;
+        const h = videoEl.videoHeight > 0 ? videoEl.videoHeight : 480;
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(videoEl, 0, 0, w, h);
+        const rawBase64 = canvas.toDataURL('image/jpeg', 0.70);
+
+        let offlineItem = { 
+          taskId: taskId, action: 'scan', image: rawBase64, 
+          coords: currentCoords, timestamp: new Date().getTime(), manualNumber: null 
+        };
+        
+        await addIndexedDBItem(offlineItem); 
+        await refreshSyncStatusBar();
+        
+        let scanResultArea = document.getElementById('scan-result');
+        let itemDiv = document.createElement('div'); itemDiv.id = taskId;
+        scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
+        
+        let isOnline = navigator.onLine;
+        let displayNum = isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ";
+        let displayStatus = isOnline ? "Выгрузка 📡" : "Ожидание сети 🌐";
+        let displayAddress = isOnline ? "Связь с сервером..." : "Сбор координат";
+        
+        let currentQueue = await getIndexedDBQueue();
+        let localDupStatus = checkLocalDuplicateText(displayNum, taskId, currentQueue);
+        if (localDupStatus) { displayStatus = localDupStatus; displayAddress = "Проверка в оффлайне"; }
+
+        updateCardUi(itemDiv, displayNum, displayStatus, displayAddress, "", "🕒 Снимок сделан", rawBase64);
+        backgroundSyncLoop();
+      } catch (err) {
+        alert("Критический сбой захвата: " + err.message);
       }
-
-      initAudioEngine();
-      const taskId = "task_" + new Date().getTime();
-      const canvas = document.createElement('canvas');
-      canvas.width = videoEl.videoWidth || 1280;
-      canvas.height = videoEl.videoHeight || 720;
-      
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-      const rawBase64 = canvas.toDataURL('image/jpeg', 0.75);
-
-      let offlineItem = { 
-        taskId: taskId, action: 'scan', image: rawBase64, 
-        coords: currentCoords, timestamp: new Date().getTime(), manualNumber: null 
-      };
-      
-      await addIndexedDBItem(offlineItem); 
-      await refreshSyncStatusBar();
-      
-      let scanResultArea = document.getElementById('scan-result');
-      let itemDiv = document.createElement('div'); itemDiv.id = taskId;
-      scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
-      
-      let isOnline = navigator.onLine;
-      let displayNum = isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ";
-      let displayStatus = isOnline ? "Выгрузка 📡" : "Ожидание сети 🌐";
-      let displayAddress = isOnline ? "Связь с сервером..." : "Сбор координат";
-      
-      let currentQueue = await getIndexedDBQueue();
-      let localDupStatus = checkLocalDuplicateText(displayNum, taskId, currentQueue);
-      if (localDupStatus) { displayStatus = localDupStatus; displayAddress = "Проверка в оффлайне"; }
-
-      updateCardUi(itemDiv, displayNum, displayStatus, displayAddress, "", "🕒 Снимок сделан", rawBase64);
-      backgroundSyncLoop();
     }
 
     function toggleThemeMode() {
@@ -353,7 +360,6 @@
       charityTransform();
     }
 
-    // ИСПРАВЛЕННЫЙ ДАТЧИК ГЕОЛОКАЦИИ (БЕЗ СБОЕВ "NULL")
     function reRequestGeolocation(isSilent) {
       let camStatus = document.getElementById('gps-status');
       let optStatus = document.getElementById('settings-gps-status');
@@ -366,16 +372,12 @@
           let successHtml = "<span style='color:#42b72a;'>📍 Спутники GPS активны</span>";
           if (camStatus) camStatus.innerHTML = successHtml;
           if (optStatus) optStatus.innerHTML = successHtml;
-          let btn = document.getElementById('snap-action-btn');
-          if (btn) btn.disabled = false;
         }, function(error) {
           let msg = "<span style='color:#ff7a00;'>⚠️ Геопозиция отключена</span>";
           if (error.code === error.PERMISSION_DENIED) { msg = "<span style='color:#f02849;'>❌ Доступ заблокирован</span>"; } 
           else { msg = "<span style='color:#ffaa00;'>⚠️ Ошибка датчика GPS</span>"; }
           if (camStatus) camStatus.innerHTML = msg;
           if (optStatus) optStatus.innerHTML = msg;
-          let btn = document.getElementById('snap-action-btn');
-          if (btn) btn.disabled = false; 
         }, { enableHighAccuracy: true, timeout: 8000 });
       }
     }
@@ -476,7 +478,6 @@
       let txt = document.getElementById('sync-status-text');
       let pContainer = document.getElementById('sync-progress-container');
       let pBar = document.getElementById('sync-progress-bar');
-      
       let dbText = isDbLoaded ? "🟢 База активна" : "⏳ Синхронизация базы...";
       
       if (q.length === 0) {
@@ -561,7 +562,8 @@
       }
 
       let dotHtml = isRecent ? `<span class="pulse-dot"></span>` : "";
-      let mapBtnHtml = (latestGps && latestGps !== "Нет GPS") ? `<br><a class="geo-btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(latestGps)}" target="_blank">🗺️ Карта повтора</a>` : "";
+      let mapUrl = latestGps ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(latestGps)}` : "#";
+      let mapBtnHtml = (latestGps && latestGps !== "Нет GPS") ? `<br><a class="geo-btn" href="${mapUrl}" target="_blank">🗺️ Карта повтора</a>` : "";
 
       if (count === 1) { return `Повтор! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`; } 
       else { return `Повтор: ${count} раз! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`; }
@@ -705,10 +707,11 @@
       if (!records.length) { container.innerHTML = "<p style='text-align:center; color:var(--text-sub); margin-top:20px;'>Записей не обнаружено</p>"; return; }
       container.innerHTML = `<p style="font-size:13px; color:var(--text-sub); margin-bottom:10px;">Найдено в общей базе: ${records.length}</p>`;
       records.forEach((r, idx) => {
-        let itemId = "journal_item_" + idx; let mapsUrl = r.gps !== "Нет GPS" ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.gps)}` : "#";
+        let itemId = "journal_item_" + idx; 
+        let mapsUrl = r.gps && r.gps !== "Нет GPS" ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.gps)}` : "#";
         let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
         updateCardUi(itemDiv, r.number, r.status, r.address, r.photo, "📅 " + r.date, r.thumb);
-        if (r.gps !== "Нет GPS") {
+        if (r.gps && r.gps !== "Нет GPS") {
           let geoBtn = document.createElement('a'); geoBtn.className = "geo-btn"; geoBtn.href = mapsUrl; geoBtn.target = "_blank"; geoBtn.innerText = "📍 Карта";
           itemDiv.querySelector('.info-left').appendChild(geoBtn);
         }
