@@ -34,7 +34,6 @@
       padding-bottom: 95px; 
     }
     
-    /* 1. МИНИМАЛИСТИЧНЫЙ ИНТЕГРИРОВАННЫЙ СТАТУС-БАР (БЕЗ ЗЕЛЕНОГО ФОНА) */
     #sync-status-bar { 
       position: fixed;
       top: 0;
@@ -70,7 +69,6 @@
     .progress-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: rgba(24, 119, 242, 0.08); display: none; overflow: hidden; }
     .progress-bar { height: 100%; width: 0%; background: var(--accent-blue); transition: width 0.3s ease; }
 
-    /* 2. ЭРГОНОМИЧНАЯ НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ (СТИЛЬ TELEGRAM) */
     .premium-bottom-nav {
       position: fixed;
       bottom: 0;
@@ -116,7 +114,6 @@
     input { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; background: var(--bg-main); color: var(--text-main); margin-bottom: 10px; }
     input:focus { background: var(--bg-card); border-color: var(--accent-blue); outline: none; }
     
-    /* ПРЕМИАЛЬНЫЕ КНОПКИ В ОПЦИЯХ */
     .btn-premium-blue { background: linear-gradient(135deg, #1877f2 0%, #0c56be 100%); color: white; padding: 14px; border: none; border-radius: 10px; font-size: 15px; width: 100%; cursor: pointer; font-weight: bold; box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2); transition: all 0.15s ease; -webkit-tap-highlight-color: transparent; }
     .btn-premium-blue:active { transform: scale(0.97); box-shadow: 0 2px 4px rgba(24, 119, 242, 0.1); }
 
@@ -131,7 +128,6 @@
     .floating-capture-btn { position: absolute; bottom: 15px; right: 15px; background: #f02849; color: white; border: 2px solid white; border-radius: 50%; width: 56px; height: 56px; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(0,0,0,0.3); z-index: 500; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
     .floating-capture-btn:active { transform: scale(0.85); background: #c01830; }
 
-    /* 3. СТИЛЬ ПЛАШЕК MODERN LIST ITEM (АКЦЕНТ НА НОМЕР И КОМПАКТНОСТЬ) */
     .journal-item { 
       position: relative;
       display: flex; 
@@ -198,7 +194,6 @@
     .info-date { color: var(--text-sub); font-size: 12px; margin-top: 1px; }
     .info-address { font-size: 12px; color: var(--text-main); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
     
-    /* СТИЛЬНЫЕ ЦВЕТНЫЕ БЕЙДЖИ СТАТУСА В УГЛУ КАРТОЧКИ */
     .status-right { 
       position: absolute;
       top: 12px;
@@ -243,7 +238,6 @@
     .range-container { display: flex; gap: 10px; margin-bottom: 10px; }
     .range-container > div { flex: 1; }
 
-    /* 4. ГЛЯНЦЕВЫЙ СКВОЗНОЙ ПОДВАЛ (НАД НАВИГАЦИЕЙ) */
     .premium-fixed-footer { 
       position: fixed; 
       bottom: 65px; 
@@ -268,7 +262,6 @@
 
   <div id="flash-overlay"></div>
 
-  <!-- ВЕРХНЯЯ ГЛЯНЦЕВАЯ СТРОКА СТАТУСА -->
   <div id="sync-status-bar" class="status-offline" onclick="reRequestGeolocation(false)">
     <span id="sync-status-text">⏳ Ожидание спутников GPS...</span>
     <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>
@@ -277,7 +270,6 @@
     </div>
   </div>
 
-  <!-- ВКЛАДКА 1: КАМЕРА -->
   <div id="scan-tab" class="tab-content active">
     <div class="card" style="text-align: center; padding: 6px;">
       <div class="live-stream-container" id="stream-box-container">
@@ -289,7 +281,6 @@
     </div>
   </div>
 
-  <!-- ВКЛАДКА 2: ЖУРНАЛ -->
   <div id="search-tab" class="tab-content">
     <div class="card">
       <h3>Параметры выборки</h3>
@@ -309,7 +300,6 @@
     <div id="journal-container"></div>
   </div>
 
-  <!-- ВКЛАДКА 3: ОПЦИИ -->
   <div id="settings-tab" class="tab-content">
     <div class="card">
       <h3>Спутниковая навигация (GPS)</h3>
@@ -346,7 +336,6 @@
     </div>
   </div>
 
-  <!-- ВКЛАДКА 4: СПРАВКА -->
   <div id="help-tab" class="tab-content">
     <div class="card">
       <h3>📖 Быстрое руководство АЗС-Терминала</h3>
@@ -355,7 +344,7 @@
       <div class="help-header">1. Как сделать снимок?</div>
       <p class="help-text">На вкладке <b>"Камера"</b> направьте прямоугольник прицела на госномер машины и нажмите круглую кнопку 📸. Экран выдаст вспышку, раздастся щелчок — кадр пойман и сохранен.</p>
       
-      <div class="help-header" style="color:#42b72a;">2. Что значат цвета карточек в ленте?</div>
+      <div class="help-header" style="color:#42b72a;">2. What значат цвета карточек в ленте?</div>
       <ul style="font-size:13px; padding-left:18px; margin-top:0; line-height:1.45; color:var(--text-main);">
         <li><b>Бейдж "Новый":</b> Новый автомобиль, ранее за эти дни не заезжал.</li>
         <li><b>Бейдж "Повтор":</b> Повторный визит! Машина уже была в базе. Пишется точное время или дата заезда.</li>
@@ -370,12 +359,10 @@
     </div>
   </div>
 
-  <!-- СКВОЗНОЙ ИНТЕРАКТИВНЫЙ ПОДВАЛ -->
   <div class="premium-fixed-footer">
-    Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v5.8
+    Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v5.9
   </div>
 
-  <!-- НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ (СТИЛЬ PREMIUM APP) -->
   <div class="premium-bottom-nav">
     <button class="nav-tab-btn active" onclick="openTab('scan-tab', this)">
       <span class="nav-icon">📷</span><span>Камера</span>
@@ -391,7 +378,6 @@
     </button>
   </div>
 
-  <!-- ПОЛНОЭКРАННОЕ ОКНО РУЧНОГО ВВОДА -->
   <div id="fullscreen-edit-modal">
     <div class="modal-box">
       <div class="modal-title">СВЕРЬТЕ ЗНАКИ С ВЕРТИКАЛЬНЫМ СНИМКОМ:</div>
@@ -419,7 +405,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "5.8"; 
+    const APP_VERSION = "5.9"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "⏳ Поиск GPS...";
@@ -691,14 +677,14 @@
       
       if (q.length === 0) {
         bar.className = "status-synced";
-        bar.innerHTML = `${gpsStatusText} | ${dbText} | ☁️ Облако в норме <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+        bar.innerHTML = `📍 GPS: Активен | ${dbText} | ☁️ Облако в норме <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
       } else {
         if (isSyncing) {
           bar.className = "status-uploading";
-          bar.innerHTML = `${gpsStatusText} | 🔵 Сброс пакетов (${q.length}) <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+          bar.innerHTML = `📍 GPS | 🔵 Сброс пакетов (${q.length}) <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
         } else {
           bar.className = "status-offline";
-          bar.innerHTML = `${gpsStatusText} | 🟡 Оффлайн-буфер: ${q.length} объектов <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+          bar.innerHTML = `📍 GPS | 🟡 Оффлайн-буфер: ${q.length} объектов <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
         }
       }
     }
@@ -713,23 +699,26 @@
       } catch (e) {}
     }
 
-    // 🔥 УМНЫЙ АЛГОРИТМ РАСЧЕТА ПОВТОРОВ (МГНОВЕННЫЙ БЕЙДЖ)
+    // 🔥 ИСПРАВЛЕННО: Тотальная обертка в String() для защиты от числовых дубликатов
     function checkLocalDuplicateText(num, currentTaskId, preloadedQueue) {
-      if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ..." || num.includes("Проверить вручную")) return null;
-      let cleanNum = num.toUpperCase().trim();
+      if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ..." || String(num).includes("Проверить вручную")) return null;
+      let cleanNum = String(num).toUpperCase().trim();
       let count = 0; let latestTimestamp = 0; let latestAddress = "";
 
       function parseGSheetsDate(dateStr) {
         if (!dateStr) return 0;
         try {
-          let parts = dateStr.split(' '); let dParts = parts[0].split('.'); let tParts = parts[1].split(':');
+          let parts = String(dateStr).split(' '); let dParts = parts[0].split('.'); let tParts = parts[1].split(':');
           return new Date(dParts[2], dParts[1] - 1, dParts[0], tParts[0], tParts[1], tParts[2] || 0).getTime();
         } catch(e) { return 0; }
       }
 
       for (let i = 0; i < globalJournalCache.length; i++) {
         if (globalJournalCache[i].taskId === currentTaskId) continue; 
-        if (globalJournalCache[i].number.toUpperCase().trim() === cleanNum) {
+        if (!globalJournalCache[i].number) continue;
+        
+        // Предотвращение падения "toUpperCase is not a function"
+        if (String(globalJournalCache[i].number).toUpperCase().trim() === cleanNum) {
           count++; let ts = parseGSheetsDate(globalJournalCache[i].date);
           if (ts > latestTimestamp) { latestTimestamp = ts; latestAddress = globalJournalCache[i].address || "Архив"; }
         }
@@ -738,7 +727,7 @@
       let q = preloadedQueue || [];
       for (let i = 0; i < q.length; i++) {
         if (q[i].taskId === currentTaskId) continue; 
-        if (q[i].manualNumber && q[i].manualNumber.toUpperCase().trim() === cleanNum) {
+        if (q[i].manualNumber && String(q[i].manualNumber).toUpperCase().trim() === cleanNum) {
           count++; if (q[i].timestamp > latestTimestamp) { latestTimestamp = q[i].timestamp; latestAddress = "Текущий рейд"; }
         }
       }
@@ -747,12 +736,10 @@
 
       let now = new Date();
       let lastDate = new Date(latestTimestamp);
-      
       let isSameDay = (now.getDate() === lastDate.getDate() && now.getMonth() === lastDate.getMonth() && now.getFullYear() === lastDate.getFullYear());
       let timeStr = lastDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
       let dateStr = lastDate.toLocaleDateString([], {day: '2-digit', month: '2-digit'});
 
-      // Формулировка вывода по ТЗ
       let textOutput = "";
       if (count === 1) {
         textOutput = isSameDay ? `Повтор • ${timeStr}` : `Повтор • ${dateStr} в ${timeStr}`;
@@ -763,7 +750,6 @@
       return textOutput;
     }
 
-    // 🔥 ПРЕМИУМ-ВЕРСТКА КАРТОЧЕК С ЦВЕТНЫМИ БЕЙДЖАМИ И ЖЕСТКИМ GPS-СТАТУСОМ
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId) {
       number = number || ""; status = status || "";
       
@@ -777,7 +763,6 @@
       else if (isErr) cardElement.className = "journal-item error-item error-item-blink";
       else cardElement.className = `journal-item ${isRep ? 'repeat' : 'new'}`;
       
-      // Вычисление содержимого бейджа в углу
       let badgeLabel = "Новый";
       if (isPending) badgeLabel = "Очередь 💾";
       else if (isProcessing) badgeLabel = "Анализ 🤖";
@@ -794,7 +779,6 @@
       let thumbHtml = `<div class="thumb-box" onclick="window.open('${photoUrl || '#'}', '_blank')">${displayImg}</div>`;
       let journalBtnHtml = isRep ? `<button class="journal-trigger-btn" onclick="showInJournal('${number}')">🔎 История</button>` : "";
 
-      // Жесткий контур GPS
       let gpsHtmlLine = "";
       if (!address || address === "Нет GPS" || address.includes("Сбор координат")) {
         gpsHtmlLine = `<div class="info-address" style="color:#f02849;">🛑 Нет GPS</div>`;
@@ -820,9 +804,10 @@
       cardElement.innerHTML = cardElement.innerHTML.replace('__address_placeholder__', address.replace(/'/g, "\\'").replace(/"/g, '\\"'));
     }
 
+    // 🔥 ИСПРАВЛЕННО: Защита валидатора от числовых типов
     function validateGostTemplate(num) {
       if (!num || num === "Не распознан") return false;
-      let clean = num.toUpperCase().trim();
+      let clean = String(num).toUpperCase().trim();
       let carRegex = /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i; 
       let motoRegex = /^\d{4}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i;           
       return carRegex.test(clean) || motoRegex.test(clean);
