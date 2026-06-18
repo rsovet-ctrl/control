@@ -154,42 +154,32 @@
     .floating-capture-btn { position: absolute; bottom: 15px; right: 15px; background: #f02849; color: white; border: 2px solid white; border-radius: 50%; width: 56px; height: 56px; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(0,0,0,0.3); z-index: 500; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
     .floating-capture-btn:active { transform: scale(0.85); background: #c01830; }
 
+    /* ПРИЖАТЫЕ СВЕРХУ И СНИЗУ КАРТОЧКИ СЕМПЛОВ */
     .journal-item { 
       position: relative;
       display: flex; 
       align-items: center; 
       background: var(--bg-card); 
-      padding: 12px 14px; 
+      padding: 5px 12px; 
       border-radius: 14px; 
       margin-bottom: 10px; 
       box-shadow: 0 1px 3px rgba(0,0,0,0.03); 
       border: 1px solid var(--border-color);
       transition: all 0.25s ease; 
+      min-height: 122px;
+      box-sizing: border-box;
     }
     
-    .journal-item.repeat { 
-      background: #ffebe9 !important; 
-      border: 1px solid #f02849 !important; 
-    }
-    .dark-mode .journal-item.repeat { 
-      background: #2c1616 !important; 
-      border: 1px solid #ff4d4d !important; 
-    }
-
-    .journal-item.error-item {
-      background: #fff3e0 !important;
-      border: 2px solid #ff7a00 !important;
-    }
-    .dark-mode .journal-item.error-item {
-      background: #2b1d10 !important;
-      border: 2px solid #ff9800 !important;
-    }
+    .journal-item.repeat { background: #ffebe9 !important; border: 1px solid #f02849 !important; }
+    .dark-mode .journal-item.repeat { background: #2c1616 !important; border: 1px solid #ff4d4d !important; }
+    .journal-item.error-item { background: #fff3e0 !important; border: 2px solid #ff7a00 !important; }
+    .dark-mode .journal-item.error-item { background: #2b1d10 !important; border: 2px solid #ff9800 !important; }
     
-    /* 📸 КРУПНЫЙ БОЕВОЙ ТАМБНЕЙЛ ФОТОГРАФИИ ПРАКТИЧЕСКИ ДО РАМОК КАРТОЧКИ */
+    /* 📸 ИДЕАЛЬНО ПРИЛЕГАЮЩИЙ ТАМБНЕЙЛ ФОТОГРАФИИ К РАМКАМ (СНИЗУ И СВЕРХУ ПО 5PX) */
     .thumb-box { 
-      width: 100px; 
-      height: 130px; 
-      min-width: 100px; 
+      width: 92px; 
+      height: 122px; 
+      min-width: 92px; 
       border-radius: 10px; 
       overflow: hidden; 
       background: var(--bg-main); 
@@ -200,45 +190,21 @@
       border: 1px solid var(--border-color); 
       cursor: pointer; 
       position: relative;
+      margin-top: -1px;
+      margin-bottom: -1px;
     }
     .thumb-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
     
     .thumb-box .offline-photo-placeholder {
-      font-size: 24px;
-      color: var(--text-sub);
-      font-weight: bold;
-      opacity: 0.6;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      height: 100%;
+      font-size: 24px; color: var(--text-sub); font-weight: bold; opacity: 0.6; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;
     }
     
     .info-left { 
-      flex-grow: 1; 
-      text-align: left; 
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      min-width: 0; 
-      padding-right: 0px; 
-      box-sizing: border-box;
+      flex-grow: 1; text-align: left; display: flex; flex-direction: column; gap: 3px; min-width: 0; padding-right: 0px; box-sizing: border-box; justify-content: center;
     }
     
-    /* УВЕЛИЧЕННЫЕ ЧИПСЫ СТАТУСОВ НА КРУПНОМ ФОТО */
     .status-right { 
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      padding: 6px 1px;
-      font-size: 11px; 
-      font-weight: 800; 
-      line-height: 1;
-      text-align: center;
-      box-sizing: border-box;
-      z-index: 10;
+      position: absolute; bottom: 0; left: 0; width: 100%; padding: 5px 1px; font-size: 10.5px; font-weight: 800; line-height: 1; text-align: center; box-sizing: border-box; z-index: 10;
     }
     .journal-item.new .status-right { background: rgba(230, 247, 237, 0.95); color: #42b72a; }
     .journal-item.repeat .status-right { background: rgba(240, 40, 73, 0.95); color: #ffffff; }
@@ -250,49 +216,13 @@
       70% { background: rgba(255, 122, 0, 0.95); color: #ffffff; }
       100% { background: rgba(255, 170, 0, 0.95); color: #000000; }
     }
-    .journal-item.error-item .status-right { 
-      animation: yellow-orange-pulse 1.2s infinite ease-in-out; 
-    }
+    .journal-item.error-item .status-right { animation: yellow-orange-pulse 1.2s infinite ease-in-out; }
 
-    .plate-container { 
-      display: flex; 
-      align-items: center; 
-      gap: 6px; 
-      flex-wrap: wrap; 
-      width: 100%;
-    }
+    .plate-container { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; width: 100%; }
+    .plate-display { font-size: 23px; font-weight: 800; color: var(--text-main); letter-spacing: 0.3px; line-height: 1.1; display: inline-block; }
     
-    .plate-display { 
-      font-size: 24px; 
-      font-weight: 800; 
-      color: var(--text-main); 
-      letter-spacing: 0.3px; 
-      line-height: 1.1;
-      display: inline-block;
-    }
-    
-    .edit-trigger-btn { 
-      background: none;
-      border: none; 
-      font-size: 19px; 
-      cursor: pointer; 
-      padding: 0; 
-      color: var(--accent-blue); 
-      line-height: 1;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .retry-trigger-btn {
-      background: none;
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
-      padding: 0;
-      color: #ff7a00;
-      line-height: 1;
-      -webkit-tap-highlight-color: transparent;
-    }
-    
+    .edit-trigger-btn { background: none; border: none; font-size: 19px; cursor: pointer; padding: 0; color: var(--accent-blue); line-height: 1; -webkit-tap-highlight-color: transparent; }
+    .retry-trigger-btn { background: none; border: none; font-size: 18px; cursor: pointer; padding: 0; color: #ff7a00; line-height: 1; -webkit-tap-highlight-color: transparent; }
     .journal-trigger-btn { background: none; border: none; font-size: 11.5px; cursor: pointer; padding: 0; color: var(--accent-blue); font-weight: 700; text-decoration: underline; line-height: 1; }
     
     .info-date { color: var(--text-sub); font-size: 11.5px; margin-top: 1px; }
@@ -327,23 +257,7 @@
 
     #toast-notification {
       position: fixed;
-      bottom: 85px; 
-      left: 50%;
-      transform: translateX(-50%) translateY(120px);
-      background: linear-gradient(135deg, #1877f2 0%, #0c56be 100%);
-      color: #ffffff;
-      padding: 12px 24px;
-      border-radius: 24px;
-      font-size: 13px;
-      font-weight: 700;
-      box-shadow: 0 6px 20px rgba(24, 119, 242, 0.4);
-      z-index: 9999;
-      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
-      opacity: 0;
-      white-space: nowrap;
-      pointer-events: none;
-      letter-spacing: 0.3px;
-      border: 1px solid rgba(255,255,255,0.15);
+      bottom: 85px; left: 50%; transform: translateX(-50%) translateY(120px); background: linear-gradient(135deg, #1877f2 0%, #0c56be 100%); color: #ffffff; padding: 12px 24px; border-radius: 24px; font-size: 13px; font-weight: 700; box-shadow: 0 6px 20px rgba(24, 119, 242, 0.4); z-index: 9999; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s; opacity: 0; white-space: nowrap; pointer-events: none; letter-spacing: 0.3px; border: 1px solid rgba(255,255,255,0.15);
     }
     #toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
   </style>
@@ -430,23 +344,13 @@
   <div id="help-tab" class="tab-content">
     <div class="card">
       <h3>📖 Быстрое руководство АЗС-Терминала</h3>
-      <p style="font-size:13.5px; line-height:1.5; margin-bottom:10px;">Эта система создана для моментальной потоковой фиксации машин. Вот всё, что нужно для работы:</p>
+      <p style="font-size:13.5px; line-height:1.5; margin-bottom:10px;">Эта система создана для моментальной оффлайн фиксации машин. Вот все нюансы:</p>
       
       <div class="help-header">1. Как сделать снимок?</div>
       <p class="help-text">На вкладке <b>"Камера"</b> направьте прямоугольник прицела на госномер машины и нажмите круглую кнопку 📸. Экран выдаст вспышку, раздастся щелчок — кадр пойман и сохранен.</p>
       
-      <div class="help-header" style="color:#42b72a;">2. Что значат цвета карточек в ленте?</div>
-      <ul style="font-size:13px; padding-left:18px; margin-top:0; line-height:1.45; color:var(--text-main);">
-        <li><b>Белая карточка:</b> Новый автомобиль, ранее за эти дни не заезжал.</li>
-        <li><b>Розовая карточка с красной каймой:</b> Повторный визит! Машина уже была в базе. Пишется точное время или дата заезда.</li>
-        <li><b>Оранжевая карточка с ярким бейджем:</b> ИИ сомневается в буквах или номер вообще не распознан. Требуется ручная проверка человека.</li>
-      </ul>
-      
-      <div class="help-header" style="color:#ff7a00;">3. Кнопка перезапуска ИИ 🔄</div>
-      <p class="help-text">Если робот выдал ошибку из-за блика фар, рядом с номером появится значок 🔄. Если сеть есть, нажмите его — система за секунду перечитает тот же кадр без повторного фотографирования машины.</p>
-      
-      <div class="help-header" style="color:#1877f2;">4. Как исправить ошибку вручную?</div>
-      <p class="help-text">Нажмите синий значок карандаша <b>"✏️"</b> рядом с номером. Введите правильный номер и нажмите <b>«Сохранить»</b>. Исправление работает железно даже без интернета!</p>
+      <div class="help-header" style="color:#42b72a;">2. Полная автономия</div>
+      <p class="help-text">Даже если вы смахнете приложение в оффлайне, благодаря внутреннему диску <b>IndexedDB</b> вся история за 3 дня останется на месте. Телефон мгновенно определит дубликат прямо на трассе!</p>
     </div>
   </div>
 
@@ -464,7 +368,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v7.1
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v7.2
     </div>
   </div>
 
@@ -492,7 +396,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "7.1"; 
+    const APP_VERSION = "7.2"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "📍 GPS";
@@ -500,8 +404,6 @@
     let globalJournalCache = []; 
     let isSyncing = false;       
     let globalAudioCtx = null; 
-    let isDbLoaded = false;
-    let syncTotalItems = 0; 
     let indexedDatabase = null; 
     let liveVideoStream = null;
 
@@ -512,24 +414,27 @@
       if (globalAudioCtx && globalAudioCtx.state === 'suspended') { globalAudioCtx.resume(); }
     }
 
+    /* МОДЕРНИЗИРОВАННАЯ ОФФЛАЙН БАЗА ДАННЫХ ДЛЯ ДВУХ КОНТУРОВ ХРАНЕНИЯ */
     function initIndexedDB() {
       return new Promise((resolve, reject) => {
-        let request = indexedDB.open("CarControlDB", 1);
+        let request = indexedDB.open("CarControlDB", 2); // Поднимаем версию БД
         request.onupgradeneeded = function(e) {
           let db = e.target.result;
           if (!db.objectStoreNames.contains("uploadQueue")) { db.createObjectStore("uploadQueue", { keyPath: "taskId" }); }
+          if (!db.objectStoreNames.contains("journalHistory")) { db.createObjectStore("journalHistory", { keyPath: "taskId" }); }
         };
         request.onsuccess = function(e) { indexedDatabase = e.target.result; resolve(); };
         request.onerror = function(e) { reject(e); };
       });
     }
 
+    /* КОНТУР ОЧЕРЕДИ СНИМКОВ (ОФФЛАЙН СБРОС) */
     function getIndexedDBQueue() {
       return new Promise((resolve) => {
         if (!indexedDatabase) return resolve([]);
         let tx = indexedDatabase.transaction("uploadQueue", "readonly");
-        let store = tx.objectStore("uploadQueue");
-        let req = store.getAll(); req.onsuccess = function() { resolve(req.result || []); }; req.onerror = function() { resolve([]); };
+        let req = tx.objectStore("uploadQueue").getAll(); 
+        req.onsuccess = function() { resolve(req.result || []); }; req.onerror = function() { resolve([]); };
       });
     }
 
@@ -537,8 +442,7 @@
       return new Promise((resolve) => {
         if (!indexedDatabase) return resolve();
         let tx = indexedDatabase.transaction("uploadQueue", "readwrite");
-        let store = tx.objectStore("uploadQueue"); store.put(item);
-        tx.oncomplete = function() { resolve(); };
+        tx.objectStore("uploadQueue").put(item); tx.oncomplete = function() { resolve(); };
       });
     }
 
@@ -546,8 +450,29 @@
       return new Promise((resolve) => {
         if (!indexedDatabase) return resolve();
         let tx = indexedDatabase.transaction("uploadQueue", "readwrite");
-        let store = tx.objectStore("uploadQueue"); store.delete(taskId);
+        tx.objectStore("uploadQueue").delete(taskId); tx.oncomplete = function() { resolve(); };
+      });
+    }
+
+    /* 🧠 НОВЫЙ КОНТУР: ПЕЧАТЬ ИСТОРИИ ЖУРНАЛА НА ДИСК ТЕЛЕФОНА */
+    function saveJournalToDisk(records) {
+      return new Promise((resolve) => {
+        if (!indexedDatabase || !records || !records.length) return resolve();
+        let tx = indexedDatabase.transaction("journalHistory", "readwrite");
+        let store = tx.objectStore("journalHistory");
+        store.clear().onsuccess = function() {
+          records.forEach(r => { if (r.taskId) store.put(r); });
+        };
         tx.oncomplete = function() { resolve(); };
+      });
+    }
+
+    function loadJournalFromDisk() {
+      return new Promise((resolve) => {
+        if (!indexedDatabase) return resolve([]);
+        let tx = indexedDatabase.transaction("journalHistory", "readonly");
+        let req = tx.objectStore("journalHistory").getAll();
+        req.onsuccess = function() { resolve(req.result || []); }; req.onerror = function() { resolve([]); };
       });
     }
 
@@ -567,16 +492,14 @@
         triggerHardwareAlert('snap');
         
         const taskId = "task_" + new Date().getTime();
-        const videoW = videoEl.videoWidth > 0 ? videoEl.videoWidth : 1280;
-        const videoH = videoEl.videoHeight > 0 ? videoEl.videoHeight : 720;
         const boxW = appSettings.camW; const boxH = appSettings.camH;
         
         const canvas = document.createElement('canvas'); canvas.width = boxW * 2; canvas.height = boxH * 2;
         const ctx = canvas.getContext('2d');
-        let sx = 0, sy = 0, sWidth = videoW, sHeight = videoH;
-        const videoRatio = videoW / videoH; const boxRatio = boxW / boxH;
-        if (videoRatio > boxRatio) { sWidth = videoH * boxRatio; sx = (videoW - sWidth) / 2; } 
-        else { sHeight = videoW / boxRatio; sy = (videoH - sHeight) / 2; }
+        let sx = 0, sy = 0, sWidth = videoEl.videoWidth || 1280, sHeight = videoEl.videoHeight || 720;
+        const videoRatio = sWidth / sHeight; const boxRatio = boxW / boxH;
+        if (videoRatio > boxRatio) { sWidth = sHeight * boxRatio; sx = (videoEl.videoWidth - sWidth) / 2; } 
+        else { sHeight = sWidth / boxRatio; sy = (videoEl.videoHeight - sHeight) / 2; }
         
         ctx.drawImage(videoEl, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
         const rawBase64 = canvas.toDataURL('image/jpeg', 0.75);
@@ -642,8 +565,19 @@
     }
 
     window.onload = async function() {
-      loadSavedTheme(); await initIndexedDB(); reRequestGeolocation(true); loadSettings(true); 
-      await refreshSyncStatusBar(); await restoreOfflineCards(); silentLoadJournalCache(); startLiveStreaming(); 
+      loadSavedTheme(); 
+      await initIndexedDB(); 
+      reRequestGeolocation(true); 
+      loadSettings(true); 
+
+      // Восстанавливаем вечный журнал с диска сразу при загрузке (даже если оффлайн!)
+      globalJournalCache = await loadJournalFromDisk();
+      
+      await refreshSyncStatusBar(); 
+      await restoreOfflineCards(); 
+      silentLoadJournalCache(); 
+      startLiveStreaming(); 
+      
       setInterval(backgroundSyncLoop, 10000);
 
       let previousStoredVersion = localStorage.getItem('app_version_cache_tracker');
@@ -695,7 +629,7 @@
       let q = await getIndexedDBQueue(); let bar = document.getElementById('sync-status-bar'); let archiveCount = globalJournalCache.length;
       if (!navigator.onLine) {
         bar.className = "status-offline";
-        bar.innerHTML = `${gpsStatusText} | 💾 Очередь: ${q.length} | 📁 В архиве: ${archiveCount} шт. <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+        bar.innerHTML = `${gpsStatusText} | 💾 Очередь: ${q.length} | 📁 Автономный Архив: ${archiveCount} шт. <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
         return;
       }
       if (q.length === 0) {
@@ -707,15 +641,23 @@
     }
 
     function silentLoadJournalCache() {
+      if (!navigator.onLine) return;
       try {
         let days = parseInt(localStorage.getItem('settings_days') || '3');
         let today = new Date(); let pastDate = new Date(); pastDate.setDate(today.getDate() - days);
         let sDate = pastDate.toISOString().split('T')[0];
         fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: { startDate: sDate } }) })
-          .then(r => r.json()).then(records => { if (records && records.length) { globalJournalCache = records; isDbLoaded = true; refreshSyncStatusBar(); } });
+          .then(r => r.json()).then(async (records) => { 
+            if (records && records.length) { 
+              globalJournalCache = records; 
+              await saveJournalToDisk(records); // Клубок намертво запечатывается на диск
+              refreshSyncStatusBar(); 
+            } 
+          });
       } catch (e) {}
     }
 
+    /* РАБОТАЕТ НА 100% В ОФФЛАЙНЕ ТАК КАК ИСТОРИЯ ДОСТУПНА ИЗ ВЕЧНОЙ ИНДЕКС-БАЗЫ */
     function checkLocalDuplicateText(num, currentTaskId, preloadedQueue) {
       if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ..." || String(num).includes("Проверить вручную") || String(num).includes("Ошибка")) return null;
       let cleanNum = String(num).toUpperCase().trim(); let count = 0; let latestTimestamp = 0;
@@ -779,7 +721,6 @@
       
       let journalBtnHtml = isRep ? `<button class="journal-trigger-btn" onclick="showInJournal('${number}')">🔎 История</button>` : "";
       let retryBtnHtml = (isErr && navigator.onLine) ? `<button class="retry-trigger-btn" title="Повторить распознавание" onclick="retryAiRecognition('${forcedTaskId || cardElement.id}', '${photoUrl}')">🔄</button>` : "";
-
       let gpsHtmlLine = (!address || address === "Нет GPS" || String(address).includes("Сбор координат") || String(address).includes("🛑")) 
         ? `<div class="info-address" style="color:#f02849;">🛑 Нет GPS</div>` : `<div class="info-address">📍 ${address}</div>`;
 
@@ -829,12 +770,10 @@
           
           updateCardUi(card, finalNum, smartStatus, res.address || "АЗС-Терминал", res.photo || serverPhotoUrl, "Пересчитано", localImg || res.photo, taskId);
         } else {
-          triggerHardwareAlert('error');
-          updateCardUi(card, "Не распознан", "Ошибка ИИ ⚠️", "АЗС", serverPhotoUrl, "Ошибка", localImg, taskId);
+          triggerHardwareAlert('error'); updateCardUi(card, "Не распознан", "Ошибка ИИ ⚠️", "АЗС", serverPhotoUrl, "Ошибка", localImg, taskId);
         }
       } catch (e) { 
-        triggerHardwareAlert('error');
-        updateCardUi(card, "Не распознан", "Ошибка сети ⚠️", "АЗС", serverPhotoUrl, "Ошибка", localImg, taskId); 
+        triggerHardwareAlert('error'); updateCardUi(card, "Не распознан", "Ошибка сети ⚠️", "АЗС", serverPhotoUrl, "Ошибка", localImg, taskId); 
       }
     }
 
@@ -857,13 +796,15 @@
       if (!validateGostTemplate(newNum)) { triggerHardwareAlert('error'); alert("ОШИБКА ГОСТа РФ!\nФормат авто: А000АА99\nФормат мото: 0000АА99"); return; }
       closeFullscreenEdit(); let card = document.getElementById(cardId); if (!card) return;
       
+      /* ИДЕАЛЬНАЯ РУЧНАЯ СВЕРКА В ОФФЛАЙНЕ С СОХРАНЕННЫМ НА ДИСКЕ ТЕЛЕФОНА АРХИВОМ */
       if (!navigator.onLine) {
         let q = await getIndexedDBQueue(); let matchIdx = q.findIndex(item => item.taskId === savedTaskId);
         if (matchIdx !== -1) { q[matchIdx].manualNumber = newNum; await addIndexedDBItem(q[matchIdx]); } 
         else { await addIndexedDBItem({ taskId: savedTaskId, action: 'scan', image: imgSrc || photoUrl, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: newNum }); }
+        
         let localDupStatus = checkLocalDuplicateText(newNum, savedTaskId, await getIndexedDBQueue());
         triggerHardwareAlert(localDupStatus ? 'repeat' : 'new'); card.setAttribute('data-alert-played', 'true');
-        updateCardUi(card, newNum, localDupStatus || "Внесен 💾", "Сохранено в телефоне", photoUrl, timeStr, imgSrc, savedTaskId);
+        updateCardUi(card, newNum, localDupStatus || "Внесен 💾", "Сохранено на диск смартфона", photoUrl, timeStr, imgSrc, savedTaskId);
         await refreshSyncStatusBar(); return;
       }
 
@@ -875,6 +816,8 @@
         if (res && res.success) {
           function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
           globalJournalCache.unshift({ taskId: savedTaskId, number: newNum, date: getGSheetsTimestamp(), address: address, gps: "Network", photo: photoUrl });
+          await saveJournalToDisk(globalJournalCache); // Перепечатываем локальную копию
+          
           let smartStatus = checkLocalDuplicateText(newNum, savedTaskId, null) || "Новый";
           triggerHardwareAlert((smartStatus.includes("Повтор") || smartStatus.includes("пов.")) ? 'repeat' : 'new');
           card.setAttribute('data-alert-played', 'true');
@@ -883,7 +826,7 @@
       } catch (e) {
         await addIndexedDBItem({ taskId: savedTaskId, action: 'scan', image: imgSrc || photoUrl, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: newNum });
         let localDupStatus = checkLocalDuplicateText(newNum, savedTaskId, await getIndexedDBQueue());
-        updateCardUi(card, newNum, localDupStatus || "Внесен 💾", "Сеть упала • Сохранено локально", photoUrl, timeStr, imgSrc, savedTaskId);
+        updateCardUi(card, newNum, localDupStatus || "Внесен 💾", "Сеть упала • Сохранено в БД", photoUrl, timeStr, imgSrc, savedTaskId);
         await refreshSyncStatusBar();
       }
     }
@@ -902,6 +845,7 @@
 
         function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
         globalJournalCache.unshift({ taskId: item.taskId, number: finalNum, date: getGSheetsTimestamp(), address: res.address || "Определено GPS", gps: item.coords ? `${item.coords.latitude},${item.coords.longitude}` : "Нет GPS", thumb: item.image, photo: res.photo });
+        await saveJournalToDisk(globalJournalCache); // Обновляем диск!
 
         let card = document.getElementById("cam_" + item.taskId);
         if (card) {
@@ -917,14 +861,7 @@
           updateCardUi(card, finalNum, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId);
         }
       } catch (error) { 
-        console.log("Сбой сети. Локальный откат.");
-        isSyncing = false;
-        let bar = document.getElementById('sync-status-bar');
-        if (bar) {
-          bar.className = "status-offline";
-          bar.innerHTML = `${gpsStatusText} | 💾 Очередь: ${q.length} | 📁 В архиве: ${globalJournalCache.length} шт. <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
-        }
-        return; 
+        isSyncing = false; await refreshSyncStatusBar(); return; 
       } 
       finally { isSyncing = false; await refreshSyncStatusBar(); if ((await getIndexedDBQueue()).length > 0 && navigator.onLine) setTimeout(backgroundSyncLoop, 1000); }
     }
@@ -935,13 +872,17 @@
       let fNum = document.getElementById('search-number').value;
       let container = document.getElementById('journal-container');
       
-      container.innerHTML = "<p style='text-align:center; color:var(--text-sub);'>⏳ Формирование выборки...</p>";
+      container.innerHTML = "<p style='text-align:center; color:var(--text-sub);'>⏳ Чтение локальной памяти...</p>";
       if (!navigator.onLine) {
         let localQueue = await getIndexedDBQueue(); renderOfflineMixedJournal(localQueue, sDate, eDate, fNum); return;
       }
       try {
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: { startDate: sDate, endDate: eDate, number: fNum } }) });
-        let records = await response.json(); if (records && records.length) globalJournalCache = records; 
+        let records = await response.json(); 
+        if (records && records.length) {
+          globalJournalCache = records;
+          await saveJournalToDisk(records);
+        } 
         let localQueue = await getIndexedDBQueue(); renderOfflineMixedJournal(localQueue, sDate, eDate, fNum);
       } catch(e) { 
         let localQueue = await getIndexedDBQueue(); renderOfflineMixedJournal(localQueue, sDate, eDate, fNum);
@@ -1007,25 +948,17 @@
       document.getElementById('settings-recent-mins').value = appSettings.recentMins; document.getElementById('settings-days').value = appSettings.days;
       document.getElementById('settings-cam-w').value = appSettings.camW; document.getElementById('settings-cam-h').value = appSettings.camH;
       
-      document.getElementById('settings-dur-new').value = appSettings.durNew;
-      document.getElementById('settings-dur-rep').value = appSettings.durRep;
-      document.getElementById('settings-dur-err').value = appSettings.durErr;
+      document.getElementById('settings-dur-new').value = appSettings.durNew; document.getElementById('settings-dur-rep').value = appSettings.durRep; document.getElementById('settings-dur-err').value = appSettings.durErr;
       
       applyLocalUiDimensions();
 
+      if (!navigator.onLine) return;
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings' }) })
         .then(r => r.json()).then(res => {
           appSettings.durNew = res.durNew; appSettings.durRep = res.durRep; appSettings.durErr = res.durErr;
-          
-          localStorage.setItem('settings_dur_new', res.durNew);
-          localStorage.setItem('settings_dur_rep', res.durRep);
-          localStorage.setItem('settings_dur_err', res.durErr);
-
+          localStorage.setItem('settings_dur_new', res.durNew); localStorage.setItem('settings_dur_rep', res.durRep); localStorage.setItem('settings_dur_err', res.durErr);
           if (!isSilent) { 
-            document.getElementById('settings-days').value = res.days; 
-            document.getElementById('settings-dur-new').value = res.durNew; 
-            document.getElementById('settings-dur-rep').value = res.durRep; 
-            document.getElementById('settings-dur-err').value = res.durErr; 
+            document.getElementById('settings-days').value = res.days; document.getElementById('settings-dur-new').value = res.durNew; document.getElementById('settings-dur-rep').value = res.durRep; document.getElementById('settings-dur-err').value = res.durErr; 
           }
           refreshSyncStatusBar();
         }).catch(e => {});
@@ -1039,10 +972,7 @@
 
       localStorage.setItem('settings_recent_mins', document.getElementById('settings-recent-mins').value); localStorage.setItem('settings_days', days);
       localStorage.setItem('settings_cam_w', document.getElementById('settings-cam-w').value); localStorage.setItem('settings_cam_h', document.getElementById('settings-cam-h').value);
-      
-      localStorage.setItem('settings_dur_new', dNew);
-      localStorage.setItem('settings_dur_rep', dRep);
-      localStorage.setItem('settings_dur_err', dErr);
+      localStorage.setItem('settings_dur_new', dNew); localStorage.setItem('settings_dur_rep', dRep); localStorage.setItem('settings_dur_err', dErr);
       
       appSettings.durNew = parseFloat(dNew); appSettings.durRep = parseFloat(dRep); appSettings.durErr = parseFloat(dErr);
       applyLocalUiDimensions();
@@ -1092,15 +1022,10 @@
           durationSeconds = parseFloat(appSettings.durErr) || 0.5; 
           let osc1 = globalAudioCtx.createOscillator(); let osc2 = globalAudioCtx.createOscillator();
           osc1.connect(gain); osc2.connect(gain);
-          
           osc1.type = 'sawtooth'; osc1.frequency.setValueAtTime(380, globalAudioCtx.currentTime); 
           osc2.type = 'sine'; osc2.frequency.setValueAtTime(430, globalAudioCtx.currentTime); 
-          
-          gain.gain.setValueAtTime(0.25, globalAudioCtx.currentTime); 
-          gain.gain.exponentialRampToValueAtTime(0.01, globalAudioCtx.currentTime + durationSeconds);
-          
-          osc1.start(); osc2.start(); 
-          osc1.stop(globalAudioCtx.currentTime + durationSeconds); osc2.stop(globalAudioCtx.currentTime + durationSeconds);
+          gain.gain.setValueAtTime(0.25, globalAudioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, globalAudioCtx.currentTime + durationSeconds);
+          osc1.start(); osc2.start(); osc1.stop(globalAudioCtx.currentTime + durationSeconds); osc2.stop(globalAudioCtx.currentTime + durationSeconds);
           if (navigator.vibrate) navigator.vibrate(durationSeconds * 1000);
         }
       } catch (e) { console.log("Сбой звука: " + e); }
