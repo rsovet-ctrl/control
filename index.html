@@ -16,8 +16,8 @@
       --accent-blue: #1877f2;
     }
     .dark-mode { 
-      --bg-main: #18191a; 
-      --bg-card: #242526; 
+      --bg-main: #121212; 
+      --bg-card: #1e1e1e; 
       --text-main: #e4e6eb; 
       --text-sub: #b0b3b8; 
       --border-color: #3a3b3c;
@@ -30,11 +30,11 @@
       background: var(--bg-main); 
       color: var(--text-main); 
       transition: background 0.3s, color 0.3s; 
-      padding-top: 40px;
+      padding-top: 48px;
       padding-bottom: 95px; 
     }
     
-    /* 🔥 ЖЕСТКО ФИКСИРОВАННЫЙ ОДНОСТРОЧНЫЙ СТАТУС-БАР БЕЗ ПЕРЕНОСОВ */
+    /* 🔥 СТРОГИЙ ОДНОСТРОЧНЫЙ СТАТУС-ВАР БЕЗ ПЕРЕНОСОВ */
     #sync-status-bar { 
       position: fixed;
       top: 0;
@@ -49,17 +49,17 @@
       box-sizing: border-box;
       font-size: 12px; 
       font-weight: 700; 
-      background: var(--bg-card);
-      color: var(--text-main);
-      border-bottom: 1px solid var(--border-color);
       z-index: 2000; 
       user-select: none;
       white-space: nowrap; 
       overflow: hidden;
       text-overflow: ellipsis;
+      transition: all 0.25s ease;
     }
     
-    .status-indicators-box { display: flex; align-items: center; gap: 14px; }
+    .status-synced { background: var(--bg-card); color: var(--text-main); border-bottom: 1px solid var(--border-color); }
+    .status-offline { background: #ffaa00 !important; color: #000000 !important; border-bottom: none; }
+    .status-uploading { background: #1877f2 !important; color: #ffffff !important; border-bottom: none; }
 
     .top-bar-moon { 
       position: absolute;
@@ -71,28 +71,29 @@
       font-size: 16px; 
       cursor: pointer; 
       padding: 4px; 
-      color: var(--text-main); 
+      color: inherit; 
       line-height: 1;
       -webkit-tap-highlight-color: transparent;
     }
 
-    .progress-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: rgba(24, 119, 242, 0.08); display: none; overflow: hidden; }
-    .progress-bar { height: 100%; width: 0%; background: var(--accent-blue); transition: width 0.3s ease; }
+    .progress-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: rgba(255,255,255,0.2); display: none; overflow: hidden; }
+    .progress-bar { height: 100%; width: 0%; background: #ffffff; transition: width 0.3s ease; }
 
+    /* НИЖНЯЯ ПАНЕЛЬ С ИНТЕГРИРОВАННЫМ ПОДВАЛОМ */
     .premium-bottom-nav {
       position: fixed;
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 65px;
+      height: 72px;
       background: var(--bg-card);
       border-top: 1px solid var(--border-color);
       display: flex;
       justify-content: space-around;
-      align-items: center;
+      align-items: flex-start;
       z-index: 2500;
       box-shadow: 0 -2px 12px rgba(0,0,0,0.04);
-      padding-bottom: env(safe-area-inset-bottom);
+      padding-top: 6px;
       box-sizing: border-box;
     }
     
@@ -108,13 +109,26 @@
       border: none;
       cursor: pointer;
       flex: 1;
-      height: 100%;
-      gap: 4px;
+      gap: 2px;
       transition: color 0.15s;
       -webkit-tap-highlight-color: transparent;
     }
-    .nav-tab-btn .nav-icon { font-size: 20px; line-height: 1; }
+    .nav-tab-btn .nav-icon { font-size: 19px; line-height: 1; }
     .nav-tab-btn.active { color: var(--accent-blue); }
+
+    /* ВШИТАЯ СТРОКА АВТОРСТВА */
+    .nav-credit-line {
+      position: absolute;
+      bottom: 3px;
+      width: 100%;
+      text-align: center;
+      font-size: 9.5px;
+      font-weight: 600;
+      color: var(--text-sub);
+      opacity: 0.6;
+      letter-spacing: 0.2px;
+    }
+    .nav-credit-line a { color: var(--accent-blue); text-decoration: none; font-weight: bold; }
 
     .tab-content { display: none; padding: 12px; }
     .tab-content.active { display: block; }
@@ -138,6 +152,7 @@
     .floating-capture-btn { position: absolute; bottom: 15px; right: 15px; background: #f02849; color: white; border: 2px solid white; border-radius: 50%; width: 56px; height: 56px; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(0,0,0,0.3); z-index: 500; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
     .floating-capture-btn:active { transform: scale(0.85); background: #c01830; }
 
+    /* 🎨 СТИЛИ ПЛАШЕК И ЦВЕТОВОГО КОДИРОВАНИЯ */
     .journal-item { 
       position: relative;
       display: flex; 
@@ -148,7 +163,17 @@
       margin-bottom: 10px; 
       box-shadow: 0 1px 3px rgba(0,0,0,0.03); 
       border: 1px solid var(--border-color);
-      transition: all 0.2s ease; 
+      transition: all 0.25s ease; 
+    }
+    
+    /* Красная зона повтора визита */
+    .journal-item.repeat { 
+      background: #ffebe9 !important; 
+      border: 1px solid #f02849 !important; 
+    }
+    .dark-mode .journal-item.repeat { 
+      background: #2c1616 !important; 
+      border: 1px solid #ff4d4d !important; 
     }
     
     .thumb-box { 
@@ -180,30 +205,32 @@
     .plate-container { width: 100%; }
     
     .plate-display { 
-      font-size: 23px; 
+      font-size: 24px; 
       font-weight: 800; 
       color: var(--text-main); 
       letter-spacing: 0.3px; 
       line-height: 1.2;
+      vertical-align: middle;
     }
     
     .edit-trigger-btn { 
       background: none;
       border: none; 
-      font-size: 18px; 
+      font-size: 19px; 
       cursor: pointer; 
-      padding: 0 4px; 
+      padding: 0 2px 0 6px; 
       color: var(--accent-blue); 
       display: inline-block;
       vertical-align: middle;
       -webkit-tap-highlight-color: transparent;
     }
     
-    .journal-trigger-btn { background: none; border: none; font-size: 12px; cursor: pointer; padding: 1px 0; color: var(--accent-blue); font-weight: 600; text-align: left; text-decoration: underline; }
+    .journal-trigger-btn { background: none; border: none; font-size: 11.5px; cursor: pointer; padding: 1px 0; color: var(--accent-blue); font-weight: 700; text-align: left; text-decoration: underline; }
     
-    .info-date { color: var(--text-sub); font-size: 12px; margin-top: 1px; }
+    .info-date { color: var(--text-sub); font-size: 11.5px; margin-top: 1px; }
     .info-address { font-size: 12px; color: var(--text-main); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
     
+    /* Статус-бейдж в углу */
     .status-right { 
       position: absolute;
       top: 12px;
@@ -215,10 +242,19 @@
       line-height: 1;
     }
     .journal-item.new .status-right { background: #e6f7ed; color: #42b72a; }
-    .journal-item.repeat .status-right { background: #ffebe9; color: #f02849; }
-    .journal-item.error-item .status-right { background: #fff3e0; color: #ff7a00; }
-    .journal-item.local-offline .status-right { background: #fff8e1; color: #ffaa00; }
+    .journal-item.repeat .status-right { background: #f02849; color: #ffffff; }
+    .journal-item.local-offline .status-right { background: #e4e6eb; color: #555555; }
     .journal-item.local-online-processing .status-right { background: #e8f0fe; color: #1877f2; }
+
+    /* 🔥 CSS АНИМАЦИЯ ПУЛЬСАЦИИ ДЛЯ ОШИБОК ИИ */
+    @keyframes yellow-orange-pulse {
+      0% { background: #fff3e0; color: #ff7a00; box-shadow: 0 0 0 0 rgba(255, 122, 0, 0.4); }
+      70% { background: #ffe0b2; color: #e65100; box-shadow: 0 0 0 6px rgba(255, 122, 0, 0); }
+      100% { background: #fff3e0; color: #ff7a00; box-shadow: 0 0 0 0 rgba(255, 122, 0, 0); }
+    }
+    .journal-item.error-item .status-right { 
+      animation: yellow-orange-pulse 1.4s infinite ease-in-out; 
+    }
 
     .geo-btn { margin-top: 3px; background: var(--bg-main); border-radius: 6px; padding: 4px 8px; font-size: 11px; text-decoration: none; color: var(--text-main); font-weight: bold; display: inline-block; margin-right: 5px; border: 1px solid var(--border-color); }
 
@@ -244,37 +280,17 @@
     .dark-mode .m-btn-cancel { background: #3a3b3c; color: #e4e6eb; }
 
     #flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; opacity: 0; background: transparent; transition: opacity 0.08s ease-out; }
-
     .range-container { display: flex; gap: 10px; margin-bottom: 10px; }
     .range-container > div { flex: 1; }
-
-    .premium-fixed-footer { 
-      position: fixed; 
-      bottom: 65px; 
-      left: 0; 
-      width: 100%; 
-      background: rgba(240, 242, 245, 0.75); 
-      backdrop-filter: blur(10px); 
-      -webkit-backdrop-filter: blur(10px); 
-      text-align: center; 
-      padding: 6px 0; 
-      font-size: 11.5px; 
-      color: var(--text-sub); 
-      border-top: 1px solid var(--border-color); 
-      z-index: 1500; 
-      font-weight: 500; 
-    }
-    .dark-mode .premium-fixed-footer { background: rgba(24, 25, 26, 0.75); }
-    .premium-fixed-footer a { color: var(--accent-blue); text-decoration: none; font-weight: bold; }
   </style>
 </head>
 <body>
 
   <div id="flash-overlay"></div>
 
-  <!-- ВЕРХНЯЯ СТРОКА СТАТУСА: ИДЕАЛЬНЫЙ ОДНОСТРОЧНЫЙ ВАРИАНТ -->
-  <div id="sync-status-bar" class="status-offline" onclick="reRequestGeolocation(false)">
-    <span id="sync-status-text">📍 GPS | ⏳ База | ☁️ Облако</span>
+  <!-- ВЕРХНЯЯ СТРОКА СТАТУСА (ОДНОСТРОЧНАЯ, ЖЕСТКАЯ) -->
+  <div id="sync-status-bar" class="status-synced" onclick="reRequestGeolocation(false)">
+    <span id="sync-status-text">📍 GPS | 🟢 База | ☁️ Облако</span>
     <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>
     <div id="sync-progress-container" class="progress-container">
       <div id="sync-progress-bar" class="progress-bar"></div>
@@ -359,11 +375,11 @@
       <div class="help-header">1. Как сделать снимок?</div>
       <p class="help-text">На вкладке <b>"Камера"</b> направьте прямоугольник прицела на госномер машины и нажмите круглую кнопку 📸. Экран выдаст вспышку, раздастся щелчок — кадр пойман и сохранен.</p>
       
-      <div class="help-header" style="color:#42b72a;">2. What значат цвета карточек в ленте?</div>
+      <div class="help-header" style="color:#42b72a;">2. Что значат цвета карточек в ленте?</div>
       <ul style="font-size:13px; padding-left:18px; margin-top:0; line-height:1.45; color:var(--text-main);">
-        <li><b>Бейдж "Новый":</b> Новый автомобиль, ранее за эти дни не заезжал.</li>
-        <li><b>Бейдж "Повтор":</b> Повторный визит! Машина уже была в базе. Пишется точное время или дата заезда.</li>
-        <li><b>Бейдж "Ошибка":</b> ИИ сомневается в буквах или номер грязный. Требуется ручная проверка человека.</li>
+        <li><b>Белая карточка:</b> Новый автомобиль, ранее за эти дни не заезжал.</li>
+        <li><b>Розовая карточка с красной каймой:</b> Повторный визит! Машина уже была в базе. Пишется точное время или дата заезда.</li>
+        <li><b>Мигающий оранжевый бейдж:</b> ИИ сомневается в буквах или номер не распознан. Требуется ручная проверка человека.</li>
       </ul>
       
       <div class="help-header" style="color:#1877f2;">3. Как исправить ошибку ИИ?</div>
@@ -372,11 +388,6 @@
       <div class="help-header" style="color:#ffaa00;">4. Что делать, если пропал интернет?</div>
       <p class="help-text">Продолжайте снимать в обычном режиме! Программа накопит машины в памяти телефона (вверху загорится желтый статус буфера). Как только сеть появится, терминал сам выгрузит всю очередь в облачную таблицу.</p>
     </div>
-  </div>
-
-  <!-- СКВОЗНОЙ ИНТЕРАКТИВНЫЙ ПОДВАЛ -->
-  <div class="premium-fixed-footer">
-    Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v6.0
   </div>
 
   <!-- НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ (СТИЛЬ PREMIUM APP) -->
@@ -393,37 +404,15 @@
     <button class="nav-tab-btn" onclick="openTab('help-tab', this)">
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
-  </div>
-
-  <!-- ПОЛНОЭКРАННОЕ ОКНО РУЧНОГО ВВОДА -->
-  <div id="fullscreen-edit-modal">
-    <div class="modal-box">
-      <div class="modal-title">СВЕРЬТЕ ЗНАКИ С ВЕРТИКАЛЬНЫМ СНИМКОМ:</div>
-      
-      <div class="modal-photo-container">
-        <img id="m-target-img" src="" alt="Крупное фото машины">
-        <div class="zoom-controls">
-          <button class="zoom-btn" onclick="zoomModalImage('out', event)">−</button>
-          <button class="zoom-btn" onclick="zoomModalImage('in', event)">+</button>
-        </div>
-      </div>
-      
-      <label style="text-align: center; color: var(--accent-blue); margin-bottom: 5px; font-size:13px;">КОРРЕКТИРОВКА (СТРОГО НА РУССКОЙ РАСКЛАДКЕ):</label>
-      <input type="text" class="modal-plate-input" id="m-plate-field" placeholder="А000АА99" maxlength="9">
-      <div class="modal-btn-table">
-        <div class="modal-btn-cell">
-          <button class="m-btn m-btn-cancel" onclick="closeFullscreenEdit()">❌ ОТМЕНА</button>
-        </div>
-        <div class="modal-btn-cell">
-          <button class="m-btn m-btn-save" id="m-save-btn">💾 СОХРАНИТЬ</button>
-        </div>
-      </div>
+    <!-- ВШИТЫЙ ДИЗАЙНЕРСКИЙ ПОДВАЛ -->
+    <div class="nav-credit-line">
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v6.1
     </div>
   </div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "6.0"; 
+    const APP_VERSION = "6.1"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "📍 GPS";
@@ -545,7 +534,7 @@
         
         let isOnline = navigator.onLine;
         let displayNum = isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ";
-        let displayStatus = isOnline ? "Выгрузка 📡" : "Ожидание сети 🌐";
+        let displayStatus = isOnline ? "Выгрузка 📡" : "Очередь 💾";
         let displayAddress = isOnline ? "Связь с сервером..." : "Сбор координат";
         
         let currentQueue = await getIndexedDBQueue();
@@ -660,7 +649,7 @@
         scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
         
         let displayNum = item.manualNumber || (isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ");
-        let displayStatus = item.manualNumber ? "Внесен (ждет сеть) 💾" : (isOnline ? "Выгрузка 📡" : "Ожидание сети 🌐");
+        let displayStatus = item.manualNumber ? "Внесен 💾" : (isOnline ? "Выгрузка 📡" : "Очередь 💾");
         let displayAddress = item.manualNumber ? "Сохранено в телефоне" : (isOnline ? "Связь с сервером..." : "Сбор координат");
         
         let localDupStatus = checkLocalDuplicateText(displayNum, item.taskId, q);
@@ -688,11 +677,18 @@
       openTab('search-tab', journalBtn); triggerSearch();
     }
 
-    // 🔥 ИСПРАВЛЕННО: УЛЬТРА-КОМПАКТНЫЙ СТАТУС-БАР В ОДНУ СТРОКУ
+    /* 🔥 ИСПРАВЛЕННО: ИЗОЛЯЦИЯ ОТ ЛОЖНЫХ СИНИХ АНИМАЦИЙ В ОФФЛАЙНЕ */
     async function refreshSyncStatusBar() {
       let q = await getIndexedDBQueue();
       let bar = document.getElementById('sync-status-bar');
       let dbText = isDbLoaded ? "🟢 База" : "⏳ Архив";
+      
+      // Полный статичный блок если Хром не видит интернет
+      if (!navigator.onLine) {
+        bar.className = "status-offline";
+        bar.innerHTML = `${gpsStatusText} | 🟡 В кэше телефона: ${q.length} объектов <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+        return;
+      }
       
       if (q.length === 0) {
         bar.className = "status-synced";
@@ -703,7 +699,7 @@
           bar.innerHTML = `${gpsStatusText} | 🔵 Сброс пакетов (${q.length}) <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
         } else {
           bar.className = "status-offline";
-          bar.innerHTML = `${gpsStatusText} | 🟡 Оффлайн-буфер: ${q.length} <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+          bar.innerHTML = `${gpsStatusText} | 🟡 В кэше телефона: ${q.length} <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
         }
       }
     }
@@ -718,6 +714,7 @@
       } catch (e) {}
     }
 
+    /* 🔥 ИСПРАВЛЕННО: СТРОГОЕ ПРИВЕДЕНИЕ ТИПОВ STRING ДЛЯ ЗАЩИТЫ ОТ ЦИФРОВЫХ НОМЕРОВ */
     function checkLocalDuplicateText(num, currentTaskId, preloadedQueue) {
       if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ..." || String(num).includes("Проверить вручную")) return null;
       let cleanNum = String(num).toUpperCase().trim();
@@ -761,23 +758,23 @@
         textOutput = isSameDay ? `Повтор • ${timeStr}` : `Повтор • ${dateStr} в ${timeStr}`;
       } else {
         let textEnd = (count === 2 || count === 3 || count === 4) ? "повтора" : "повторов";
-        textOutput = isSameDay ? `${count} ${textEnd} • ${timeStr}` : `${count} ${textEnd} • ${dateStr}`;
+        textOutput = isSameDay ? `${count} ${textEnd} • ${timeStr}` : `${count} ${dateStr}`;
       }
       return textOutput;
     }
 
-    // 🔥 ИСПРАВЛЕННО: Изоляция String() от ошибок number.includes во всем контуре отрисовки карточек
+    /* 🔥 ИСПРАВЛЕННО: ПОЛНЫЙ ЦВЕТОВОЙ КОНТУР И ИНТЕГРАЦИЯ УМНОГО ФЛАГА ТИШИНЫ */
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId) {
       number = number || ""; status = status || "";
       
       let isRep = String(status).includes("Повтор") || String(status).includes("повтор") || String(status).includes("раз"); 
-      let isPending = String(status).includes("Ожидание") || String(status).includes("сеть") || String(status).includes("Внесен");
+      let isPending = String(status).includes("Ожидание") || String(status).includes("сеть") || String(status).includes("Внесен") || String(status).includes("Очередь") || String(status).includes("кэше");
       let isProcessing = String(number) === "🤖 АНАЛИЗ..." || String(status).includes("Пересчет") || String(status).includes("Анализ") || String(status).includes("Расчет"); 
       let isErr = String(number) === "Не распознан" || String(number).includes("Ошибка") || String(status).includes("ручную");
       
       if (isPending) cardElement.className = "journal-item local-offline";
       else if (isProcessing) cardElement.className = "journal-item local-online-processing";
-      else if (isErr) cardElement.className = "journal-item error-item error-item-blink";
+      else if (isErr) cardElement.className = "journal-item error-item";
       else cardElement.className = `journal-item ${isRep ? 'repeat' : 'new'}`;
       
       let badgeLabel = "Новый";
@@ -876,7 +873,16 @@
         q[matchIdx].manualNumber = newNum; await addIndexedDBItem(q[matchIdx]); await refreshSyncStatusBar();
         let localDupStatus = checkLocalDuplicateText(newNum, savedTaskId, q);
         let finalStatus = localDupStatus || "Внесен 💾";
-        if (localDupStatus) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
+        
+        // Вручную поправили в оффлайне -> поймали дубль -> сигналим и ставим флаг тишины
+        if (localDupStatus) {
+          triggerHardwareAlert('repeat');
+          card.setAttribute('data-alert-played', 'true');
+        } else {
+          triggerHardwareAlert('new');
+          card.setAttribute('data-alert-played', 'false');
+        }
+        
         updateCardUi(card, newNum, finalStatus, "В очереди", photoUrl, timeStr, imgSrc, savedTaskId);
         backgroundSyncLoop();
       } else {
@@ -902,7 +908,14 @@
             let finalStatus = res.newStatus || "Новый";
             globalJournalCache.unshift({ taskId: savedTaskId, number: finalNum, date: getGSheetsTimestamp(), address: address, gps: "Сеть", photo: photoUrl });
             let smartStatus = checkLocalDuplicateText(finalNum, savedTaskId, null) || finalStatus || "";
-            if (smartStatus.includes("Повтор") || smartStatus.includes("повтор")) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
+            
+            if (smartStatus.includes("Повтор") || smartStatus.includes("повтор")) {
+              triggerHardwareAlert('repeat');
+              card.setAttribute('data-alert-played', 'true');
+            } else {
+              triggerHardwareAlert('new');
+              card.setAttribute('data-alert-played', 'true');
+            }
             updateCardUi(card, finalNum, smartStatus, address, photoUrl, timeStr, imgSrc, savedTaskId);
           } else {
             alert("❌ ЗАПИСЬ ОТКЛОНЕНА СЕРВЕРОМ");
@@ -915,6 +928,7 @@
       }
     }
 
+    /* 🔥 ИСПРАВЛЕННО: ОТРЕЗАН ПОВТОРНЫЙ ЗВУКОВОЙ СПАМ ПРИ ВЫГРУЗКЕ В СЕТЬ */
     async function backgroundSyncLoop() {
       if (isSyncing) return; 
       let q = await getIndexedDBQueue();
@@ -936,8 +950,23 @@
 
         let card = document.getElementById("cam_" + item.taskId);
         if (card) {
-          if (finalStatus.includes("вручную")) { triggerHardwareAlert('error'); } 
-          else { let isRep = finalStatus.includes("Повтор") || finalStatus.includes("повтор"); if (isRep) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new'); }
+          // ЖЕСТКАЯ ПРОВЕРКА ФЛАГА МЕТКИ ТИШИНЫ
+          let alreadyPlayed = card.getAttribute('data-alert-played') === 'true';
+          
+          if (finalStatus.includes("вручную") || finalStatus.includes("Проверить")) {
+            if (!alreadyPlayed) triggerHardwareAlert('error');
+            card.setAttribute('data-alert-played', 'true');
+          } else {
+            let isRep = finalStatus.includes("Повтор") || finalStatus.includes("повтор");
+            if (isRep) {
+              if (!alreadyPlayed) triggerHardwareAlert('repeat'); // Пищим только если инспектор ЕЩЕ НЕ ЗНАЕТ
+              card.setAttribute('data-alert-played', 'true');
+            } else {
+              // Если объект полностью новый и мы о нем не пищали
+              if (!alreadyPlayed) triggerHardwareAlert('new');
+              card.setAttribute('data-alert-played', 'true');
+            }
+          }
           let refreshedQueue = await getIndexedDBQueue();
           let smartStatus = checkLocalDuplicateText(finalNum, item.taskId, refreshedQueue) || finalStatus;
           updateCardUi(card, finalNum, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId);
