@@ -1,11 +1,11 @@
-const CACHE_NAME = 'car-control-v6.4';
+const CACHE_NAME = 'car-control-v6.5';
 const ASSETS_TO_CACHE = [
   './',
   'index.html',
   'manifest.json'
 ];
 
-// Установка: Скачиваем ядро приложения в резервную память телефона
+// 1. Установка: Закачиваем ядро интерфейса в изолированную память телефона
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -14,7 +14,7 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// Активация: Автоматически вычищаем старый хлам прошлых версий
+// 2. Активация: Тотальная зачистка кэша старых версий (v6.3, v6.4 и т.д.)
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -29,9 +29,9 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Умный перехват запросов (Стратегия Network-First с железным оффлайн-откатом)
+// 3. Перехват запросов: Стратегия Network-First с гарантированным оффлайн-откатом
 self.addEventListener('fetch', (e) => {
-  // Игнорируем тяжелые POST-пакеты и контур синхронизации Гугл Таблиц
+  // Тяжелые POST-пакеты синхронизации базы и Гугл-скрипты мы пускаем строго напрямую
   if (e.request.url.includes('script.google.com') || e.request.method !== 'GET') {
     return;
   }
@@ -39,7 +39,7 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(
     fetch(e.request)
       .then((response) => {
-        // Если интернет есть и запрос успешный — на лету обновляем локальный кэш
+        // Если интернет стабилен и файл успешно скачан — обновляем резервную копию в кэше
         if (response.status === 200 && e.request.url.startsWith(self.location.origin)) {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -49,9 +49,13 @@ self.addEventListener('fetch', (e) => {
         return response;
       })
       .catch(() => {
-        // ЗОНА ОФФЛАЙНА: Если сеть упала (или сделан свайп вниз без связи)
-        // Достаем точное совпадение, либо принудительно запускаем главную страницу
-        return caches.match(e.request) || caches.match('index.html') || caches.match('./');
+        // ЗОНА ПОЛНОГО ОФФЛАЙНА
+        // Если это запрос на перезагрузку или обновление экрана (navigate) — жестко разворачиваем index.html
+        if (e.request.mode === 'navigate') {
+          return caches.match('./') || caches.match('index.html');
+        }
+        // Для остальных ресурсов (стили, иконки, манифест) отдаем их точные копии из памяти
+        return caches.match(e.request);
       })
   );
 });
