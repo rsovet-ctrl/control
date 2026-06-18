@@ -24,7 +24,6 @@
       --accent-blue: #2f80ed;
     }
 
-    /* 🔒 ТОТАЛЬНАЯ БЛОКИРОВКА НА ТИВНОГО СВАЙПА ОБНОВЛЕНИЯ ХРОМА */
     html, body { 
       overscroll-behavior: contain !important;
       overscroll-behavior-y: contain !important;
@@ -177,7 +176,6 @@
       border: 1px solid #ff4d4d !important; 
     }
 
-    /* 🍊 КРАСИВАЯ ПАСТЕЛЬНО-ОРАНЖЕВАЯ РАМКА ДЛЯ КАРТОЧЕК С ОШИБКАМИ ИИ */
     .journal-item.error-item {
       background: #fff3e0 !important;
       border: 2px solid #ff7a00 !important;
@@ -200,16 +198,23 @@
       justify-content: center; 
       border: 1px solid var(--border-color); 
       cursor: pointer; 
+      position: relative;
     }
-    .thumb-box img { width: 100%; height: 100%; object-fit: cover; }
+    .thumb-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
     
     .thumb-box .offline-photo-placeholder {
       font-size: 20px;
       color: var(--text-sub);
       font-weight: bold;
       opacity: 0.6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
     }
     
+    /* 🛡️ ИСПРАВЛЕННЫЙ БЛОК: padding-right ИСКЛЮЧАЕТ НАЛЕЗАНИЕ ТЕКСТА НА БЕЙДЖИ */
     .info-left { 
       flex-grow: 1; 
       text-align: left; 
@@ -217,6 +222,8 @@
       flex-direction: column;
       gap: 2px;
       min-width: 0; 
+      padding-right: 95px; 
+      box-sizing: border-box;
     }
     
     .plate-wrapper { display: flex; align-items: center; }
@@ -271,6 +278,7 @@
       font-size: 11px; 
       font-weight: 700; 
       line-height: 1;
+      z-index: 10;
     }
     .journal-item.new .status-right { background: #e6f7ed; color: #42b72a; }
     .journal-item.repeat .status-right { background: #f02849; color: #ffffff; }
@@ -393,7 +401,7 @@
           <input type="number" id="settings-cam-w" min="200" max="600" value="280" onchange="applyLocalUiDimensions()">
         </div>
         <div>
-          <label>Высота окна:</label>
+          <label>Height окна:</label>
           <input type="number" id="settings-cam-h" min="200" max="800" value="370" onchange="applyLocalUiDimensions()">
         </div>
       </div>
@@ -452,7 +460,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v6.8
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v6.9
     </div>
   </div>
 
@@ -480,7 +488,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "6.8"; 
+    const APP_VERSION = "6.9"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "📍 GPS";
@@ -618,7 +626,7 @@
           if (!isSilent) alert("📍 Геолокация GPS успешно обновлена!");
         }, async function(error) {
           gpsStatusText = (error.code === error.PERMISSION_DENIED) ? "❌ GPS" : "⚠️ GPS"; await refreshSyncStatusBar();
-          if (!isSilent) alert("⚠️ Сбой GPS. Проверьте права датчика.");
+          if (!isSilent) alert("⚠️ Сбой GPS. Проверьте датчик.");
         }, { enableHighAccuracy: true, timeout: 8000 });
       }
     }
@@ -723,6 +731,7 @@
       return isSameDay ? `${count} повтора • ${timeStr}` : `${count} пов. • ${dateStr}`;
     }
 
+    /* 🔥 ОБНОВЛЕННЫЙ ТРИГГЕР onerror: ПОЛНОСТЬЮ ИСКЛЮЧАЕТ ПОЯВЛЕНИЕ БИТЫХ ЗНАЧКОВ ХРОМА */
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId) {
       number = number || ""; status = status || "";
       let isRep = String(status).includes("Повтор") || String(status).includes("повтор") || String(status).includes("раз") || String(status).includes("пов."); 
@@ -745,13 +754,17 @@
       if (forcedTaskId) cardElement.setAttribute('data-task-id', forcedTaskId);
       if (imgSrc) cardElement.setAttribute('data-local-src', imgSrc);
       
+      // Пуленепробиваемый контейнер превью: если фото из сети падает по оффлайну - плавно разворачивается ⏳🌐
       let thumbHtml = "";
       if (imgSrc) {
         thumbHtml = `<div class="thumb-box" onclick="window.open('${photoUrl || '#'}', '_blank')"><img src="${imgSrc}"></div>`;
-      } else if (photoUrl && navigator.onLine) {
-        thumbHtml = `<div class="thumb-box" onclick="window.open('${photoUrl || '#'}', '_blank')"><img src="${photoUrl}"></div>`;
       } else {
-        thumbHtml = `<div class="thumb-box" style="cursor:default;"><span class="offline-photo-placeholder">⏳🌐</span></div>`;
+        thumbHtml = `
+          <div class="thumb-box" onclick="if('${photoUrl || ''}') window.open('${photoUrl}', '_blank')">
+            <img src="${photoUrl || ''}" style="${photoUrl ? 'display:block;' : 'display:none;'}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <span class="offline-photo-placeholder" style="${photoUrl ? 'display:none;' : 'display:flex;'}">⏳🌐</span>
+          </div>
+        `;
       }
       
       let journalBtnHtml = isRep ? `<button class="journal-trigger-btn" onclick="showInJournal('${number}')">🔎 История</button>` : "";
@@ -866,7 +879,6 @@
       }
     }
 
-    /* 🔥 ИСПРАВЛЕННО: ЖЕСТКИЙ СЕТЕВОЙ ПЕРЕХВАТ ПРИ СБОЕ ОТПРАВКИ (ФИКС ЛОЖНОГО СИНЕГО БАРА) */
     async function backgroundSyncLoop() {
       if (isSyncing) return; let q = await getIndexedDBQueue(); if (q.length === 0) { await refreshSyncStatusBar(); return; }
       if (!navigator.onLine) { isSyncing = false; await refreshSyncStatusBar(); return; }
@@ -896,7 +908,6 @@
           updateCardUi(card, finalNum, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId);
         }
       } catch (error) { 
-        // Если запрос упал — значит интернета РЕАЛЬНО нет. Немедленно гасим синий флаг и гасим цикл!
         console.log("Сбой сети. Локальный откат.");
         isSyncing = false;
         let bar = document.getElementById('sync-status-bar');
@@ -904,7 +915,7 @@
           bar.className = "status-offline";
           bar.innerHTML = `${gpsStatusText} | 💾 Очередь: ${q.length} | 📁 В архиве: ${globalJournalCache.length} шт. <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
         }
-        return; // Выходим из функции, останавливая спам-генерацию запросов
+        return; 
       } 
       finally { isSyncing = false; await refreshSyncStatusBar(); if ((await getIndexedDBQueue()).length > 0 && navigator.onLine) setTimeout(backgroundSyncLoop, 1000); }
     }
