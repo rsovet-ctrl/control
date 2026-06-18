@@ -187,7 +187,6 @@
     }
     .thumb-box img { width: 100%; height: 100%; object-fit: cover; }
     
-    /* Иконка-заглушка оффлайн-архива */
     .thumb-box .offline-photo-placeholder {
       font-size: 20px;
       color: var(--text-sub);
@@ -311,6 +310,7 @@
     </div>
   </div>
 
+  <!-- ВКЛАДКА 1: КАМЕРА -->
   <div id="scan-tab" class="tab-content active">
     <div class="card" style="text-align: center; padding: 6px;">
       <div class="live-stream-container" id="stream-box-container">
@@ -322,6 +322,7 @@
     </div>
   </div>
 
+  <!-- ВКЛАДКА 2: ЖУРНАЛ -->
   <div id="search-tab" class="tab-content">
     <div class="card">
       <h3>Параметры выборки</h3>
@@ -341,6 +342,7 @@
     <div id="journal-container"></div>
   </div>
 
+  <!-- ВКЛАДКА 3: ОПЦИИ -->
   <div id="settings-tab" class="tab-content">
     <div class="card">
       <h3>Спутниковая навигация (GPS)</h3>
@@ -377,6 +379,7 @@
     </div>
   </div>
 
+  <!-- ВКЛАДКА 4: СПРАВКА -->
   <div id="help-tab" class="tab-content">
     <div class="card">
       <h3>📖 Быстрое руководство АЗС-Терминала</h3>
@@ -414,7 +417,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v6.3
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v6.4
     </div>
   </div>
 
@@ -442,7 +445,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "6.3"; 
+    const APP_VERSION = "6.4"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "📍 GPS";
@@ -451,6 +454,7 @@
     let isSyncing = false;       
     let globalAudioCtx = null; 
     let isDbLoaded = false;
+    let syncTotalItems = 0; 
     let indexedDatabase = null; 
     let liveVideoStream = null;
 
@@ -576,10 +580,10 @@
         navigator.geolocation.getCurrentPosition(async function(position) {
           currentCoords = { latitude: position.coords.latitude, longitude: position.coords.longitude };
           gpsStatusText = "📍 GPS"; await refreshSyncStatusBar();
-          if (!isSilent) alert("📍 Геолокация GPS обновлена!");
+          if (!isSilent) alert("📍 Геолокация GPS успешно обновлена!");
         }, async function(error) {
           gpsStatusText = (error.code === error.PERMISSION_DENIED) ? "❌ GPS" : "⚠️ GPS"; await refreshSyncStatusBar();
-          if (!isSilent) alert("⚠️ Сбой GPS. Проверьте датчик.");
+          if (!isSilent) alert("⚠️ Сбой GPS. Проверьте права датчика.");
         }, { enableHighAccuracy: true, timeout: 8000 });
       }
     }
@@ -672,7 +676,6 @@
       return isSameDay ? `${count} повтора • ${timeStr}` : `${count} пов. • ${dateStr}`;
     }
 
-    /* 🔥 ОБНОВЛЕННАЯ ОТРИСОВКА КАРТОЧЕК С ТЕКСТОВЫМИ ЗАГЛУШКАМИ ФОТО */
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId) {
       number = number || ""; status = status || "";
       let isRep = String(status).includes("Повтор") || String(status).includes("повтор") || String(status).includes("раз") || String(status).includes("пов."); 
@@ -695,14 +698,12 @@
       if (forcedTaskId) cardElement.setAttribute('data-task-id', forcedTaskId);
       if (imgSrc) cardElement.setAttribute('data-local-src', imgSrc);
       
-      // Логика умной заглушки фото (если картинки нет и связи нет — рисуем заглушку)
       let thumbHtml = "";
       if (imgSrc) {
         thumbHtml = `<div class="thumb-box" onclick="window.open('${photoUrl || '#'}', '_blank')"><img src="${imgSrc}"></div>`;
       } else if (photoUrl && navigator.onLine) {
         thumbHtml = `<div class="thumb-box" onclick="window.open('${photoUrl || '#'}', '_blank')"><img src="${photoUrl}"></div>`;
       } else {
-        // Чистый автономный архивный лог (фото ждет интернет)
         thumbHtml = `<div class="thumb-box" style="cursor:default;"><span class="offline-photo-placeholder">⏳🌐</span></div>`;
       }
       
@@ -839,7 +840,7 @@
       finally { isSyncing = false; await refreshSyncStatusBar(); if ((await getIndexedDBQueue()).length > 0 && navigator.onLine) setTimeout(backgroundSyncLoop, 1000); }
     }
 
-    /* 🔥 МОЩНЫЙ АВТОНОМНЫЙ ЖУРНАЛ С ПОДМЕШИВАНИЕМ ОЧЕРЕДИ И ОПТИМИЗАЦИЕЙ СОРТИРОВКИ */
+    /* 🔥 ИСПРАВЛЕННО: Инициализирован корректный асинхронный контекст async function */
     async function triggerSearch() {
       let sDate = document.getElementById('search-start-date').value;
       let eDate = document.getElementById('search-end-date').value;
@@ -848,7 +849,6 @@
       
       container.innerHTML = "<p style='text-align:center; color:var(--text-sub);'>⏳ Формирование выборки...</p>";
       
-      // Единый контур: если интернета нет, сразу разворачиваем локальный архив из памяти телефона!
       if (!navigator.onLine) {
         let localQueue = await getIndexedDBQueue();
         renderOfflineMixedJournal(localQueue, sDate, eDate, fNum);
@@ -868,89 +868,50 @@
       }
     }
 
-    /* 🔥 ПОЛНЫЙ ОТКАТНЫЙ ДВИЖОК СБОРКИ И СОРТИРОВКИ ОФФЛАЙН ЛЕНТЫ ЖУРНАЛА */
     function renderOfflineMixedJournal(queueItems, sDate, eDate, filterNumber) {
-      let container = document.getElementById('journal-container');
-      container.innerHTML = "";
-      
+      let container = document.getElementById('journal-container'); container.innerHTML = "";
       let cleanFilterNum = filterNumber ? String(filterNumber).toUpperCase().trim() : "";
       let startTs = sDate ? new Date(sDate + "T00:00:00").getTime() : 0;
       let endTs = eDate ? new Date(eDate + "T23:59:59").getTime() : Infinity;
-
       let combinedList = [];
 
-      // Шаг А: Сначала выгребаем «горячую» очередь буфера на отправку ( IndexedDB )
       queueItems.forEach(q => {
         let taskNum = q.manualNumber || "⏳ ЖДЕТ СЕТЬ";
         if (cleanFilterNum && String(taskNum).toUpperCase().indexOf(cleanFilterNum) === -1) return;
         if (q.timestamp < startTs || q.timestamp > endTs) return;
-
-        combinedList.push({
-          isFromQueue: true,
-          taskId: q.taskId,
-          number: taskNum,
-          status: q.manualNumber ? "Очередь 💾" : "В кэше 💾",
-          address: q.manualNumber ? "Сохранено локально" : "Буфер АЗС",
-          photo: "",
-          thumb: q.image,
-          dateStr: new Date(q.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-          rawDate: q.timestamp
-        });
+        combinedList.push({ isFromQueue: true, taskId: q.taskId, number: taskNum, status: q.manualNumber ? "Очередь 💾" : "В кэше 💾", address: q.manualNumber ? "Сохранено локально" : "Буфер АЗС", photo: "", thumb: q.image, dateStr: new Date(q.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), rawDate: q.timestamp });
       });
 
-      // Шаг Б: Подтягиваем локальный архив из оперативной памяти телефона ( globalJournalCache )
       function parseGSheetsDate(dateStr) {
         if (!dateStr) return 0;
-        try {
-          let cleanStr = String(dateStr).replace("📅", "").trim();
-          let parts = cleanStr.split(' '); let dParts = parts[0].split('.'); let tParts = parts[1].split(':');
-          return new Date(dParts[2], dParts[1] - 1, dParts[0], tParts[0], tParts[1], tParts[2] || 0).getTime();
-        } catch(e) { return 0; }
+        try { let cleanStr = String(dateStr).replace("📅", "").trim(); let parts = cleanStr.split(' '); let dParts = parts[0].split('.'); let tParts = parts[1].split(':'); return new Date(dParts[2], dParts[1] - 1, dParts[0], tParts[0], tParts[1], tParts[2] || 0).getTime(); } catch(e) { return 0; }
       }
 
       globalJournalCache.forEach(r => {
         let rowTs = parseGSheetsDate(r.date);
         if (cleanFilterNum && String(r.number).toUpperCase().indexOf(cleanFilterNum) === -1) return;
-        if (sDate && rowTs < startTs) return;
-        if (eDate && rowTs > endTs) return;
-
-        // Исключаем дублирование карточек, если они одновременно висят в очереди и в архив прилететь не успели
+        if (sDate && rowTs < startTs) return; if (eDate && rowTs > endTs) return;
         if (queueItems.some(q => q.taskId === r.taskId)) return;
-
-        combinedList.push({
-          isFromQueue: false,
-          taskId: r.taskId,
-          number: r.number,
-          status: r.status,
-          address: r.address || "АЗС рейд",
-          photo: r.photo,
-          thumb: r.thumb || "",
-          dateStr: r.date,
-          rawDate: rowTs
-        });
+        combinedList.push({ isFromQueue: false, taskId: r.taskId, number: r.number, status: r.status, address: r.address || "АЗС рейд", photo: r.photo, thumb: r.thumb || "", dateStr: r.date, rawDate: rowTs });
       });
 
-      // Сортировка всей смешанной ленты: Строго от новых к старым
       combinedList.sort((a, b) => b.rawDate - a.rawDate);
-
-      if (!combinedList.length) {
-        container.innerHTML = "<p style='text-align:center; color:var(--text-sub); margin-top:20px;'>Автономный архив пуст</p>";
-        return;
-      }
-
+      if (!combinedList.length) { container.innerHTML = "<p style='text-align:center; color:var(--text-sub); margin-top:20px;'>Автономный архив пуст</p>"; return; }
       container.innerHTML = `<p style="font-size:12px; color:var(--text-sub); margin-bottom:10px;">Доступно в локальной ленте: ${combinedList.length} шт.</p>`;
 
       combinedList.forEach(item => {
-        let itemId = "jour_" + item.taskId;
-        let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
-        
+        let itemId = "jour_" + item.taskId; let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
         let finalStatus = item.status;
-        if (!item.isFromQueue && !validateGostTemplate(item.number) && item.number !== "Не распознан") {
-          finalStatus = "Проверить вручную ⚠️";
-        }
-        
+        if (!item.isFromQueue && !validateGostTemplate(item.number) && item.number !== "Не распознан") finalStatus = "Проверить вручную ⚠️";
         updateCardUi(itemDiv, item.number, finalStatus, item.address, item.photo, item.dateStr, item.thumb, item.taskId);
       });
+    }
+
+    function openTab(tabId, el) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active'); if (el) el.classList.add('active');
+      if (tabId === 'scan-tab') { startLiveStreaming(); }
     }
 
     function loadSettings(isSilent) {
@@ -979,7 +940,7 @@
 
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', days: days, durNew: document.getElementById('settings-dur-new').value, durRep: document.getElementById('settings-dur-rep').value, durErr: document.getElementById('settings-dur-err').value }) })
         .then(r => { document.getElementById('settings-status').innerText = "Конфигурация сохранена!"; silentLoadJournalCache(); setTimeout(() => document.getElementById('settings-status').innerText = "", 3000); })
-        .catch(e => { alert("Локальные параметры применены!"); });
+        .catch(e => { alert("Параметры применены локально!"); });
     }
     
     function triggerHardwareAlert(type) {
