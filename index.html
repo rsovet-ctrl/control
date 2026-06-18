@@ -30,37 +30,47 @@
       background: var(--bg-main); 
       color: var(--text-main); 
       transition: background 0.3s, color 0.3s; 
-      padding-top: 42px;
+      padding-top: 40px;
       padding-bottom: 95px; 
     }
     
+    /* 🔥 ЖЕСТКО ФИКСИРОВАННЫЙ ОДНОСТРОЧНЫЙ СТАТУС-БАР БЕЗ ПЕРЕНОСОВ */
     #sync-status-bar { 
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
+      height: 38px;
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
-      padding: 10px 16px; 
+      gap: 10px;
+      padding: 0 45px 0 16px; 
       box-sizing: border-box;
-      font-size: 12.5px; 
-      font-weight: 600; 
+      font-size: 12px; 
+      font-weight: 700; 
       background: var(--bg-card);
       color: var(--text-main);
       border-bottom: 1px solid var(--border-color);
       z-index: 2000; 
       user-select: none;
+      white-space: nowrap; 
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
     .status-indicators-box { display: flex; align-items: center; gap: 14px; }
 
     .top-bar-moon { 
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
       background: none; 
       border: none; 
       font-size: 16px; 
       cursor: pointer; 
-      padding: 2px; 
+      padding: 4px; 
       color: var(--text-main); 
       line-height: 1;
       -webkit-tap-highlight-color: transparent;
@@ -262,14 +272,16 @@
 
   <div id="flash-overlay"></div>
 
+  <!-- ВЕРХНЯЯ СТРОКА СТАТУСА: ИДЕАЛЬНЫЙ ОДНОСТРОЧНЫЙ ВАРИАНТ -->
   <div id="sync-status-bar" class="status-offline" onclick="reRequestGeolocation(false)">
-    <span id="sync-status-text">⏳ Ожидание спутников GPS...</span>
+    <span id="sync-status-text">📍 GPS | ⏳ База | ☁️ Облако</span>
     <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>
     <div id="sync-progress-container" class="progress-container">
       <div id="sync-progress-bar" class="progress-bar"></div>
     </div>
   </div>
 
+  <!-- ВКЛАДКА 1: КАМЕРА -->
   <div id="scan-tab" class="tab-content active">
     <div class="card" style="text-align: center; padding: 6px;">
       <div class="live-stream-container" id="stream-box-container">
@@ -281,6 +293,7 @@
     </div>
   </div>
 
+  <!-- ВКЛАДКА 2: ЖУРНАЛ -->
   <div id="search-tab" class="tab-content">
     <div class="card">
       <h3>Параметры выборки</h3>
@@ -300,6 +313,7 @@
     <div id="journal-container"></div>
   </div>
 
+  <!-- ВКЛАДКА 3: ОПЦИИ -->
   <div id="settings-tab" class="tab-content">
     <div class="card">
       <h3>Спутниковая навигация (GPS)</h3>
@@ -336,6 +350,7 @@
     </div>
   </div>
 
+  <!-- ВКЛАДКА 4: СПРАВКА -->
   <div id="help-tab" class="tab-content">
     <div class="card">
       <h3>📖 Быстрое руководство АЗС-Терминала</h3>
@@ -359,10 +374,12 @@
     </div>
   </div>
 
+  <!-- СКВОЗНОЙ ИНТЕРАКТИВНЫЙ ПОДВАЛ -->
   <div class="premium-fixed-footer">
-    Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v5.9
+    Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v6.0
   </div>
 
+  <!-- НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ (СТИЛЬ PREMIUM APP) -->
   <div class="premium-bottom-nav">
     <button class="nav-tab-btn active" onclick="openTab('scan-tab', this)">
       <span class="nav-icon">📷</span><span>Камера</span>
@@ -378,6 +395,7 @@
     </button>
   </div>
 
+  <!-- ПОЛНОЭКРАННОЕ ОКНО РУЧНОГО ВВОДА -->
   <div id="fullscreen-edit-modal">
     <div class="modal-box">
       <div class="modal-title">СВЕРЬТЕ ЗНАКИ С ВЕРТИКАЛЬНЫМ СНИМКОМ:</div>
@@ -405,10 +423,10 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "5.9"; 
+    const APP_VERSION = "6.0"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
-    let gpsStatusText = "⏳ Поиск GPS...";
+    let gpsStatusText = "📍 GPS";
     let currentCoords = null;
     let globalJournalCache = []; 
     let isSyncing = false;       
@@ -481,7 +499,7 @@
         videoEl.srcObject = liveVideoStream;
       } catch (err) {
         console.error("Ошибка WebRTC: ", err);
-        gpsStatusText = "❌ Сбой камеры WebRTC"; await refreshSyncStatusBar();
+        gpsStatusText = "❌ GPS"; await refreshSyncStatusBar();
       }
     }
 
@@ -576,11 +594,11 @@
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(async function(position) {
           currentCoords = { latitude: position.coords.latitude, longitude: position.coords.longitude };
-          gpsStatusText = "📍 GPS: Активен"; await refreshSyncStatusBar();
+          gpsStatusText = "📍 GPS"; await refreshSyncStatusBar();
           if (!isSilent) alert("📍 Геолокация GPS успешно обновлена!");
         }, async function(error) {
-          if (error.code === error.PERMISSION_DENIED) { gpsStatusText = "❌ GPS: Блок"; } 
-          else { gpsStatusText = "⚠️ GPS: Сбой"; }
+          if (error.code === error.PERMISSION_DENIED) { gpsStatusText = "❌ GPS"; } 
+          else { gpsStatusText = "⚠️ GPS"; }
           await refreshSyncStatusBar();
           if (!isSilent) alert("⚠️ Сбой GPS. Проверьте права доступа устройства.");
         }, { enableHighAccuracy: true, timeout: 8000 });
@@ -670,21 +688,22 @@
       openTab('search-tab', journalBtn); triggerSearch();
     }
 
+    // 🔥 ИСПРАВЛЕННО: УЛЬТРА-КОМПАКТНЫЙ СТАТУС-БАР В ОДНУ СТРОКУ
     async function refreshSyncStatusBar() {
       let q = await getIndexedDBQueue();
       let bar = document.getElementById('sync-status-bar');
-      let dbText = isDbLoaded ? "🟢 База активна" : "⏳ Накатка архива...";
+      let dbText = isDbLoaded ? "🟢 База" : "⏳ Архив";
       
       if (q.length === 0) {
         bar.className = "status-synced";
-        bar.innerHTML = `📍 GPS: Активен | ${dbText} | ☁️ Облако в норме <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+        bar.innerHTML = `${gpsStatusText} | ${dbText} | ☁️ Облако <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
       } else {
         if (isSyncing) {
           bar.className = "status-uploading";
-          bar.innerHTML = `📍 GPS | 🔵 Сброс пакетов (${q.length}) <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+          bar.innerHTML = `${gpsStatusText} | 🔵 Сброс пакетов (${q.length}) <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
         } else {
           bar.className = "status-offline";
-          bar.innerHTML = `📍 GPS | 🟡 Оффлайн-буфер: ${q.length} объектов <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+          bar.innerHTML = `${gpsStatusText} | 🟡 Оффлайн-буфер: ${q.length} <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
         }
       }
     }
@@ -699,7 +718,6 @@
       } catch (e) {}
     }
 
-    // 🔥 ИСПРАВЛЕННО: Тотальная обертка в String() для защиты от числовых дубликатов
     function checkLocalDuplicateText(num, currentTaskId, preloadedQueue) {
       if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ..." || String(num).includes("Проверить вручную")) return null;
       let cleanNum = String(num).toUpperCase().trim();
@@ -716,8 +734,6 @@
       for (let i = 0; i < globalJournalCache.length; i++) {
         if (globalJournalCache[i].taskId === currentTaskId) continue; 
         if (!globalJournalCache[i].number) continue;
-        
-        // Предотвращение падения "toUpperCase is not a function"
         if (String(globalJournalCache[i].number).toUpperCase().trim() === cleanNum) {
           count++; let ts = parseGSheetsDate(globalJournalCache[i].date);
           if (ts > latestTimestamp) { latestTimestamp = ts; latestAddress = globalJournalCache[i].address || "Архив"; }
@@ -750,13 +766,14 @@
       return textOutput;
     }
 
+    // 🔥 ИСПРАВЛЕННО: Изоляция String() от ошибок number.includes во всем контуре отрисовки карточек
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId) {
       number = number || ""; status = status || "";
       
-      let isRep = status.includes("Повтор") || status.includes("повтор"); 
-      let isPending = status.includes("Ожидание") || status.includes("сеть");
-      let isProcessing = number === "🤖 АНАЛИЗ..." || status.includes("Пересчет") || status.includes("Анализ"); 
-      let isErr = number === "Не распознан" || number.includes("Ошибка") || status.includes("ручную");
+      let isRep = String(status).includes("Повтор") || String(status).includes("повтор") || String(status).includes("раз"); 
+      let isPending = String(status).includes("Ожидание") || String(status).includes("сеть") || String(status).includes("Внесен");
+      let isProcessing = String(number) === "🤖 АНАЛИЗ..." || String(status).includes("Пересчет") || String(status).includes("Анализ") || String(status).includes("Расчет"); 
+      let isErr = String(number) === "Не распознан" || String(number).includes("Ошибка") || String(status).includes("ручную");
       
       if (isPending) cardElement.className = "journal-item local-offline";
       else if (isProcessing) cardElement.className = "journal-item local-online-processing";
@@ -780,7 +797,7 @@
       let journalBtnHtml = isRep ? `<button class="journal-trigger-btn" onclick="showInJournal('${number}')">🔎 История</button>` : "";
 
       let gpsHtmlLine = "";
-      if (!address || address === "Нет GPS" || address.includes("Сбор координат")) {
+      if (!address || address === "Нет GPS" || String(address).includes("Сбор координат") || String(address).includes("🛑")) {
         gpsHtmlLine = `<div class="info-address" style="color:#f02849;">🛑 Нет GPS</div>`;
       } else {
         gpsHtmlLine = `<div class="info-address">📍 ${address}</div>`;
@@ -804,7 +821,6 @@
       cardElement.innerHTML = cardElement.innerHTML.replace('__address_placeholder__', address.replace(/'/g, "\\'").replace(/"/g, '\\"'));
     }
 
-    // 🔥 ИСПРАВЛЕННО: Защита валидатора от числовых типов
     function validateGostTemplate(num) {
       if (!num || num === "Не распознан") return false;
       let clean = String(num).toUpperCase().trim();
