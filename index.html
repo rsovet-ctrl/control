@@ -666,6 +666,13 @@
         let converted = ""; for (let i = 0; i < value.length; i++) { converted += latinToCyr[value[i]] ? latinToCyr[value[i]] : value[i]; }
         e.target.value = converted.replace(/[^АВЕКМНОРСТУХ0-9]/g, '');
       });
+      // 🔥 АГРЕССИВНЫЙ ЗАПУСК ОБНОВЛЕНИЙ
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then((reg) => {
+    // Принудительно заставляем Хром проверять GitHub при каждом открытии приложения!
+    reg.update();
+  }).catch((err) => console.log("Сбой регистрации SW:", err));
+}
     };
 
     async function restoreOfflineCards() {
