@@ -24,6 +24,12 @@
       --accent-blue: #2f80ed;
     }
 
+    /* 🔒 ТОТАЛЬНАЯ БЛОКИРОВКА НА ТИВНОГО СВАЙПА ОБНОВЛЕНИЯ ХРОМА */
+    html, body { 
+      overscroll-behavior: contain !important;
+      overscroll-behavior-y: contain !important;
+    }
+
     body { 
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
       margin: 0; 
@@ -32,7 +38,6 @@
       transition: background 0.3s, color 0.3s; 
       padding-top: 48px;
       padding-bottom: 95px; 
-      overscroll-behavior-y: contain; /* 🔒 ПОЛНАЯ БЛОКИРОВКА БРАУЗЕРНОГО СВАЙПА ХРОМА */
     }
     
     #sync-status-bar { 
@@ -172,7 +177,7 @@
       border: 1px solid #ff4d4d !important; 
     }
 
-    /* 🍊 УЛЬТРА-ЗАМЕТНОЕ ОРАНЖЕВОЕ ОФОРМЛЕНИЕ ДЛЯ КАРТОЧЕК ОШИБОК ИИ */
+    /* 🍊 КРАСИВАЯ ПАСТЕЛЬНО-ОРАНЖЕВАЯ РАМКА ДЛЯ КАРТОЧЕК С ОШИБКАМИ ИИ */
     .journal-item.error-item {
       background: #fff3e0 !important;
       border: 2px solid #ff7a00 !important;
@@ -344,7 +349,6 @@
     </div>
   </div>
 
-  <!-- ВКЛАДКА 1: КАМЕРА -->
   <div id="scan-tab" class="tab-content active">
     <div class="card" style="text-align: center; padding: 6px;">
       <div class="live-stream-container" id="stream-box-container">
@@ -356,7 +360,6 @@
     </div>
   </div>
 
-  <!-- ВКЛАДКА 2: ЖУРНАЛ -->
   <div id="search-tab" class="tab-content">
     <div class="card">
       <h3>Параметры выборки</h3>
@@ -376,7 +379,6 @@
     <div id="journal-container"></div>
   </div>
 
-  <!-- ВКЛАДКА 3: ОПЦИИ -->
   <div id="settings-tab" class="tab-content">
     <div class="card">
       <h3>Спутниковая навигация (GPS)</h3>
@@ -413,7 +415,6 @@
     </div>
   </div>
 
-  <!-- ВКЛАДКА 4: СПРАВКА -->
   <div id="help-tab" class="tab-content">
     <div class="card">
       <h3>📖 Быстрое руководство АЗС-Терминала</h3>
@@ -426,7 +427,7 @@
       <ul style="font-size:13px; padding-left:18px; margin-top:0; line-height:1.45; color:var(--text-main);">
         <li><b>Белая карточка:</b> Новый автомобиль, ранее за эти дни не заезжал.</li>
         <li><b>Розовая карточка с красной каймой:</b> Повторный визит! Машина уже была в базе. Пишется точное время или дата заезда.</li>
-        <li><b>Оранжевая карточка с ярким бейджем:</b> ИИ сомневается в буквах или номер вообще не распознан.</li>
+        <li><b>Оранжевая карточка с ярким бейджем:</b> ИИ сомневается в буквах или номер вообще не распознан. Требуется ручная проверка человека.</li>
       </ul>
       
       <div class="help-header" style="color:#ff7a00;">3. Кнопка перезапуска ИИ 🔄</div>
@@ -451,7 +452,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v6.7
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v6.8
     </div>
   </div>
 
@@ -479,7 +480,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "6.7"; 
+    const APP_VERSION = "6.8"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "📍 GPS";
@@ -722,7 +723,6 @@
       return isSameDay ? `${count} повтора • ${timeStr}` : `${count} пов. • ${dateStr}`;
     }
 
-    /* 🔥 ОРАНЖЕВАЯ РАМКА КЛАССА .error-item И ТЕКСТА ОШИБОК ИИ */
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId) {
       number = number || ""; status = status || "";
       let isRep = String(status).includes("Повтор") || String(status).includes("повтор") || String(status).includes("раз") || String(status).includes("пов."); 
@@ -732,7 +732,7 @@
       
       if (isPending) cardElement.className = "journal-item local-offline";
       else if (isProcessing) cardElement.className = "journal-item local-online-processing";
-      else if (isErr) cardElement.className = "journal-item error-item"; // Применяем оранжевую обводку
+      else if (isErr) cardElement.className = "journal-item error-item"; 
       else cardElement.className = `journal-item ${isRep ? 'repeat' : 'new'}`;
       
       let badgeLabel = "Новый";
@@ -795,7 +795,6 @@
       try {
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'retryOcr', taskId: taskId, photoUrl: serverPhotoUrl }) });
         let res = await response.json();
-        if (globalAudioCtx) globalAudioCtx.resume();
         if (res && res.success) {
           let finalNum = res.number; let finalStatus = res.status;
           if (!validateGostTemplate(finalNum) && finalNum !== "Не распознан") finalStatus = "Проверить вручную ⚠️";
@@ -867,6 +866,7 @@
       }
     }
 
+    /* 🔥 ИСПРАВЛЕННО: ЖЕСТКИЙ СЕТЕВОЙ ПЕРЕХВАТ ПРИ СБОЕ ОТПРАВКИ (ФИКС ЛОЖНОГО СИНЕГО БАРА) */
     async function backgroundSyncLoop() {
       if (isSyncing) return; let q = await getIndexedDBQueue(); if (q.length === 0) { await refreshSyncStatusBar(); return; }
       if (!navigator.onLine) { isSyncing = false; await refreshSyncStatusBar(); return; }
@@ -895,7 +895,17 @@
           let smartStatus = checkLocalDuplicateText(finalNum, item.taskId, await getIndexedDBQueue()) || finalStatus;
           updateCardUi(card, finalNum, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId);
         }
-      } catch (error) { console.log("Сброс буфера..."); } 
+      } catch (error) { 
+        // Если запрос упал — значит интернета РЕАЛЬНО нет. Немедленно гасим синий флаг и гасим цикл!
+        console.log("Сбой сети. Локальный откат.");
+        isSyncing = false;
+        let bar = document.getElementById('sync-status-bar');
+        if (bar) {
+          bar.className = "status-offline";
+          bar.innerHTML = `${gpsStatusText} | 💾 Очередь: ${q.length} | 📁 В архиве: ${globalJournalCache.length} шт. <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+        }
+        return; // Выходим из функции, останавливая спам-генерацию запросов
+      } 
       finally { isSyncing = false; await refreshSyncStatusBar(); if ((await getIndexedDBQueue()).length > 0 && navigator.onLine) setTimeout(backgroundSyncLoop, 1000); }
     }
 
@@ -964,7 +974,6 @@
       if (tabId === 'scan-tab') { startLiveStreaming(); }
     }
 
-    /* 🔥 ЖЕЛЕЗНЫЙ АВТОНОМНЫЙ ПЕРЕХВАТ ДЛИТЕЛЬНОСТИ СИГНАЛОВ ИЗ LOCALSTORAGE */
     function loadSettings(isSilent) {
       let localRecent = localStorage.getItem('settings_recent_mins'); if (localRecent) appSettings.recentMins = parseInt(localRecent);
       let localDays = localStorage.getItem('settings_days'); if (localDays) appSettings.days = parseInt(localDays);
@@ -1023,7 +1032,6 @@
         .catch(e => { alert("Параметры зафиксированы в телефоне!"); });
     }
     
-    /* 🔥 МОЩНЫЙ СИГНАЛЬНЫЙ ДВИЖОК ДВУХТОНАЛЬНОЙ СИРЕНЫ ДЛЯ КРОШЕЧНЫХ ДИНАМИКОВ */
     function triggerHardwareAlert(type) {
       if (globalAudioCtx) { globalAudioCtx.resume().catch(() => {}); }
       let overlay = document.getElementById('flash-overlay');
@@ -1060,7 +1068,6 @@
           gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
           if (navigator.vibrate) navigator.vibrate([durationSeconds * 500, 100, durationSeconds * 500]);
         } 
-        /* 🚨 ПРОНЗИТЕЛЬНАЯ ДВУХТОНАЛЬНАЯ СИРЕНА ДЛЯ ОШИБОК ИИ */
         else if (type === 'error') {
           durationSeconds = parseFloat(appSettings.durErr) || 0.5; 
           let osc1 = globalAudioCtx.createOscillator(); let osc2 = globalAudioCtx.createOscillator();
@@ -1076,7 +1083,7 @@
           osc1.stop(globalAudioCtx.currentTime + durationSeconds); osc2.stop(globalAudioCtx.currentTime + durationSeconds);
           if (navigator.vibrate) navigator.vibrate(durationSeconds * 1000);
         }
-      } catch (e) { console.log("Сбой аудиопроцессора: " + e); }
+      } catch (e) { console.log("Сбой звука: " + e); }
     }
   </script>
 </body>
