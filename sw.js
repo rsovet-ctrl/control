@@ -1,4 +1,4 @@
-const CACHE_NAME = 'car-control-v3.1';
+const CACHE_NAME = 'car-control-v5.7';
 const ASSETS_TO_CACHE = [
   'index.html',
   'manifest.json'
