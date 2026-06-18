@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Контроль Автопарка</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1877f2">
@@ -14,7 +14,6 @@
       --text-sub: #65676b; 
       --border-color: #e4e6eb;
       --accent-blue: #1877f2;
-      --bg-status: rgba(0, 0, 0, 0.03);
     }
     .dark-mode { 
       --bg-main: #18191a; 
@@ -23,7 +22,6 @@
       --text-sub: #b0b3b8; 
       --border-color: #3a3b3c;
       --accent-blue: #2f80ed;
-      --bg-status: rgba(255, 255, 255, 0.04);
     }
 
     body { 
@@ -32,7 +30,7 @@
       background: var(--bg-main); 
       color: var(--text-main); 
       transition: background 0.3s, color 0.3s; 
-      padding-top: 40px;
+      padding-top: 42px;
       padding-bottom: 95px; 
     }
     
@@ -172,8 +170,11 @@
       min-width: 0; 
     }
     
+    .plate-wrapper { display: flex; align-items: center; }
+    .plate-container { width: 100%; }
+    
     .plate-display { 
-      font-size: 22px; 
+      font-size: 23px; 
       font-weight: 800; 
       color: var(--text-main); 
       letter-spacing: 0.3px; 
@@ -183,23 +184,19 @@
     .edit-trigger-btn { 
       background: none;
       border: none; 
-      font-size: 13px; 
+      font-size: 18px; 
       cursor: pointer; 
-      padding: 4px 0 2px 0; 
+      padding: 0 4px; 
       color: var(--accent-blue); 
-      font-weight: 600; 
-      text-align: left;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
+      display: inline-block;
+      vertical-align: middle;
       -webkit-tap-highlight-color: transparent;
     }
-    .edit-trigger-btn:hover { text-decoration: underline; }
     
-    .journal-trigger-btn { background: none; border: none; font-size: 12px; cursor: pointer; padding: 1px 0; color: var(--text-sub); font-weight: 600; text-align: left; text-decoration: underline; }
+    .journal-trigger-btn { background: none; border: none; font-size: 12px; cursor: pointer; padding: 1px 0; color: var(--accent-blue); font-weight: 600; text-align: left; text-decoration: underline; }
     
-    .info-date { color: var(--text-sub); font-size: 11.5px; }
-    .info-address { font-size: 12px; color: var(--text-main); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .info-date { color: var(--text-sub); font-size: 12px; margin-top: 1px; }
+    .info-address { font-size: 12px; color: var(--text-main); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
     
     /* СТИЛЬНЫЕ ЦВЕТНЫЕ БЕЙДЖИ СТАТУСА В УГЛУ КАРТОЧКИ */
     .status-right { 
@@ -360,13 +357,13 @@
       
       <div class="help-header" style="color:#42b72a;">2. Что значат цвета карточек в ленте?</div>
       <ul style="font-size:13px; padding-left:18px; margin-top:0; line-height:1.45; color:var(--text-main);">
-        <li><b>Зелёный бейдж:</b> Новый автомобиль, ранее за эти дни не заезжал.</li>
-        <li><b>Красный бейдж:</b> Повторный визит! Машина уже была в базе. Нажмите кнопку 🗺️, чтобы увидеть карту предыдущего заезда.</li>
-        <li><b>Оранжевый бейдж:</b> ИИ сомневается в буквах или номер грязный. Требуется ручная проверка человека.</li>
+        <li><b>Бейдж "Новый":</b> Новый автомобиль, ранее за эти дни не заезжал.</li>
+        <li><b>Бейдж "Повтор":</b> Повторный визит! Машина уже была в базе. Пишется точное время или дата заезда.</li>
+        <li><b>Бейдж "Ошибка":</b> ИИ сомневается в буквах или номер грязный. Требуется ручная проверка человека.</li>
       </ul>
       
       <div class="help-header" style="color:#1877f2;">3. Как исправить ошибку ИИ?</div>
-      <p class="help-text">Если робот прочитал знаки неверно, нажмите синюю кнопку <b>"✏️ Поправить номер"</b>. Картинку на экране можно увеличивать и двигать пальцами для сверки. Введите правильный номер (строго русские буквы) и нажмите <b>«Сохранить»</b> — данные мгновенно обновятся на экране.</p>
+      <p class="help-text">Если робот прочитал знаки неверно, нажмите синий значок карандаша <b>"✏️"</b> рядом с номером. Картинку на экране можно увеличивать и двигать пальцами для сверки. Введите правильный номер (строго русские буквы) и нажмите <b>«Сохранить»</b> — данные мгновенно обновятся на экране.</p>
       
       <div class="help-header" style="color:#ffaa00;">4. Что делать, если пропал интернет?</div>
       <p class="help-text">Продолжайте снимать в обычном режиме! Программа накопит машины в памяти телефона (вверху загорится желтый статус буфера). Как только сеть появится, терминал сам выгрузит всю очередь в облачную таблицу.</p>
@@ -378,7 +375,7 @@
     Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v5.8
   </div>
 
-  <!-- 3. НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ (СТИЛЬ PREMIUM APP) -->
+  <!-- НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ (СТИЛЬ PREMIUM APP) -->
   <div class="premium-bottom-nav">
     <button class="nav-tab-btn active" onclick="openTab('scan-tab', this)">
       <span class="nav-icon">📷</span><span>Камера</span>
@@ -596,8 +593,8 @@
           gpsStatusText = "📍 GPS: Активен"; await refreshSyncStatusBar();
           if (!isSilent) alert("📍 Геолокация GPS успешно обновлена!");
         }, async function(error) {
-          if (error.code === error.PERMISSION_DENIED) { gpsStatusText = "❌ GPS: Заблокирован"; } 
-          else { gpsStatusText = "⚠️ GPS: Ошибка датчика"; }
+          if (error.code === error.PERMISSION_DENIED) { gpsStatusText = "❌ GPS: Блок"; } 
+          else { gpsStatusText = "⚠️ GPS: Сбой"; }
           await refreshSyncStatusBar();
           if (!isSilent) alert("⚠️ Сбой GPS. Проверьте права доступа устройства.");
         }, { enableHighAccuracy: true, timeout: 8000 });
@@ -694,14 +691,14 @@
       
       if (q.length === 0) {
         bar.className = "status-synced";
-        bar.innerHTML = `📍 GPS: Активен | ${dbText} | ☁️ Облако в норме <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+        bar.innerHTML = `${gpsStatusText} | ${dbText} | ☁️ Облако в норме <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
       } else {
         if (isSyncing) {
           bar.className = "status-uploading";
-          bar.innerHTML = `📍 GPS | 🔵 Сброс пакетов (Осталось: ${q.length}) <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+          bar.innerHTML = `${gpsStatusText} | 🔵 Сброс пакетов (${q.length}) <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
         } else {
           bar.className = "status-offline";
-          bar.innerHTML = `📍 GPS | 🟡 Оффлайн-буфер: ${q.length} объектов <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+          bar.innerHTML = `${gpsStatusText} | 🟡 Оффлайн-буфер: ${q.length} объектов <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
         }
       }
     }
@@ -716,10 +713,11 @@
       } catch (e) {}
     }
 
+    // 🔥 УМНЫЙ АЛГОРИТМ РАСЧЕТА ПОВТОРОВ (МГНОВЕННЫЙ БЕЙДЖ)
     function checkLocalDuplicateText(num, currentTaskId, preloadedQueue) {
       if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ..." || num.includes("Проверить вручную")) return null;
       let cleanNum = num.toUpperCase().trim();
-      let count = 0; let latestTimestamp = 0; let latestAddress = ""; let latestGps = "";
+      let count = 0; let latestTimestamp = 0; let latestAddress = "";
 
       function parseGSheetsDate(dateStr) {
         if (!dateStr) return 0;
@@ -733,7 +731,7 @@
         if (globalJournalCache[i].taskId === currentTaskId) continue; 
         if (globalJournalCache[i].number.toUpperCase().trim() === cleanNum) {
           count++; let ts = parseGSheetsDate(globalJournalCache[i].date);
-          if (ts > latestTimestamp) { latestTimestamp = ts; latestAddress = globalJournalCache[i].address || "Архив рейда"; latestGps = globalJournalCache[i].gps || ""; }
+          if (ts > latestTimestamp) { latestTimestamp = ts; latestAddress = globalJournalCache[i].address || "Архив"; }
         }
       }
 
@@ -741,68 +739,81 @@
       for (let i = 0; i < q.length; i++) {
         if (q[i].taskId === currentTaskId) continue; 
         if (q[i].manualNumber && q[i].manualNumber.toUpperCase().trim() === cleanNum) {
-          count++;
-          if (q[i].timestamp > latestTimestamp) { latestTimestamp = q[i].timestamp; latestAddress = "Текущий рейд (в очереди)"; latestGps = q[i].coords ? `${q[i].coords.latitude},${q[i].coords.longitude}` : ""; }
+          count++; if (q[i].timestamp > latestTimestamp) { latestTimestamp = q[i].timestamp; latestAddress = "Текущий рейд"; }
         }
       }
 
       if (count === 0) return null;
 
-      let nowTs = new Date().getTime(); let diffMs = nowTs - latestTimestamp; let diffMins = Math.floor(diffMs / 60000);
-      let timeStatusText = ""; let isRecent = false;
+      let now = new Date();
+      let lastDate = new Date(latestTimestamp);
+      
+      let isSameDay = (now.getDate() === lastDate.getDate() && now.getMonth() === lastDate.getMonth() && now.getFullYear() === lastDate.getFullYear());
+      let timeStr = lastDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      let dateStr = lastDate.toLocaleDateString([], {day: '2-digit', month: '2-digit'});
 
-      if (diffMs > 0 && diffMs < 12 * 60 * 60 * 1000) {
-        if (diffMins < 1) { timeStatusText = `только что`; } 
-        else if (diffMins < 60) { timeStatusText = `${diffMins} мин. назад`; } 
-        else { let hrs = Math.floor(diffMins / 60); let m = diffMins % 60; timeStatusText = `${hrs} ч. ${m} мин. назад`; }
-        if (diffMins <= appSettings.recentMins) { isRecent = true; }
+      // Формулировка вывода по ТЗ
+      let textOutput = "";
+      if (count === 1) {
+        textOutput = isSameDay ? `Повтор • ${timeStr}` : `Повтор • ${dateStr} в ${timeStr}`;
       } else {
-        let d = new Date(latestTimestamp); timeStatusText = d.toLocaleDateString([], {day:'2-digit', month:'2-digit'}) + " в " + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        let textEnd = (count === 2 || count === 3 || count === 4) ? "повтора" : "повторов";
+        textOutput = isSameDay ? `${count} ${textEnd} • ${timeStr}` : `${count} ${textEnd} • ${dateStr}`;
       }
-
-      let dotHtml = isRecent ? `<span class="pulse-dot"></span>` : "";
-      let mapsUrl = latestGps ? "https://www.google.com/maps?q=" + encodeURIComponent(latestGps) : "#";
-      let mapBtnHtml = (latestGps && latestGps !== "Нет GPS") ? `<br><a class="geo-btn" href="${mapsUrl}" target="_blank">🗺️ Карта повтора</a>` : "";
-
-      if (count === 1) { return `Повтор! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`; } 
-      else { return `Повтор: ${count} раз! ${dotHtml}<br>🕒 Последний: ${timeStatusText}<br>📍 ${latestAddress}${mapBtnHtml}`; }
+      return textOutput;
     }
 
+    // 🔥 ПРЕМИУМ-ВЕРСТКА КАРТОЧЕК С ЦВЕТНЫМИ БЕЙДЖАМИ И ЖЕСТКИМ GPS-СТАТУСОМ
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId) {
       number = number || ""; status = status || "";
       
-      let isRep = status.includes("Повтор"); let isPending = status.includes("Ожидание сети");
-      let isProcessing = number === "🤖 АНАЛИЗ..." || status.includes("Пересчет"); 
-      let isErr = number === "Не распознан" || number.includes("Ошибка") || status.includes("Проверить вручную");
+      let isRep = status.includes("Повтор") || status.includes("повтор"); 
+      let isPending = status.includes("Ожидание") || status.includes("сеть");
+      let isProcessing = number === "🤖 АНАЛИЗ..." || status.includes("Пересчет") || status.includes("Анализ"); 
+      let isErr = number === "Не распознан" || number.includes("Ошибка") || status.includes("ручную");
       
       if (isPending) cardElement.className = "journal-item local-offline";
       else if (isProcessing) cardElement.className = "journal-item local-online-processing";
       else if (isErr) cardElement.className = "journal-item error-item error-item-blink";
       else cardElement.className = `journal-item ${isRep ? 'repeat' : 'new'}`;
       
-      let displayStatus = isPending ? "Ожидание" : (isProcessing ? "Анализ" : (isErr ? "Ошибка ⚠️" : (isRep ? "Повтор" : "Новый")));
-      let rightHtml = `<div class="status-right">${displayStatus}</div>`;
+      // Вычисление содержимого бейджа в углу
+      let badgeLabel = "Новый";
+      if (isPending) badgeLabel = "Очередь 💾";
+      else if (isProcessing) badgeLabel = "Анализ 🤖";
+      else if (isErr) badgeLabel = "Ошибка ⚠️";
+      else if (isRep) {
+        badgeLabel = checkLocalDuplicateText(number, forcedTaskId || cardElement.id, null) || "Повтор";
+      }
       
+      let rightHtml = `<div class="status-right">${badgeLabel}</div>`;
       if (photoUrl) cardElement.setAttribute('data-server-photo', photoUrl);
       if (forcedTaskId) cardElement.setAttribute('data-task-id', forcedTaskId);
       
       let displayImg = imgSrc ? `<img src="${imgSrc}">` : `🚗`;
       let thumbHtml = `<div class="thumb-box" onclick="window.open('${photoUrl || '#'}', '_blank')">${displayImg}</div>`;
-      let journalBtnHtml = isRep ? `<br><button class="journal-trigger-btn" onclick="showInJournal('${number}')">🔎 Показать в журнале</button>` : "";
+      let journalBtnHtml = isRep ? `<button class="journal-trigger-btn" onclick="showInJournal('${number}')">🔎 История</button>` : "";
+
+      // Жесткий контур GPS
+      let gpsHtmlLine = "";
+      if (!address || address === "Нет GPS" || address.includes("Сбор координат")) {
+        gpsHtmlLine = `<div class="info-address" style="color:#f02849;">🛑 Нет GPS</div>`;
+      } else {
+        gpsHtmlLine = `<div class="info-address">📍 ${address}</div>`;
+      }
 
       cardElement.innerHTML = `
         ${thumbHtml}
         <div class="info-left">
           <div class="plate-wrapper">
             <div class="plate-container">
-              <span class="plate-display" id="text_${cardElement.id}">${number}</span>
-              <br>
-              <button class="edit-trigger-btn" onclick="openFullscreenEdit('${cardElement.id}', '${photoUrl}', '__address_placeholder__', '${timeStr}', '${imgSrc || photoUrl}')">✏️ Поправить номер</button>
+              <span class="plate-display">${number}</span>
+              <button class="edit-trigger-btn" onclick="openFullscreenEdit('${cardElement.id}', '${photoUrl}', '__address_placeholder__', '${timeStr}', '${imgSrc || photoUrl}')">✏️</button>
               ${journalBtnHtml}
             </div>
           </div>
-          <div class="info-date">${timeStr}</div>
-          <div class="info-address">📍 ${address}</div>
+          <div class="info-date">📅 ${timeStr}</div>
+          ${gpsHtmlLine}
         </div>
         ${rightHtml}
       `;
@@ -819,9 +830,9 @@
 
     function openFullscreenEdit(cardId, photoUrl, address, timeStr, imgToDisplay) {
       initAudioEngine(); modalZoomScale = 1; panX = 0; panY = 0; charityTransform();
-      let textSpan = document.getElementById(`text_${cardId}`);
+      let textSpan = document.querySelector(`#${cardId} .plate-display`);
       let currentNumber = textSpan ? textSpan.innerText : "";
-      if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "🤖 АНАЛИЗ..." || currentNumber.includes("Не распознан") || currentNumber.includes("КОРРЕКТИРОВКА")) currentNumber = "";
+      if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "🤖 АНАЛИЗ..." || currentNumber.includes("Не распознан")) currentNumber = "";
       
       let card = document.getElementById(cardId);
       let backupUrl = photoUrl;
@@ -863,13 +874,13 @@
       if (matchIdx !== -1) {
         q[matchIdx].manualNumber = newNum; await addIndexedDBItem(q[matchIdx]); await refreshSyncStatusBar();
         let localDupStatus = checkLocalDuplicateText(newNum, savedTaskId, q);
-        let finalStatus = localDupStatus || "Внесен (ждет сеть) 💾";
+        let finalStatus = localDupStatus || "Внесен 💾";
         if (localDupStatus) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
-        updateCardUi(card, newNum, finalStatus, "Проверка в оффлайне", photoUrl, timeStr, imgSrc, savedTaskId);
+        updateCardUi(card, newNum, finalStatus, "В очереди", photoUrl, timeStr, imgSrc, savedTaskId);
         backgroundSyncLoop();
       } else {
         card.className = "journal-item local-online-processing";
-        let rb = card.querySelector('.status-right'); if (rb) rb.innerText = "Пересчет...";
+        let rb = card.querySelector('.status-right'); if (rb) rb.innerText = "Расчет...";
         
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 12000); 
@@ -887,17 +898,17 @@
           if (res && res.success === true) {
             function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
             let finalNum = res.newNumber || newNum; 
-            let finalStatus = res.newStatus || "Новый объект";
-            globalJournalCache.unshift({ taskId: savedTaskId, number: finalNum, date: getGSheetsTimestamp(), address: address, gps: "Изменен в сети", photo: photoUrl });
+            let finalStatus = res.newStatus || "Новый";
+            globalJournalCache.unshift({ taskId: savedTaskId, number: finalNum, date: getGSheetsTimestamp(), address: address, gps: "Сеть", photo: photoUrl });
             let smartStatus = checkLocalDuplicateText(finalNum, savedTaskId, null) || finalStatus || "";
-            if (smartStatus.includes("Повтор")) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
+            if (smartStatus.includes("Повтор") || smartStatus.includes("повтор")) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new');
             updateCardUi(card, finalNum, smartStatus, address, photoUrl, timeStr, imgSrc, savedTaskId);
           } else {
-            alert("❌ СЕРВЕР ОТКЛОНИЛ ЗАПИСЬ!");
+            alert("❌ ЗАПИСЬ ОТКЛОНЕНА СЕРВЕРОМ");
             card.innerHTML = originalHtml; card.className = originalClass;
           }
         } catch (e) { 
-          clearTimeout(timeoutId); alert("❌ ОШИБКА ОБЛАКА!\nДетали: " + e.message);
+          clearTimeout(timeoutId); alert("❌ СБОЙ ОБЛАКА:\n" + e.message);
           card.innerHTML = originalHtml; card.className = originalClass;
         }
       }
@@ -924,11 +935,11 @@
 
         let card = document.getElementById("cam_" + item.taskId);
         if (card) {
-          if (finalStatus.includes("Проверить вручную")) { triggerHardwareAlert('error'); } 
-          else { let isRep = finalStatus.includes("Повтор"); if (isRep) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new'); }
+          if (finalStatus.includes("вручную")) { triggerHardwareAlert('error'); } 
+          else { let isRep = finalStatus.includes("Повтор") || finalStatus.includes("повтор"); if (isRep) triggerHardwareAlert('repeat'); else triggerHardwareAlert('new'); }
           let refreshedQueue = await getIndexedDBQueue();
           let smartStatus = checkLocalDuplicateText(finalNum, item.taskId, refreshedQueue) || finalStatus;
-          updateCardUi(card, finalNum, smartStatus, res.address, res.photo, "📅 Запись сохранена", item.image, item.taskId);
+          updateCardUi(card, finalNum, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId);
         }
       } catch (error) { console.log("Синхронизация..."); } 
       finally { isSyncing = false; await refreshSyncStatusBar(); if ((await getIndexedDBQueue()).length > 0 && navigator.onLine) setTimeout(backgroundSyncLoop, 1000); }
@@ -938,22 +949,22 @@
       let sDate = document.getElementById('search-start-date').value;
       let eDate = document.getElementById('search-end-date').value;
       let fNum = document.getElementById('search-number').value;
-      document.getElementById('journal-container').innerHTML = "<p style='text-align:center; color:var(--text-sub);'>⏳ Выборка данных...</p>";
+      document.getElementById('journal-container').innerHTML = "<p style='text-align:center; color:var(--text-sub);'>⏳ Формирование выборки...</p>";
       try {
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: { startDate: sDate, endDate: eDate, number: fNum } }) });
-        if (!response.ok) throw new Error("HTTP статус " + response.status);
+        if (!response.ok) throw new Error("Код ответа: " + response.status);
         let records = await response.json(); 
         if (records && records.length) globalJournalCache = records; 
         renderJournal(records);
       } catch(e) { 
-        document.getElementById('journal-container').innerHTML = "<p style='text-align:center; color:#ff7a00; font-weight:bold; padding: 10px;'>⚠️ ОШИБКА БАЗЫ ДАННЫХ:<br><span style='font-size:12px; font-family:monospace; font-weight:normal;'>" + e.message + "</span></p>"; 
+        document.getElementById('journal-container').innerHTML = "<p style='text-align:center; color:#ff7a00; font-weight:bold; padding: 10px;'>⚠️ ОШИБКА РАЗВЕРТЫВАНИЯ БАЗЫ:<br><span style='font-size:12px; font-family:monospace; font-weight:normal;'>" + e.message + "</span></p>"; 
       }
     }
 
     function renderJournal(records) {
       let container = document.getElementById('journal-container');
-      if (!records.length) { container.innerHTML = "<p style='text-align:center; color:var(--text-sub); margin-top:20px;'>Записей не обнаружено</p>"; return; }
-      container.innerHTML = `<p style="font-size:13px; color:var(--text-sub); margin-bottom:10px;">Найдено в общей базе: ${records.length}</p>`;
+      if (!records.length) { container.innerHTML = "<p style='text-align:center; color:var(--text-sub); margin-top:20px;'>Записей не найдено</p>"; return; }
+      container.innerHTML = `<p style="font-size:13px; color:var(--text-sub); margin-bottom:10px;">Записей в кэше: ${records.length}</p>`;
       records.forEach((r, idx) => {
         let itemId = "jour_" + (r.taskId || ("item_" + idx)); 
         let mapsUrl = r.gps && r.gps !== "Нет GPS" ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(r.gps) : "#";
@@ -961,7 +972,7 @@
         let finalStatus = r.status;
         if (!validateGostTemplate(r.number) && r.number !== "Не распознан") finalStatus = "Проверить вручную ⚠️";
         
-        updateCardUi(itemDiv, r.number, finalStatus, r.address, r.photo, "📅 " + r.date, r.thumb, r.taskId);
+        updateCardUi(itemDiv, r.number, finalStatus, r.address, r.photo, r.date, r.thumb, r.taskId);
         if (r.gps && r.gps !== "Нет GPS") {
           let geoBtn = document.createElement('a'); geoBtn.className = "geo-btn"; geoBtn.href = mapsUrl; geoBtn.target = "_blank"; geoBtn.innerText = "📍 Карта";
           itemDiv.querySelector('.info-left').appendChild(geoBtn);
@@ -998,8 +1009,8 @@
       applyLocalUiDimensions();
 
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', days: days, durNew: document.getElementById('settings-dur-new').value, durRep: document.getElementById('settings-dur-rep').value, durErr: document.getElementById('settings-dur-err').value }) })
-        .then(r => { document.getElementById('settings-status').innerText = "Настройки сохранены!"; silentLoadJournalCache(); setTimeout(() => document.getElementById('settings-status').innerText = "", 3000); })
-        .catch(e => { alert("Локальные параметры сохранены!"); });
+        .then(r => { document.getElementById('settings-status').innerText = "Конфигурация сохранена!"; silentLoadJournalCache(); setTimeout(() => document.getElementById('settings-status').innerText = "", 3000); })
+        .catch(e => { alert("Локальные параметры применены!"); });
     }
     
     function triggerHardwareAlert(type) {
@@ -1015,9 +1026,9 @@
         return;
       }
       if (overlay) {
-        if (type === 'new') overlay.style.backgroundColor = 'rgba(66, 183, 42, 0.35)';      
-        else if (type === 'repeat') overlay.style.backgroundColor = 'rgba(240, 40, 73, 0.45)'; 
-        else if (type === 'error') overlay.style.backgroundColor = 'rgba(255, 122, 0, 0.4)';  
+        if (type === 'new') overlay.style.backgroundColor = 'rgba(66, 183, 42, 0.2)';      
+        else if (type === 'repeat') overlay.style.backgroundColor = 'rgba(240, 40, 73, 0.25)'; 
+        else if (type === 'error') overlay.style.backgroundColor = 'rgba(255, 122, 0, 0.2)';  
         overlay.style.opacity = '1'; setTimeout(() => { overlay.style.opacity = '0'; }, 350); 
       }
       try {
