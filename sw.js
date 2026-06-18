@@ -1,4 +1,4 @@
-const CACHE_NAME = 'car-control-v6.8';
+const CACHE_NAME = 'car-control-v6.9';
 const ASSETS_TO_CACHE = [
   './',
   'index.html',
@@ -31,14 +31,12 @@ self.addEventListener('activate', (e) => {
 
 // 3. Перехват запросов: Чистая стратегия Cache-First для мгновенного оффлайн-перезапуска
 self.addEventListener('fetch', (e) => {
-  // Гугл-скрипты и POST-пакеты синхронизации пропускаем строго мимо кэша
   if (e.request.url.includes('script.google.com') || e.request.method !== 'GET') {
     return;
   }
 
   e.respondWith(
     caches.match(e.request).then((cachedResponse) => {
-      // Запускаем фоновое обновление ресурса из сети для следующего раза
       const fetchPromise = fetch(e.request).then((networkResponse) => {
         if (networkResponse.status === 200 && e.request.url.startsWith(self.location.origin)) {
           const responseClone = networkResponse.clone();
@@ -49,7 +47,6 @@ self.addEventListener('fetch', (e) => {
         return networkResponse;
       }).catch(() => {/* Гасим фоновые ошибки сети */});
 
-      // Если это перезапуск страницы (navigate) — принудительно отдаем локальный index.html мгновенно
       if (e.request.mode === 'navigate') {
         return cachedResponse || caches.match('index.html') || caches.match('./') || fetchPromise;
       }
