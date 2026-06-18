@@ -185,10 +185,11 @@
       border: 2px solid #ff9800 !important;
     }
     
+    /* 📸 КРУПНЫЙ БОЕВОЙ ТАМБНЕЙЛ ФОТОГРАФИИ ПРАКТИЧЕСКИ ДО РАМОК КАРТОЧКИ */
     .thumb-box { 
-      width: 68px; 
-      height: 92px; 
-      min-width: 68px; 
+      width: 100px; 
+      height: 130px; 
+      min-width: 100px; 
       border-radius: 10px; 
       overflow: hidden; 
       background: var(--bg-main); 
@@ -198,12 +199,12 @@
       justify-content: center; 
       border: 1px solid var(--border-color); 
       cursor: pointer; 
-      position: relative; /* Ограничитель для чипса */
+      position: relative;
     }
     .thumb-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
     
     .thumb-box .offline-photo-placeholder {
-      font-size: 20px;
+      font-size: 24px;
       color: var(--text-sub);
       font-weight: bold;
       opacity: 0.6;
@@ -214,28 +215,27 @@
       height: 100%;
     }
     
-    /* 🎯 ОСВОБОЖДАЕМ ВСЮ ШИРИНУ ЭКРАНА ДЛЯ ТЕКСТА (БЕЗ ОТСТУПОВ СПРАВА) */
     .info-left { 
       flex-grow: 1; 
       text-align: left; 
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
       min-width: 0; 
       padding-right: 0px; 
       box-sizing: border-box;
     }
     
-    /* 🎨 СОВРЕМЕННЫЕ СТАТУС-ЧИПСЫ НА ФОТОГРАФИИ */
+    /* УВЕЛИЧЕННЫЕ ЧИПСЫ СТАТУСОВ НА КРУПНОМ ФОТО */
     .status-right { 
       position: absolute;
       bottom: 0;
       left: 0;
       width: 100%;
-      padding: 4px 1px;
-      font-size: 9.5px; 
+      padding: 6px 1px;
+      font-size: 11px; 
       font-weight: 800; 
-      line-height: 1.1;
+      line-height: 1;
       text-align: center;
       box-sizing: border-box;
       z-index: 10;
@@ -254,7 +254,6 @@
       animation: yellow-orange-pulse 1.2s infinite ease-in-out; 
     }
 
-    /* ВЫРАВНИВАНИЕ КНОПОК С ГОСНОМЕРОМ В ОДИН РЯД */
     .plate-container { 
       display: flex; 
       align-items: center; 
@@ -465,7 +464,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v7.0
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v7.1
     </div>
   </div>
 
@@ -493,7 +492,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "7.0"; 
+    const APP_VERSION = "7.1"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "📍 GPS";
@@ -672,7 +671,6 @@
         e.target.value = converted.replace(/[^АВЕКМНОРСТУХ0-9]/g, '');
       });
 
-      // 🔥 АГРЕССИВНАЯ РЕГИСТРАЦИЯ И СИНХРОНИЗАЦИЯ ОБНОВЛЕНИЙ SW ПРИ СТАРТЕ
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').then((reg) => {
           reg.update(); 
@@ -743,7 +741,6 @@
       return isSameDay ? `${count} повтора • ${timeStr}` : `${count} пов. • ${dateStr}`;
     }
 
-    /* 🔥 ВНЕДРЕНА КОНЦЕПЦИЯ 1: СТАТУС-ЧИПСЫ ВШИТЫ ВНУТРЬ ФОТОГРАФИИ */
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId) {
       number = number || ""; status = status || "";
       let isRep = String(status).includes("Повтор") || String(status).includes("повтор") || String(status).includes("раз") || String(status).includes("пов."); 
