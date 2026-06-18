@@ -7,83 +7,258 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1877f2">
   <style>
-    :root { --bg-main: #f0f2f5; --bg-card: #ffffff; --text-main: #1c1e21; --text-sub: #65676b; --border-color: #ced4da; }
-    .dark-mode { --bg-main: #18191a; --bg-card: #242526; --text-main: #e4e6eb; --text-sub: #b0b3b8; --border-color: #3a3b3c; }
+    :root { 
+      --bg-main: #f0f2f5; 
+      --bg-card: #ffffff; 
+      --text-main: #1c1e21; 
+      --text-sub: #65676b; 
+      --border-color: #e4e6eb;
+      --accent-blue: #1877f2;
+      --bg-status: rgba(0, 0, 0, 0.05);
+    }
+    .dark-mode { 
+      --bg-main: #18191a; 
+      --bg-card: #242526; 
+      --text-main: #e4e6eb; 
+      --text-sub: #b0b3b8; 
+      --border-color: #3a3b3c;
+      --accent-blue: #2f80ed;
+      --bg-status: rgba(255, 255, 255, 0.05);
+    }
 
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg-main); color: var(--text-main); transition: background 0.3s, color 0.3s; padding-bottom: 55px; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+      margin: 0; 
+      background: var(--bg-main); 
+      color: var(--text-main); 
+      transition: background 0.3s, color 0.3s; 
+      padding-bottom: 60px; 
+    }
     
-    #sync-status-bar { position: relative; text-align: center; padding: 10px; font-size: 13px; font-weight: bold; color: white; sticky; top: 0; z-index: 2000; transition: all 0.4s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); line-height: 1.3; cursor: pointer; user-select: none; }
-    #sync-status-bar:active { filter: brightness(0.9); }
+    /* 1. ПРЕМИАЛЬНАЯ ИНТЕГРИРОВАННАЯ ВЕРХНЯЯ СТРОКА СТАТУСА */
+    #sync-status-bar { 
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px; 
+      font-size: 13px; 
+      font-weight: 600; 
+      background: var(--bg-status);
+      color: var(--text-main);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky; 
+      top: 0; 
+      z-index: 2000; 
+      user-select: none;
+    }
     
-    .status-synced { background: #42b72a; }
-    .status-offline { background: #ffaa00; }
-    .status-uploading { background: #1877f2; }
+    .status-indicators-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-    .top-bar-moon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 15px; cursor: pointer; padding: 4px; color: white; transition: transform 0.1s; line-height: 1; -webkit-tap-highlight-color: transparent; }
+    .top-bar-moon { 
+      background: none; 
+      border: none; 
+      font-size: 16px; 
+      cursor: pointer; 
+      padding: 4px; 
+      color: var(--text-main); 
+      transition: transform 0.1s; 
+      line-height: 1;
+      -webkit-tap-highlight-color: transparent;
+    }
     .top-bar-moon:active { transform: scale(0.85); }
 
-    .progress-container { width: 90%; height: 6px; background: rgba(255,255,255,0.25); border-radius: 4px; margin: 8px auto 0 auto; display: none; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
-    .progress-bar { height: 100%; width: 0%; background: #ffffff; transition: width 0.3s ease; box-shadow: 0 0 4px #fff; }
+    .progress-container { 
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%; 
+      height: 3px; 
+      background: rgba(24, 119, 242, 0.1); 
+      display: none; 
+      overflow: hidden; 
+    }
+    .progress-bar { 
+      height: 100%; 
+      width: 0%; 
+      background: var(--accent-blue); 
+      transition: width 0.3s ease; 
+    }
 
-    .header-nav { display: flex; background: var(--bg-card); border-bottom: 1px solid var(--border-color); position: sticky; top: 38px; z-index: 1000; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    /* НАВИГАЦИОННАЯ ПАНЕЛЬ */
+    .header-nav { 
+      display: flex; 
+      background: var(--bg-card); 
+      border-bottom: 1px solid var(--border-color); 
+      position: sticky; 
+      top: 39px; 
+      z-index: 1000; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03); 
+    }
     .nav-tabs-box { display: flex; flex: 1; align-items: center; }
-    .tab-link { flex: 1; text-align: center; padding: 16px 0; font-weight: 600; cursor: pointer; color: var(--text-sub); font-size: 15px; }
-    .tab-link.active { color: #1877f2; border-bottom: 3px solid #1877f2; background: rgba(24, 119, 242, 0.03); }
+    .tab-link { 
+      flex: 1; 
+      text-align: center; 
+      padding: 14px 0; 
+      font-weight: 600; 
+      cursor: pointer; 
+      color: var(--text-sub); 
+      font-size: 14px; 
+      transition: color 0.2s;
+    }
+    .tab-link.active { 
+      color: var(--accent-blue); 
+      border-bottom: 3px solid var(--accent-blue); 
+      background: rgba(24, 119, 242, 0.02); 
+    }
 
-    .tab-content { display: none; padding: 15px; }
+    .tab-content { display: none; padding: 12px; }
     .tab-content.active { display: block; }
-    .card { background: var(--bg-card); padding: 16px; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); margin-bottom: 15px; }
-    h3 { margin-top: 0; margin-bottom: 10px; font-size: 18px; color: var(--text-main); }
+    .card { background: var(--bg-card); padding: 16px; border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 12px; border: 1px solid var(--border-color); }
+    h3 { margin-top: 0; margin-bottom: 10px; font-size: 16px; color: var(--text-main); }
     label { font-size: 12px; color: var(--text-sub); font-weight: bold; display: block; margin-bottom: 4px; }
     input { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; background: var(--bg-main); color: var(--text-main); margin-bottom: 10px; }
-    input:focus { background: var(--bg-card); border-color: #1877f2; outline: none; }
+    input:focus { background: var(--bg-card); border-color: var(--accent-blue); outline: none; }
     
-    .btn-premium-blue { background: linear-gradient(135deg, #1877f2 0%, #0c56be 100%); color: white; padding: 15px; border: none; border-radius: 12px; font-size: 15px; width: 100%; cursor: pointer; font-weight: bold; box-shadow: 0 4px 14px rgba(24, 119, 242, 0.3); transition: all 0.15s ease; -webkit-tap-highlight-color: transparent; }
-    .btn-premium-blue:active { transform: scale(0.97); box-shadow: 0 2px 5px rgba(24, 119, 242, 0.15); }
+    /* СТИЛЬНЫЕ ГРАДИЕНТНЫЕ КНОПКИ ОПЦИЙ */
+    .btn-premium-blue { 
+      background: linear-gradient(135deg, #1877f2 0%, #0c56be 100%); 
+      color: white; 
+      padding: 14px; 
+      border: none; 
+      border-radius: 10px; 
+      font-size: 15px; 
+      width: 100%; 
+      cursor: pointer; 
+      font-weight: bold; 
+      box-shadow: 0 4px 12px rgba(24, 119, 242, 0.25); 
+      transition: all 0.15s ease; 
+      -webkit-tap-highlight-color: transparent; 
+    }
+    .btn-premium-blue:active { transform: scale(0.97); box-shadow: 0 2px 4px rgba(24, 119, 242, 0.15); }
 
-    .btn-premium-steel { background: linear-gradient(135deg, #4b5563 0%, #27303f 100%); color: white; padding: 15px; border: none; border-radius: 12px; font-size: 15px; width: 100%; cursor: pointer; font-weight: bold; box-shadow: 0 4px 14px rgba(75, 85, 99, 0.25); transition: all 0.15s ease; -webkit-tap-highlight-color: transparent; }
-    .btn-premium-steel:active { transform: scale(0.97); box-shadow: 0 2px 5px rgba(55, 65, 81, 0.15); }
+    .btn-premium-steel { 
+      background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); 
+      color: white; 
+      padding: 14px; 
+      border: none; 
+      border-radius: 10px; 
+      font-size: 15px; 
+      width: 100%; 
+      cursor: pointer; 
+      font-weight: bold; 
+      box-shadow: 0 4px 12px rgba(75, 85, 99, 0.2); 
+      transition: all 0.15s ease; 
+      -webkit-tap-highlight-color: transparent; 
+    }
+    .btn-premium-steel:active { transform: scale(0.97); box-shadow: 0 2px 4px rgba(55, 65, 81, 0.15); }
 
-    .live-stream-container { position: relative; width: 280px; height: 370px; margin: 5px auto; background: #000; border-radius: 16px; overflow: hidden; border: 3px solid #1877f2; box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: width 0.2s, height 0.2s; }
+    .live-stream-container { position: relative; width: 280px; height: 370px; margin: 5px auto; background: #000; border-radius: 16px; overflow: hidden; border: 3px solid var(--accent-blue); box-shadow: 0 4px 20px rgba(0,0,0,0.12); transition: width 0.2s, height 0.2s; }
     .live-stream-container video { width: 100%; height: 100%; object-fit: cover; }
     
     .stream-overlay-title { position: absolute; top: 10px; left: 12px; background: rgba(0, 0, 0, 0.6); color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; pointer-events: none; letter-spacing: 0.3px; }
 
-    .floating-capture-btn { position: absolute; bottom: 15px; right: 15px; background: #f02849; color: white; border: 2px solid white; border-radius: 50%; width: 58px; height: 58px; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(0,0,0,0.4); z-index: 500; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
+    .floating-capture-btn { position: absolute; bottom: 15px; right: 15px; background: #f02849; color: white; border: 2px solid white; border-radius: 50%; width: 56px; height: 56px; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(0,0,0,0.35); z-index: 500; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
     .floating-capture-btn:active { transform: scale(0.85); background: #c01830; }
 
-    .journal-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); padding: 12px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 6px solid #1877f2; transition: all 0.3s ease; }
-    .journal-item.pending { border-left-color: #ffc107; background: rgba(255, 193, 7, 0.03); }
-    .journal-item.repeat { border-left-color: #f02849; background: rgba(240, 40, 73, 0.04); }
-    .journal-item.new { border-left-color: #42b72a; background: rgba(66, 183, 42, 0.03); }
-    .journal-item.error-item { border-left-color: #ff7a00; background: rgba(255, 122, 0, 0.03); }
-    .journal-item.local-offline { border-left-color: #ffaa00; background: rgba(255, 170, 0, 0.03); }
-    .journal-item.local-online-processing { border-left-color: #1877f2; background: rgba(24, 119, 242, 0.04); }
-    
-    @keyframes alert-blink-animation {
-      0% { background-color: rgba(255, 122, 0, 0.06); border-left-color: #ff7a00; }
-      50% { background-color: rgba(240, 40, 73, 0.16); border-left-color: #f02849; box-shadow: 0 0 10px rgba(240, 40, 73, 0.3); }
-      100% { background-color: rgba(255, 122, 0, 0.06); border-left-color: #ff7a00; }
+    /* 2. РЕДИЗАЙН ПЛАШЕК: СТИЛЬ MODERN LIST ITEM */
+    .journal-item { 
+      position: relative;
+      display: flex; 
+      align-items: center; 
+      background: var(--bg-card); 
+      padding: 12px 14px; 
+      border-radius: 12px; 
+      margin-bottom: 10px; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04); 
+      border: 1px solid var(--border-color);
+      transition: all 0.25s ease; 
     }
-    .journal-item.error-item-blink { animation: alert-blink-animation 1.2s infinite ease-in-out; }
-
-    .thumb-box { width: 75px; height: 105px; min-width: 75px; border-radius: 8px; overflow: hidden; background: #e4e6eb; margin-right: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); cursor: pointer; }
+    
+    .thumb-box { 
+      width: 70px; 
+      height: 95px; 
+      min-width: 70px; 
+      border-radius: 10px; 
+      overflow: hidden; 
+      background: #e4e6eb; 
+      margin-right: 14px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      border: 1px solid var(--border-color); 
+      cursor: pointer; 
+    }
     .thumb-box img { width: 100%; height: 100%; object-fit: cover; }
-    .info-left { flex-grow: 1; text-align: left; font-size: 14px; min-width: 0; }
     
-    .plate-wrapper { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
-    .plate-display { font-size: 19px; font-weight: bold; color: var(--text-main); letter-spacing: 0.5px; }
-    .edit-trigger-btn { background: var(--bg-main); border: none; font-size: 12px; cursor: pointer; padding: 6px 10px; color: #1877f2; border-radius: 6px; font-weight: bold; margin-top: 2px; transition: background 0.2s; }
-    .journal-trigger-btn { background: #1877f2; border: none; font-size: 12px; cursor: pointer; padding: 6px 10px; color: white; border-radius: 6px; font-weight: bold; margin-top: 5px; display: inline-block; transition: background 0.2s; box-shadow: 0 2px 5px rgba(24,119,242,0.2); }
+    .info-left { 
+      flex-grow: 1; 
+      text-align: left; 
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0; 
+    }
     
-    .info-date { color: var(--text-sub); font-size: 12px; margin-top: 2px; }
-    .info-address { font-size: 12px; color: var(--text-main); margin-top: 2px; font-weight: 500; }
-    .status-right { text-align: right; font-weight: bold; font-size: 12px; color: #f02849; line-height: 1.4; width: 45%; padding-left: 10px; word-break: break-word; }
-    .status-right.status-new { color: #42b72a; font-size: 13px; }
-    .status-right.status-pending { color: #b8860b; font-size: 13px; }
-    .status-right.status-offline-text { color: #ffaa00; font-size: 13px; }
-    .status-right.status-processing-text { color: #1877f2; font-size: 13px; }
-    .geo-btn { margin-top: 5px; background: var(--bg-main); border-radius: 6px; padding: 4px 8px; font-size: 11px; text-decoration: none; color: var(--text-main); font-weight: bold; display: inline-block; margin-right: 5px; border: 1px solid var(--border-color); }
+    .plate-wrapper { display: flex; align-items: center; }
+    
+    /* Госномер: Главный доминирующий элемент */
+    .plate-display { 
+      font-size: 21px; 
+      font-weight: 800; 
+      color: var(--text-main); 
+      letter-spacing: 0.3px; 
+    }
+    
+    /* Кнопка исправления: элегантный карандаш */
+    .edit-trigger-btn { 
+      background: none;
+      border: none; 
+      font-size: 13px; 
+      cursor: pointer; 
+      padding: 4px 0; 
+      color: var(--accent-blue); 
+      font-weight: 600; 
+      text-align: left;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .edit-trigger-btn:hover { text-decoration: underline; }
+    
+    .journal-trigger-btn { background: none; border: none; font-size: 12px; cursor: pointer; padding: 2px 0; color: var(--text-sub); font-weight: 600; text-align: left; text-decoration: underline; }
+    
+    .info-date { color: var(--text-sub); font-size: 11.5px; }
+    .info-address { font-size: 12px; color: var(--text-main); font-weight: 500; white-space: nowrap; overflow: hidden; text-transform: none; text-overflow: ellipsis; }
+    
+    /* Статус-бейдж в верхнем правом углу карточки */
+    .status-right { 
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px; 
+      font-weight: 700; 
+      line-height: 1;
+      text-align: center;
+      background: #e4e6eb;
+      color: #4b5563;
+    }
+    /* Цветовая палитра бейджей */
+    .journal-item.new .status-right { background: #e6f7ed; color: #42b72a; }
+    .journal-item.repeat .status-right { background: #ffebe9; color: #f02849; }
+    .journal-item.error-item .status-right { background: #fff3e0; color: #ff7a00; }
+    .journal-item.local-offline .status-right { background: #fff8e1; color: #ffaa00; }
+    .journal-item.local-online-processing .status-right { background: #e8f0fe; color: #1877f2; }
+
+    .geo-btn { margin-top: 3px; background: var(--bg-main); border-radius: 6px; padding: 4px 8px; font-size: 11px; text-decoration: none; color: var(--text-main); font-weight: bold; display: inline-block; margin-right: 5px; border: 1px solid var(--border-color); }
 
     #fullscreen-edit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 3000; box-sizing: border-box; padding: 8px; }
     .modal-box { background: var(--bg-card); border-radius: 16px; width: 100%; height: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; padding: 14px; display: flex; flex-direction: column; overflow-y: auto; }
@@ -94,9 +269,9 @@
     
     .zoom-controls { position: absolute; bottom: 12px; right: 12px; display: flex; gap: 10px; z-index: 3100; }
     .zoom-btn { background: rgba(0, 0, 0, 0.75); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: 44px; height: 44px; font-size: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); user-select: none; touch-action: none; }
-    .zoom-btn:active { background: #1877f2; }
+    .zoom-btn:active { background: var(--accent-blue); }
 
-    .modal-plate-input { font-size: 28px; font-weight: bold; text-align: center; letter-spacing: 1px; text-transform: uppercase; padding: 12px; border: 3px solid #1877f2; border-radius: 12px; width: 100%; box-sizing: border-box; background: var(--bg-main); color: var(--text-main); margin-bottom: 12px; }
+    .modal-plate-input { font-size: 28px; font-weight: bold; text-align: center; letter-spacing: 1px; text-transform: uppercase; padding: 12px; border: 3px solid var(--accent-blue); border-radius: 12px; width: 100%; box-sizing: border-box; background: var(--bg-main); color: var(--text-main); margin-bottom: 12px; }
     .modal-plate-input:focus { background: var(--bg-card); outline: none; border-color: #42b72a; }
     
     .modal-btn-table { display: table; width: 100%; border-spacing: 10px 0; margin-top: auto; }
@@ -110,13 +285,27 @@
 
     .range-container { display: flex; gap: 10px; margin-bottom: 10px; }
     .range-container > div { flex: 1; }
-    
-    .help-header { font-size: 14px; font-weight: bold; color: #1877f2; margin-top: 14px; margin-bottom: 4px; }
-    .help-text { font-size: 13px; line-height: 1.45; margin-top: 0; color: var(--text-main); }
 
-    .premium-fixed-footer { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(240, 242, 245, 0.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); text-align: center; padding: 11px 0; font-size: 12px; color: var(--text-sub); border-top: 1px solid var(--border-color); z-index: 1500; font-weight: 500; letter-spacing: 0.3px; }
+    /* 3. СКВОЗНОЙ ПРОЗРАЧНЫЙ ПОДВАЛ (ФУТЕР) С РОМОЙ ШАНТАЕВЫМ */
+    .premium-fixed-footer { 
+      position: fixed; 
+      bottom: 0; 
+      left: 0; 
+      width: 100%; 
+      background: rgba(240, 242, 245, 0.85); 
+      backdrop-filter: blur(14px); 
+      -webkit-backdrop-filter: blur(14px); 
+      text-align: center; 
+      padding: 11px 0; 
+      font-size: 12px; 
+      color: var(--text-sub); 
+      border-top: 1px solid var(--border-color); 
+      z-index: 1500; 
+      font-weight: 500; 
+      letter-spacing: 0.3px; 
+    }
     .dark-mode .premium-fixed-footer { background: rgba(24, 25, 26, 0.85); }
-    .premium-fixed-footer a { color: #1877f2; text-decoration: none; font-weight: bold; transition: color 0.2s; }
+    .premium-fixed-footer a { color: var(--accent-blue); text-decoration: none; font-weight: bold; transition: color 0.2s; }
     .premium-fixed-footer a:hover { text-decoration: underline; }
   </style>
 </head>
@@ -126,7 +315,9 @@
 
   <div id="sync-status-bar" class="status-offline" onclick="reRequestGeolocation(false)">
     <span id="sync-status-text">⏳ Ожидание спутников GPS...</span>
-    <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>
+    <div class="status-indicators-box">
+      <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>
+    </div>
     <div id="sync-progress-container" class="progress-container">
       <div id="sync-progress-bar" class="progress-bar"></div>
     </div>
@@ -217,16 +408,16 @@
       
       <div class="help-header" style="color:#42b72a;">2. Что значат цвета карточек в ленте?</div>
       <ul style="font-size:13px; padding-left:18px; margin-top:0; line-height:1.45; color:var(--text-main);">
-        <li><b style="color:#42b72a;">Зелёная:</b> Новый автомобиль, ранее за эти дни не заезжал.</li>
-        <li><b style="color:#f02849;">Красная:</b> Повторный визит! Машина уже была в базе. Нажмите кнопку 🗺️, чтобы увидеть карту предыдущего заезда.</li>
-        <li><b style="color:#ff7a00;">Мигающая оранжевая:</b> ИИ сомневается в буквах или номер грязный. Требуется ручная проверка человека.</li>
+        <li><b>Зелёный бейдж:</b> Новый автомобиль, ранее за эти дни не заезжал.</li>
+        <li><b>Красный бейдж:</b> Повторный визит! Машина уже была в базе. Нажмите кнопку 🗺️, чтобы увидеть карту предыдущего заезда.</li>
+        <li><b>Оранжевый бейдж:</b> ИИ сомневается в буквах или номер грязный. Требуется ручная проверка человека.</li>
       </ul>
       
       <div class="help-header" style="color:#1877f2;">3. Как исправить ошибку ИИ?</div>
-      <p class="help-text">Если робот прочитал знаки неверно, нажмите кнопку <b>"✏️ Поправить номер"</b>. Картинку на экране можно увеличивать и двигать пальцами для сверки. Введите правильный номер (строго русские буквы) и нажмите <b>«Сохранить»</b> — данные мгновенно обновятся на экране.</p>
+      <p class="help-text">Если робот прочитал знаки неверно, нажмите синюю кнопку <b>"✏️ Поправить номер"</b>. Картинку на экране можно увеличивать и двигать пальцами для сверки. Введите правильный номер (строго русские буквы) и нажмите <b>«Сохранить»</b> — данные мгновенно обновятся на экране.</p>
       
       <div class="help-header" style="color:#ffaa00;">4. Что делать, если пропал интернет?</div>
-      <p class="help-text">Продолжайте снимать в обычном режиме! Программа накопит машины в памяти телефона (вверху загорится желтый статус буфера). Как только сеть появится, терминал сам незаметно выгрузит всю очередь в облачную таблицу.</p>
+      <p class="help-text">Продолжайте снимать в обычном режиме! Программа накопит машины в памяти телефона (вверху загорится желтый статус буфера). Как только сеть появится, терминал сам выгрузит всю очередь в облачную таблицу.</p>
     </div>
   </div>
 
@@ -246,7 +437,7 @@
         </div>
       </div>
       
-      <label style="text-align: center; color: #1877f2; margin-bottom: 5px; font-size:13px;">КОРРЕКТИРОВКА (СТРОГО НА РУССКОЙ РАСКЛАДКЕ):</label>
+      <label style="text-align: center; color: var(--accent-blue); margin-bottom: 5px; font-size:13px;">КОРРЕКТИРОВКА (СТРОГО НА РУССКОЙ РАСКЛАДКЕ):</label>
       <input type="text" class="modal-plate-input" id="m-plate-field" placeholder="А000АА99" maxlength="9">
       <div class="modal-btn-table">
         <div class="modal-btn-cell">
@@ -531,24 +722,23 @@
     async function refreshSyncStatusBar() {
       let q = await getIndexedDBQueue();
       let bar = document.getElementById('sync-status-bar');
-      let txt = document.getElementById('sync-status-text');
       let pContainer = document.getElementById('sync-progress-container');
       let pBar = document.getElementById('sync-progress-bar');
       let dbText = isDbLoaded ? "🟢 База активна" : "⏳ Накатка архива...";
       
       if (q.length === 0) {
         bar.className = "status-synced";
-        txt.innerHTML = `📍 GPS: Активен | ${dbText} | ☁️ Облако в норме <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+        bar.innerHTML = `📍 GPS: Активен | ${dbText} | ☁️ Облако в норме <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
         pContainer.style.display = 'none'; pBar.style.width = '0%';
       } else {
         if (isSyncing) {
           bar.className = "status-uploading";
-          txt.innerHTML = `📍 GPS | 🔵 Сброс пакетов (Осталось: ${q.length}) <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+          bar.innerHTML = `📍 GPS | 🔵 Сброс пакетов (Осталось: ${q.length}) <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
           pContainer.style.display = 'block';
           if (syncTotalItems > 0) { let pct = Math.round(((syncTotalItems - q.length) / syncTotalItems) * 100); pBar.style.width = pct + '%'; }
         } else {
           bar.className = "status-offline";
-          txt.innerHTML = `📍 GPS | 🟡 Оффлайн-буфер: ${q.length} объектов <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+          bar.innerHTML = `📍 GPS | 🟡 Оффлайн-буфер: ${q.length} объектов <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
           pContainer.style.display = 'none';
         }
       }
@@ -628,11 +818,8 @@
       else if (isErr) cardElement.className = "journal-item error-item error-item-blink";
       else cardElement.className = `journal-item ${isRep ? 'repeat' : 'new'}`;
       
-      let rightHtml = isPending ? `<div class="status-right status-offline-text">${status}</div>` : 
-                     (isProcessing ? `<div class="status-right status-processing-text">${status}</div>` :
-                     (isErr ? `<div class="status-right status-error">${status || 'Проверить вручную ⚠️'}</div>` : `<div class="status-right">${status}</div>`));
-                     
-      if(!isPending && !isProcessing && !isErr && !isRep) rightHtml = `<div class="status-right status-new">Новый объект</div>`;
+      let displayStatus = isPending ? "Ожидание" : (isProcessing ? "Анализ" : (isErr ? "Ошибка ⚠️" : (isRep ? "Повтор" : "Новый")));
+      let rightHtml = `<div class="status-right">${displayStatus}</div>`;
       
       if (photoUrl) cardElement.setAttribute('data-server-photo', photoUrl);
       if (forcedTaskId) cardElement.setAttribute('data-task-id', forcedTaskId);
@@ -657,11 +844,9 @@
         </div>
         ${rightHtml}
       `;
-      // Тонкий страховой фикс адреса, чтобы не ломать кавычки в onclick
       cardElement.innerHTML = cardElement.innerHTML.replace('__address_placeholder__', address.replace(/'/g, "\\'").replace(/"/g, '\\"'));
     }
 
-    // 🔥 ИСПРАВЛЕННО: Возвращена функция проверки ГОСТ шаблонов РФ (Фикс главной ошибки)
     function validateGostTemplate(num) {
       if (!num || num === "Не распознан") return false;
       let clean = num.toUpperCase().trim();
@@ -727,7 +912,7 @@
       } else {
         card.className = "journal-item local-online-processing";
         let rb = card.querySelector('.status-right'); 
-        if (rb) { rb.className = "status-right status-processing-text"; rb.innerText = "Пересчет..."; }
+        if (rb) { rb.innerText = "Пересчет..."; }
         
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 12000); 
@@ -774,13 +959,11 @@
       }
     }
 
-    // 🔥 ИСПРАВЛЕННО: Абсолютная защита от ложных синих миганий в оффлайне
     async function backgroundSyncLoop() {
       if (isSyncing) return; 
       let q = await getIndexedDBQueue();
       if (q.length === 0) { syncTotalItems = 0; await refreshSyncStatusBar(); return; }
       
-      // Жесткий шлагбаум: Если датчик Хрома видит оффлайн — функция тихо засыпает
       if (!navigator.onLine) {
         isSyncing = false;
         await refreshSyncStatusBar(); 
@@ -928,11 +1111,4 @@
           durationSeconds = parseFloat(appSettings.durRep) || 0.3; osc.type = 'triangle'; osc.frequency.setValueAtTime(580, globalAudioCtx.currentTime); gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
           if (navigator.vibrate) { navigator.vibrate([durationSeconds * 500, 100, durationSeconds * 500]); }
         } else if (type === 'error') {
-          durationSeconds = parseFloat(appSettings.durErr) || 0.5; osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, globalAudioCtx.currentTime); gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
-          if (navigator.vibrate) navigator.vibrate(durationSeconds * 1000);
-        }
-      } catch (e) { console.log("Звук..."); }
-    }
-  </script>
-</body>
-</html>
+          durationSeconds = parseFloat(appSettings.durErr) || 0.5; osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, globalAudioCtx.currentTime); gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime); osc.
