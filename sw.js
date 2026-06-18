@@ -1,11 +1,11 @@
-const CACHE_NAME = 'car-control-v6.5';
+const CACHE_NAME = 'car-control-v6.7';
 const ASSETS_TO_CACHE = [
   './',
   'index.html',
   'manifest.json'
 ];
 
-// 1. Установка: Закачиваем ядро интерфейса в изолированную память телефона
+// 1. Установка: Принудительно вшиваем ядро интерфейса в память устройства
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -14,7 +14,7 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// 2. Активация: Тотальная зачистка кэша старых версий (v6.3, v6.4 и т.д.)
+// 2. Активация: Тотальное удаление старого кэша прошлых сборок
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -29,7 +29,7 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// 3. Перехват запросов: Стратегия Network-First с гарантированным оффлайн-откатом
+// 3. Перехват запросов: Скоростная стратегия Stale-While-Revalidate с защитой от сбоев
 self.addEventListener('fetch', (e) => {
   // Тяжелые POST-пакеты синхронизации базы и Гугл-скрипты мы пускаем строго напрямую
   if (e.request.url.includes('script.google.com') || e.request.method !== 'GET') {
@@ -37,25 +37,27 @@ self.addEventListener('fetch', (e) => {
   }
 
   e.respondWith(
-    fetch(e.request)
-      .then((response) => {
-        // Если интернет стабилен и файл успешно скачан — обновляем резервную копию в кэше
-        if (response.status === 200 && e.request.url.startsWith(self.location.origin)) {
-          const responseClone = response.clone();
+    caches.match(e.request).then((cachedResponse) => {
+      // Мгновенно отдаем локальную копию из памяти (если она есть)
+      const fetchPromise = fetch(e.request).then((networkResponse) => {
+        if (networkResponse.status === 200 && e.request.url.startsWith(self.location.origin)) {
+          const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(e.request, responseClone);
           });
         }
-        return response;
-      })
-      .catch(() => {
-        // ЗОНА ПОЛНОГО ОФФЛАЙНА
-        // Если это запрос на перезагрузку или обновление экрана (navigate) — жестко разворачиваем index.html
-        if (e.request.mode === 'navigate') {
-          return caches.match('./') || caches.match('index.html');
-        }
-        // Для остальных ресурсов (стили, иконки, манифест) отдаем их точные копии из памяти
-        return caches.match(e.request);
-      })
+        return networkResponse;
+      }).catch(() => {
+        // Локальное гашение ошибок сети при фоновом обновлении ресурсов
+      });
+
+      // Возвращаем кэш сразу, либо ждем фоновый сетевой ответ, если кэш пуст
+      return cachedResponse || fetchPromise;
+    }).catch(() => {
+      // Если Хром пытается выкинуть динозавра на навигации (navigate) — жестко разворачиваем ядро
+      if (e.request.mode === 'navigate') {
+        return caches.match('./') || caches.match('index.html');
+      }
+    })
   );
 });
