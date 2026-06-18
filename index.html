@@ -198,7 +198,7 @@
       justify-content: center; 
       border: 1px solid var(--border-color); 
       cursor: pointer; 
-      position: relative;
+      position: relative; /* Ограничитель для чипса */
     }
     .thumb-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
     
@@ -214,7 +214,7 @@
       height: 100%;
     }
     
-    /* 🛡️ ИСПРАВЛЕННЫЙ БЛОК: padding-right ИСКЛЮЧАЕТ НАЛЕЗАНИЕ ТЕКСТА НА БЕЙДЖИ */
+    /* 🎯 ОСВОБОЖДАЕМ ВСЮ ШИРИНУ ЭКРАНА ДЛЯ ТЕКСТА (БЕЗ ОТСТУПОВ СПРАВА) */
     .info-left { 
       flex-grow: 1; 
       text-align: left; 
@@ -222,20 +222,54 @@
       flex-direction: column;
       gap: 2px;
       min-width: 0; 
-      padding-right: 95px; 
+      padding-right: 0px; 
       box-sizing: border-box;
     }
     
-    .plate-wrapper { display: flex; align-items: center; }
-    .plate-container { width: 100%; }
+    /* 🎨 СОВРЕМЕННЫЕ СТАТУС-ЧИПСЫ НА ФОТОГРАФИИ */
+    .status-right { 
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 4px 1px;
+      font-size: 9.5px; 
+      font-weight: 800; 
+      line-height: 1.1;
+      text-align: center;
+      box-sizing: border-box;
+      z-index: 10;
+    }
+    .journal-item.new .status-right { background: rgba(230, 247, 237, 0.95); color: #42b72a; }
+    .journal-item.repeat .status-right { background: rgba(240, 40, 73, 0.95); color: #ffffff; }
+    .journal-item.local-offline .status-right { background: rgba(228, 230, 235, 0.95); color: #555555; }
+    .journal-item.local-online-processing .status-right { background: rgba(232, 240, 254, 0.95); color: #1877f2; }
+
+    @keyframes yellow-orange-pulse {
+      0% { background: rgba(255, 170, 0, 0.95); color: #000000; }
+      70% { background: rgba(255, 122, 0, 0.95); color: #ffffff; }
+      100% { background: rgba(255, 170, 0, 0.95); color: #000000; }
+    }
+    .journal-item.error-item .status-right { 
+      animation: yellow-orange-pulse 1.2s infinite ease-in-out; 
+    }
+
+    /* ВЫРАВНИВАНИЕ КНОПОК С ГОСНОМЕРОМ В ОДИН РЯД */
+    .plate-container { 
+      display: flex; 
+      align-items: center; 
+      gap: 6px; 
+      flex-wrap: wrap; 
+      width: 100%;
+    }
     
     .plate-display { 
       font-size: 24px; 
       font-weight: 800; 
       color: var(--text-main); 
       letter-spacing: 0.3px; 
-      line-height: 1.2;
-      vertical-align: middle;
+      line-height: 1.1;
+      display: inline-block;
     }
     
     .edit-trigger-btn { 
@@ -243,10 +277,9 @@
       border: none; 
       font-size: 19px; 
       cursor: pointer; 
-      padding: 0 2px 0 6px; 
+      padding: 0; 
       color: var(--accent-blue); 
-      display: inline-block;
-      vertical-align: middle;
+      line-height: 1;
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -255,44 +288,16 @@
       border: none;
       font-size: 18px;
       cursor: pointer;
-      padding: 0 4px;
+      padding: 0;
       color: #ff7a00;
-      display: inline-block;
-      vertical-align: middle;
+      line-height: 1;
       -webkit-tap-highlight-color: transparent;
-      transition: transform 0.2s;
     }
-    .retry-trigger-btn:active { transform: scale(0.8) rotate(-45deg); }
     
-    .journal-trigger-btn { background: none; border: none; font-size: 11.5px; cursor: pointer; padding: 1px 0; color: var(--accent-blue); font-weight: 700; text-align: left; text-decoration: underline; }
+    .journal-trigger-btn { background: none; border: none; font-size: 11.5px; cursor: pointer; padding: 0; color: var(--accent-blue); font-weight: 700; text-decoration: underline; line-height: 1; }
     
     .info-date { color: var(--text-sub); font-size: 11.5px; margin-top: 1px; }
     .info-address { font-size: 12px; color: var(--text-main); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
-    
-    .status-right { 
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 11px; 
-      font-weight: 700; 
-      line-height: 1;
-      z-index: 10;
-    }
-    .journal-item.new .status-right { background: #e6f7ed; color: #42b72a; }
-    .journal-item.repeat .status-right { background: #f02849; color: #ffffff; }
-    .journal-item.local-offline .status-right { background: #e4e6eb; color: #555555; }
-    .journal-item.local-online-processing .status-right { background: #e8f0fe; color: #1877f2; }
-
-    @keyframes yellow-orange-pulse {
-      0% { background: #ffaa00; color: #000000; box-shadow: 0 0 0 0 rgba(255, 170, 0, 0.5); }
-      70% { background: #ff7a00; color: #ffffff; box-shadow: 0 0 0 6px rgba(255, 122, 0, 0); }
-      100% { background: #ffaa00; color: #000000; box-shadow: 0 0 0 0 rgba(255, 170, 0, 0); }
-    }
-    .journal-item.error-item .status-right { 
-      animation: yellow-orange-pulse 1.2s infinite ease-in-out; 
-    }
 
     .geo-btn { margin-top: 3px; background: var(--bg-main); border-radius: 6px; padding: 4px 8px; font-size: 11px; text-decoration: none; color: var(--text-main); font-weight: bold; display: inline-block; margin-right: 5px; border: 1px solid var(--border-color); }
 
@@ -401,7 +406,7 @@
           <input type="number" id="settings-cam-w" min="200" max="600" value="280" onchange="applyLocalUiDimensions()">
         </div>
         <div>
-          <label>Height окна:</label>
+          <label>Высота окна:</label>
           <input type="number" id="settings-cam-h" min="200" max="800" value="370" onchange="applyLocalUiDimensions()">
         </div>
       </div>
@@ -460,7 +465,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v6.9
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v7.0
     </div>
   </div>
 
@@ -488,7 +493,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "6.9"; 
+    const APP_VERSION = "7.0"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "📍 GPS";
@@ -666,13 +671,13 @@
         let converted = ""; for (let i = 0; i < value.length; i++) { converted += latinToCyr[value[i]] ? latinToCyr[value[i]] : value[i]; }
         e.target.value = converted.replace(/[^АВЕКМНОРСТУХ0-9]/g, '');
       });
-      // 🔥 АГРЕССИВНЫЙ ЗАПУСК ОБНОВЛЕНИЙ
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').then((reg) => {
-    // Принудительно заставляем Хром проверять GitHub при каждом открытии приложения!
-    reg.update();
-  }).catch((err) => console.log("Сбой регистрации SW:", err));
-}
+
+      // 🔥 АГРЕССИВНАЯ РЕГИСТРАЦИЯ И СИНХРОНИЗАЦИЯ ОБНОВЛЕНИЙ SW ПРИ СТАРТЕ
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').then((reg) => {
+          reg.update(); 
+        }).catch((err) => console.log("Ошибка активации SW:", err));
+      }
     };
 
     async function restoreOfflineCards() {
@@ -738,7 +743,7 @@ if ('serviceWorker' in navigator) {
       return isSameDay ? `${count} повтора • ${timeStr}` : `${count} пов. • ${dateStr}`;
     }
 
-    /* 🔥 ОБНОВЛЕННЫЙ ТРИГГЕР onerror: ПОЛНОСТЬЮ ИСКЛЮЧАЕТ ПОЯВЛЕНИЕ БИТЫХ ЗНАЧКОВ ХРОМА */
+    /* 🔥 ВНЕДРЕНА КОНЦЕПЦИЯ 1: СТАТУС-ЧИПСЫ ВШИТЫ ВНУТРЬ ФОТОГРАФИИ */
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId) {
       number = number || ""; status = status || "";
       let isRep = String(status).includes("Повтор") || String(status).includes("повтор") || String(status).includes("раз") || String(status).includes("пов."); 
@@ -761,15 +766,16 @@ if ('serviceWorker' in navigator) {
       if (forcedTaskId) cardElement.setAttribute('data-task-id', forcedTaskId);
       if (imgSrc) cardElement.setAttribute('data-local-src', imgSrc);
       
-      // Пуленепробиваемый контейнер превью: если фото из сети падает по оффлайну - плавно разворачивается ⏳🌐
+      let badgeHtml = `<div class="status-right">${badgeLabel}</div>`;
       let thumbHtml = "";
       if (imgSrc) {
-        thumbHtml = `<div class="thumb-box" onclick="window.open('${photoUrl || '#'}', '_blank')"><img src="${imgSrc}"></div>`;
+        thumbHtml = `<div class="thumb-box" onclick="window.open('${photoUrl || '#'}', '_blank')"><img src="${imgSrc}">${badgeHtml}</div>`;
       } else {
         thumbHtml = `
           <div class="thumb-box" onclick="if('${photoUrl || ''}') window.open('${photoUrl}', '_blank')">
             <img src="${photoUrl || ''}" style="${photoUrl ? 'display:block;' : 'display:none;'}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
             <span class="offline-photo-placeholder" style="${photoUrl ? 'display:none;' : 'display:flex;'}">⏳🌐</span>
+            ${badgeHtml}
           </div>
         `;
       }
@@ -794,7 +800,6 @@ if ('serviceWorker' in navigator) {
           <div class="info-date">📅 ${timeStr}</div>
           ${gpsHtmlLine}
         </div>
-        <div class="status-right">${badgeLabel}</div>
       `;
       cardElement.innerHTML = cardElement.innerHTML.replace('__address_placeholder__', address.replace(/'/g, "\\'").replace(/"/g, '\\"'));
     }
