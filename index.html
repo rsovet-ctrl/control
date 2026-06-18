@@ -32,7 +32,7 @@
       transition: background 0.3s, color 0.3s; 
       padding-top: 48px;
       padding-bottom: 95px; 
-      overscroll-behavior-y: contain; /* 🔒 БЛОКИРОВКА БРАУЗЕРНОГО СВАЙПА ХРОМА */
+      overscroll-behavior-y: contain; /* 🔒 ПОЛНАЯ БЛОКИРОВКА БРАУЗЕРНОГО СВАЙПА ХРОМА */
     }
     
     #sync-status-bar { 
@@ -171,6 +171,16 @@
       background: #2c1616 !important; 
       border: 1px solid #ff4d4d !important; 
     }
+
+    /* 🍊 УЛЬТРА-ЗАМЕТНОЕ ОРАНЖЕВОЕ ОФОРМЛЕНИЕ ДЛЯ КАРТОЧЕК ОШИБОК ИИ */
+    .journal-item.error-item {
+      background: #fff3e0 !important;
+      border: 2px solid #ff7a00 !important;
+    }
+    .dark-mode .journal-item.error-item {
+      background: #2b1d10 !important;
+      border: 2px solid #ff9800 !important;
+    }
     
     .thumb-box { 
       width: 68px; 
@@ -263,12 +273,12 @@
     .journal-item.local-online-processing .status-right { background: #e8f0fe; color: #1877f2; }
 
     @keyframes yellow-orange-pulse {
-      0% { background: #fff3e0; color: #ff7a00; box-shadow: 0 0 0 0 rgba(255, 122, 0, 0.4); }
-      70% { background: #ffe0b2; color: #e65100; box-shadow: 0 0 0 6px rgba(255, 122, 0, 0); }
-      100% { background: #fff3e0; color: #ff7a00; box-shadow: 0 0 0 0 rgba(255, 122, 0, 0); }
+      0% { background: #ffaa00; color: #000000; box-shadow: 0 0 0 0 rgba(255, 170, 0, 0.5); }
+      70% { background: #ff7a00; color: #ffffff; box-shadow: 0 0 0 6px rgba(255, 122, 0, 0); }
+      100% { background: #ffaa00; color: #000000; box-shadow: 0 0 0 0 rgba(255, 170, 0, 0); }
     }
     .journal-item.error-item .status-right { 
-      animation: yellow-orange-pulse 1.4s infinite ease-in-out; 
+      animation: yellow-orange-pulse 1.2s infinite ease-in-out; 
     }
 
     .geo-btn { margin-top: 3px; background: var(--bg-main); border-radius: 6px; padding: 4px 8px; font-size: 11px; text-decoration: none; color: var(--text-main); font-weight: bold; display: inline-block; margin-right: 5px; border: 1px solid var(--border-color); }
@@ -298,7 +308,6 @@
     .range-container { display: flex; gap: 10px; margin-bottom: 10px; }
     .range-container > div { flex: 1; }
 
-    /* 🎨 СТИЛИ ГЛЯНЦЕВОГО ВСПЛЫВАЮЩЕГО ТОСТ-УВЕДОМЛЕНИЯ ОБ ОБНОВЛЕНИИ */
     #toast-notification {
       position: fixed;
       bottom: 85px; 
@@ -319,16 +328,12 @@
       letter-spacing: 0.3px;
       border: 1px solid rgba(255,255,255,0.15);
     }
-    #toast-notification.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-    }
+    #toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
   </style>
 </head>
 <body>
 
   <div id="flash-overlay"></div>
-
   <div id="toast-notification">🎉 Приложение успешно обновлено!</div>
 
   <div id="sync-status-bar" class="status-synced" onclick="reRequestGeolocation(false)">
@@ -339,6 +344,7 @@
     </div>
   </div>
 
+  <!-- ВКЛАДКА 1: КАМЕРА -->
   <div id="scan-tab" class="tab-content active">
     <div class="card" style="text-align: center; padding: 6px;">
       <div class="live-stream-container" id="stream-box-container">
@@ -350,6 +356,7 @@
     </div>
   </div>
 
+  <!-- ВКЛАДКА 2: ЖУРНАЛ -->
   <div id="search-tab" class="tab-content">
     <div class="card">
       <h3>Параметры выборки</h3>
@@ -369,6 +376,7 @@
     <div id="journal-container"></div>
   </div>
 
+  <!-- ВКЛАДКА 3: ОПЦИИ -->
   <div id="settings-tab" class="tab-content">
     <div class="card">
       <h3>Спутниковая навигация (GPS)</h3>
@@ -405,6 +413,7 @@
     </div>
   </div>
 
+  <!-- ВКЛАДКА 4: СПРАВКА -->
   <div id="help-tab" class="tab-content">
     <div class="card">
       <h3>📖 Быстрое руководство АЗС-Терминала</h3>
@@ -417,7 +426,7 @@
       <ul style="font-size:13px; padding-left:18px; margin-top:0; line-height:1.45; color:var(--text-main);">
         <li><b>Белая карточка:</b> Новый автомобиль, ранее за эти дни не заезжал.</li>
         <li><b>Розовая карточка с красной каймой:</b> Повторный визит! Машина уже была в базе. Пишется точное время или дата заезда.</li>
-        <li><b>Мигающий оранжевый бейдж:</b> ИИ сомневается в буквах или номер не распознан.</li>
+        <li><b>Оранжевая карточка с ярким бейджем:</b> ИИ сомневается в буквах или номер вообще не распознан.</li>
       </ul>
       
       <div class="help-header" style="color:#ff7a00;">3. Кнопка перезапуска ИИ 🔄</div>
@@ -442,7 +451,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v6.6
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v6.7
     </div>
   </div>
 
@@ -470,7 +479,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "6.6"; 
+    const APP_VERSION = "6.7"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 280, camH: 370 };
     let gpsStatusText = "📍 GPS";
@@ -613,27 +622,17 @@
       }
     }
 
-    /* 🔥 УМНАЯ СЛУЖБА ТОСТ-ОПОВЕЩЕНИЙ ОБ ОБНОВЛЕНИИ */
     function showUpdateToastNotification(msg) {
-      let toast = document.getElementById('toast-notification');
-      if (!toast) return;
-      toast.innerText = msg;
-      toast.classList.add('show');
+      let toast = document.getElementById('toast-notification'); if (!toast) return;
+      toast.innerText = msg; toast.classList.add('show');
       setTimeout(() => { toast.classList.remove('show'); }, 4500);
     }
 
     window.onload = async function() {
-      loadSavedTheme(); 
-      await initIndexedDB(); 
-      reRequestGeolocation(true); 
-      loadSettings(true); 
-      await refreshSyncStatusBar(); 
-      await restoreOfflineCards(); 
-      silentLoadJournalCache(); 
-      startLiveStreaming(); 
+      loadSavedTheme(); await initIndexedDB(); reRequestGeolocation(true); loadSettings(true); 
+      await refreshSyncStatusBar(); await restoreOfflineCards(); silentLoadJournalCache(); startLiveStreaming(); 
       setInterval(backgroundSyncLoop, 10000);
 
-      // Контур сверки версий для вывода Тоста
       let previousStoredVersion = localStorage.getItem('app_version_cache_tracker');
       if (previousStoredVersion && previousStoredVersion !== APP_VERSION) {
         showUpdateToastNotification(`🎉 Терминал успешно обновлен до v${APP_VERSION}!`);
@@ -699,7 +698,7 @@
     }
 
     function checkLocalDuplicateText(num, currentTaskId, preloadedQueue) {
-      if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ..." || String(num).includes("Проверить вручную")) return null;
+      if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ..." || String(num).includes("Проверить вручную") || String(num).includes("Ошибка")) return null;
       let cleanNum = String(num).toUpperCase().trim(); let count = 0; let latestTimestamp = 0;
       function parseGSheetsDate(dateStr) {
         if (!dateStr) return 0;
@@ -723,16 +722,17 @@
       return isSameDay ? `${count} повтора • ${timeStr}` : `${count} пов. • ${dateStr}`;
     }
 
+    /* 🔥 ОРАНЖЕВАЯ РАМКА КЛАССА .error-item И ТЕКСТА ОШИБОК ИИ */
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId) {
       number = number || ""; status = status || "";
       let isRep = String(status).includes("Повтор") || String(status).includes("повтор") || String(status).includes("раз") || String(status).includes("пов."); 
       let isPending = String(status).includes("Ожидание") || String(status).includes("сеть") || String(status).includes("Внесен") || String(status).includes("Очередь") || String(status).includes("кэше");
       let isProcessing = String(number) === "🤖 АНАЛИЗ..." || String(status).includes("Пересчет") || String(status).includes("Анализ") || String(status).includes("Расчет"); 
-      let isErr = String(number) === "Не распознан" || String(number).includes("Ошибка") || String(status).includes("ручную") || String(status).includes("вручную");
+      let isErr = String(number) === "Не распознан" || String(number).includes("Ошибка") || String(status).includes("ручную") || String(status).includes("вручную") || String(status).includes("Ошибка");
       
       if (isPending) cardElement.className = "journal-item local-offline";
       else if (isProcessing) cardElement.className = "journal-item local-online-processing";
-      else if (isErr) cardElement.className = "journal-item error-item";
+      else if (isErr) cardElement.className = "journal-item error-item"; // Применяем оранжевую обводку
       else cardElement.className = `journal-item ${isRep ? 'repeat' : 'new'}`;
       
       let badgeLabel = "Новый";
@@ -787,6 +787,7 @@
 
     async function retryAiRecognition(cardId, serverPhotoUrl) {
       if (!navigator.onLine) { alert("Кнопка 🔄 работает только при наличии сети!"); return; }
+      if (globalAudioCtx) globalAudioCtx.resume();
       let card = document.getElementById(cardId); if (!card) return;
       let taskId = card.getAttribute('data-task-id') || cardId.replace("cam_", ""); let localImg = card.getAttribute('data-local-src') || "";
       card.className = "journal-item local-online-processing";
@@ -794,18 +795,26 @@
       try {
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'retryOcr', taskId: taskId, photoUrl: serverPhotoUrl }) });
         let res = await response.json();
+        if (globalAudioCtx) globalAudioCtx.resume();
         if (res && res.success) {
           let finalNum = res.number; let finalStatus = res.status;
           if (!validateGostTemplate(finalNum) && finalNum !== "Не распознан") finalStatus = "Проверить вручную ⚠️";
           let smartStatus = checkLocalDuplicateText(finalNum, taskId, null) || finalStatus;
-          if (smartStatus.includes("Повтор") || smartStatus.includes("пов.")) triggerHardwareAlert('repeat');
+          
+          let isErrState = finalStatus.includes("вручную") || finalStatus.includes("Проверить") || finalStatus.includes("Не распознан") || finalNum === "Не распознан";
+          if (isErrState) triggerHardwareAlert('error');
+          else if (smartStatus.includes("Повтор") || smartStatus.includes("пов.")) triggerHardwareAlert('repeat');
           else if (finalNum !== "Не распознан") triggerHardwareAlert('new');
+          
           updateCardUi(card, finalNum, smartStatus, res.address || "АЗС-Терминал", res.photo || serverPhotoUrl, "Пересчитано", localImg || res.photo, taskId);
         } else {
-          alert("ИИ снова не смог прочесть номер. Используйте карандаш ✏️");
-          updateCardUi(card, "Не распознан", "Проверить вручную ⚠️", "АЗС", serverPhotoUrl, "Ошибка", localImg, taskId);
+          triggerHardwareAlert('error');
+          updateCardUi(card, "Не распознан", "Ошибка ИИ ⚠️", "АЗС", serverPhotoUrl, "Ошибка", localImg, taskId);
         }
-      } catch (e) { updateCardUi(card, "Не распознан", "Проверить вручную ⚠️", "АЗС", serverPhotoUrl, "Ошибка", localImg, taskId); }
+      } catch (e) { 
+        triggerHardwareAlert('error');
+        updateCardUi(card, "Не распознан", "Ошибка сети ⚠️", "АЗС", serverPhotoUrl, "Ошибка", localImg, taskId); 
+      }
     }
 
     function openFullscreenEdit(cardId, photoUrl, address, timeStr, imgToDisplay) {
@@ -844,7 +853,7 @@
         let res = await response.json();
         if (res && res.success) {
           function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
-          globalJournalCache.unshift({ taskId: savedTaskId, number: newNum, date: getGSheetsTimestamp(), address: address, gps: "Сеть", photo: photoUrl });
+          globalJournalCache.unshift({ taskId: savedTaskId, number: newNum, date: getGSheetsTimestamp(), address: address, gps: "Network", photo: photoUrl });
           let smartStatus = checkLocalDuplicateText(newNum, savedTaskId, null) || "Новый";
           triggerHardwareAlert((smartStatus.includes("Повтор") || smartStatus.includes("пов.")) ? 'repeat' : 'new');
           card.setAttribute('data-alert-played', 'true');
@@ -865,6 +874,8 @@
       try {
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(item) });
         let res = await response.json(); await removeIndexedDBItem(item.taskId);
+        if (globalAudioCtx) globalAudioCtx.resume();
+        
         let finalNum = res.number; let finalStatus = res.status;
         if (!validateGostTemplate(finalNum) && finalNum !== "Не распознан") finalStatus = "Проверить вручную ⚠️";
 
@@ -875,7 +886,8 @@
         if (card) {
           let alreadyPlayed = card.getAttribute('data-alert-played') === 'true';
           if (!alreadyPlayed) {
-            if (finalStatus.includes("вручную") || finalStatus.includes("Проверить")) triggerHardwareAlert('error');
+            let isErrState = finalStatus.includes("вручную") || finalStatus.includes("Проверить") || finalStatus.includes("Не распознан") || finalNum === "Не распознан";
+            if (isErrState) triggerHardwareAlert('error');
             else if (finalStatus.includes("Повтор") || finalStatus.includes("повтор")) triggerHardwareAlert('repeat');
             else if (finalNum !== "Не распознан") triggerHardwareAlert('new');
           }
@@ -883,7 +895,7 @@
           let smartStatus = checkLocalDuplicateText(finalNum, item.taskId, await getIndexedDBQueue()) || finalStatus;
           updateCardUi(card, finalNum, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId);
         }
-      } catch (error) { console.log("Синхронизация..."); } 
+      } catch (error) { console.log("Сброс буфера..."); } 
       finally { isSyncing = false; await refreshSyncStatusBar(); if ((await getIndexedDBQueue()).length > 0 && navigator.onLine) setTimeout(backgroundSyncLoop, 1000); }
     }
 
@@ -952,36 +964,68 @@
       if (tabId === 'scan-tab') { startLiveStreaming(); }
     }
 
+    /* 🔥 ЖЕЛЕЗНЫЙ АВТОНОМНЫЙ ПЕРЕХВАТ ДЛИТЕЛЬНОСТИ СИГНАЛОВ ИЗ LOCALSTORAGE */
     function loadSettings(isSilent) {
       let localRecent = localStorage.getItem('settings_recent_mins'); if (localRecent) appSettings.recentMins = parseInt(localRecent);
       let localDays = localStorage.getItem('settings_days'); if (localDays) appSettings.days = parseInt(localDays);
       let localW = localStorage.getItem('settings_cam_w'); if (localW) appSettings.camW = parseInt(localW);
       let localH = localStorage.getItem('settings_cam_h'); if (localH) appSettings.camH = parseInt(localH);
 
+      let localDurNew = localStorage.getItem('settings_dur_new'); if (localDurNew) appSettings.durNew = parseFloat(localDurNew);
+      let localDurRep = localStorage.getItem('settings_dur_rep'); if (localDurRep) appSettings.durRep = parseFloat(localDurRep);
+      let localDurErr = localStorage.getItem('settings_dur_err'); if (localDurErr) appSettings.durErr = parseFloat(localDurErr);
+
       document.getElementById('settings-recent-mins').value = appSettings.recentMins; document.getElementById('settings-days').value = appSettings.days;
       document.getElementById('settings-cam-w').value = appSettings.camW; document.getElementById('settings-cam-h').value = appSettings.camH;
+      
+      document.getElementById('settings-dur-new').value = appSettings.durNew;
+      document.getElementById('settings-dur-rep').value = appSettings.durRep;
+      document.getElementById('settings-dur-err').value = appSettings.durErr;
+      
       applyLocalUiDimensions();
 
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings' }) })
         .then(r => r.json()).then(res => {
           appSettings.durNew = res.durNew; appSettings.durRep = res.durRep; appSettings.durErr = res.durErr;
-          if (!isSilent) { document.getElementById('settings-days').value = res.days; document.getElementById('settings-dur-new').value = res.durNew; document.getElementById('settings-dur-rep').value = res.durRep; document.getElementById('settings-dur-err').value = res.durErr; }
+          
+          localStorage.setItem('settings_dur_new', res.durNew);
+          localStorage.setItem('settings_dur_rep', res.durRep);
+          localStorage.setItem('settings_dur_err', res.durErr);
+
+          if (!isSilent) { 
+            document.getElementById('settings-days').value = res.days; 
+            document.getElementById('settings-dur-new').value = res.durNew; 
+            document.getElementById('settings-dur-rep').value = res.durRep; 
+            document.getElementById('settings-dur-err').value = res.durErr; 
+          }
           refreshSyncStatusBar();
         }).catch(e => {});
     }
     
     function saveSettings() {
       let days = document.getElementById('settings-days').value;
+      let dNew = document.getElementById('settings-dur-new').value;
+      let dRep = document.getElementById('settings-dur-rep').value;
+      let dErr = document.getElementById('settings-dur-err').value;
+
       localStorage.setItem('settings_recent_mins', document.getElementById('settings-recent-mins').value); localStorage.setItem('settings_days', days);
       localStorage.setItem('settings_cam_w', document.getElementById('settings-cam-w').value); localStorage.setItem('settings_cam_h', document.getElementById('settings-cam-h').value);
+      
+      localStorage.setItem('settings_dur_new', dNew);
+      localStorage.setItem('settings_dur_rep', dRep);
+      localStorage.setItem('settings_dur_err', dErr);
+      
+      appSettings.durNew = parseFloat(dNew); appSettings.durRep = parseFloat(dRep); appSettings.durErr = parseFloat(dErr);
       applyLocalUiDimensions();
 
-      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', days: days, durNew: document.getElementById('settings-dur-new').value, durRep: document.getElementById('settings-dur-rep').value, durErr: document.getElementById('settings-dur-err').value }) })
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', days: days, durNew: dNew, durRep: dRep, durErr: dErr }) })
         .then(r => { document.getElementById('settings-status').innerText = "Конфигурация сохранена!"; silentLoadJournalCache(); setTimeout(() => document.getElementById('settings-status').innerText = "", 3000); })
-        .catch(e => { alert("Параметры применены локально!"); });
+        .catch(e => { alert("Параметры зафиксированы в телефоне!"); });
     }
     
+    /* 🔥 МОЩНЫЙ СИГНАЛЬНЫЙ ДВИЖОК ДВУХТОНАЛЬНОЙ СИРЕНЫ ДЛЯ КРОШЕЧНЫХ ДИНАМИКОВ */
     function triggerHardwareAlert(type) {
+      if (globalAudioCtx) { globalAudioCtx.resume().catch(() => {}); }
       let overlay = document.getElementById('flash-overlay');
       if (type === 'snap') {
         if (overlay) { overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.85)'; overlay.style.opacity = '1'; setTimeout(() => { overlay.style.opacity = '0'; }, 150); }
@@ -995,23 +1039,44 @@
       if (overlay) {
         if (type === 'new') overlay.style.backgroundColor = 'rgba(66, 183, 42, 0.2)';      
         else if (type === 'repeat') overlay.style.backgroundColor = 'rgba(240, 40, 73, 0.25)'; 
-        else if (type === 'error') overlay.style.backgroundColor = 'rgba(255, 122, 0, 0.2)';  
+        else if (type === 'error') overlay.style.backgroundColor = 'rgba(255, 122, 0, 0.35)';  
         overlay.style.opacity = '1'; setTimeout(() => { overlay.style.opacity = '0'; }, 350); 
       }
       try {
         initAudioEngine();
-        let osc = globalAudioCtx.createOscillator(); let gain = globalAudioCtx.createGain(); osc.connect(gain); gain.connect(globalAudioCtx.destination); let durationSeconds = 0.2;
+        let gain = globalAudioCtx.createGain(); gain.connect(globalAudioCtx.destination); let durationSeconds = 0.2;
+        
         if (type === 'new') {
-          durationSeconds = parseFloat(appSettings.durNew) || 0.1; osc.type = 'sine'; osc.frequency.setValueAtTime(950, globalAudioCtx.currentTime); gain.gain.setValueAtTime(0.08, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
+          durationSeconds = parseFloat(appSettings.durNew) || 0.1; 
+          let osc = globalAudioCtx.createOscillator(); osc.connect(gain);
+          osc.type = 'sine'; osc.frequency.setValueAtTime(950, globalAudioCtx.currentTime); 
+          gain.gain.setValueAtTime(0.08, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
           if (navigator.vibrate) navigator.vibrate(durationSeconds * 1000);
-        } else if (type === 'repeat') {
-          durationSeconds = parseFloat(appSettings.durRep) || 0.3; osc.type = 'triangle'; osc.frequency.setValueAtTime(580, globalAudioCtx.currentTime); gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
+        } 
+        else if (type === 'repeat') {
+          durationSeconds = parseFloat(appSettings.durRep) || 0.3; 
+          let osc = globalAudioCtx.createOscillator(); osc.connect(gain);
+          osc.type = 'triangle'; osc.frequency.setValueAtTime(580, globalAudioCtx.currentTime); 
+          gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
           if (navigator.vibrate) navigator.vibrate([durationSeconds * 500, 100, durationSeconds * 500]);
-        } else if (type === 'error') {
-          durationSeconds = parseFloat(appSettings.durErr) || 0.5; osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, globalAudioCtx.currentTime); gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
+        } 
+        /* 🚨 ПРОНЗИТЕЛЬНАЯ ДВУХТОНАЛЬНАЯ СИРЕНА ДЛЯ ОШИБОК ИИ */
+        else if (type === 'error') {
+          durationSeconds = parseFloat(appSettings.durErr) || 0.5; 
+          let osc1 = globalAudioCtx.createOscillator(); let osc2 = globalAudioCtx.createOscillator();
+          osc1.connect(gain); osc2.connect(gain);
+          
+          osc1.type = 'sawtooth'; osc1.frequency.setValueAtTime(380, globalAudioCtx.currentTime); 
+          osc2.type = 'sine'; osc2.frequency.setValueAtTime(430, globalAudioCtx.currentTime); 
+          
+          gain.gain.setValueAtTime(0.25, globalAudioCtx.currentTime); 
+          gain.gain.exponentialRampToValueAtTime(0.01, globalAudioCtx.currentTime + durationSeconds);
+          
+          osc1.start(); osc2.start(); 
+          osc1.stop(globalAudioCtx.currentTime + durationSeconds); osc2.stop(globalAudioCtx.currentTime + durationSeconds);
           if (navigator.vibrate) navigator.vibrate(durationSeconds * 1000);
         }
-      } catch (e) {}
+      } catch (e) { console.log("Сбой аудиопроцессора: " + e); }
     }
   </script>
 </body>
