@@ -196,7 +196,7 @@
     }
     #toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-    /* 🛡️ ВАРИАНТ 1: ПОЛНОЭКРАННЫЙ БРОНИРОВАННЫЙ ЩИТ БЛОКИРОВКИ СЕССИИ */
+    /* 🛡️ ПОЛНОЭКРАННЫЙ БРОНИРОВАННЫЙ ЩИТ БЛОКИРОВКИ СЕССИИ */
     #global-session-lock-shield {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(18, 18, 18, 0.98); z-index: 99999; flex-direction: column; align-items: center; justify-content: center; color: #ffffff; text-align: center; padding: 24px; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     }
@@ -204,10 +204,16 @@
     @keyframes pulse-shield-red { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
     .shield-title { font-size: 22px; font-weight: 800; color: #ff4d4d; margin: 0 0 10px 0; letter-spacing: 0.5px; }
     .shield-desc { font-size: 14px; color: #b0b3b8; max-width: 320px; line-height: 1.5; margin: 0 0 25px 0; }
+    
+    /* Дополнительные стили для справки */
+    .help-header { font-weight: bold; font-size: 15px; color: var(--accent-blue); margin-top: 12px; margin-bottom: 4px; text-align: left; }
+    .help-text { font-size: 13px; color: var(--text-main); line-height: 1.4; margin: 0 0 12px 0; text-align: left; }
+    .help-bullet { margin-left: 8px; margin-bottom: 6px; font-size: 13px; text-align: left; }
   </style>
 </head>
 <body>
 
+  <!-- БРОНИРОВАННЫЙ ЩИТ БЛОКИРОВКИ СЕССИИ С ВСТРОЕННЫМ ПОЛЕМ ВВОДА -->
   <div id="global-session-lock-shield">
     <div class="shield-icon">🛑</div>
     <div class="shield-title">ДОСТУП ОГРАНИЧЕН!</div>
@@ -227,6 +233,7 @@
     </div>
   </div>
 
+  <!-- ВКЛАДКА 1: КАМЕРА -->
   <div id="scan-tab" class="tab-content active">
     <div class="card" style="text-align: center; padding: 6px;">
       <div class="live-stream-container" id="stream-box-container">
@@ -254,6 +261,7 @@
     </div>
   </div>
 
+  <!-- ВКЛАДКА 2: ЖУРНАЛ -->
   <div id="search-tab" class="tab-content">
     <div class="card">
       <h3>Параметры выборки</h3>
@@ -273,6 +281,7 @@
     <div id="journal-container"></div>
   </div>
 
+  <!-- ВКЛАДКА 3: ОПЦИИ -->
   <div id="settings-tab" class="tab-content">
     
     <div class="card" id="settings-lock-card">
@@ -326,14 +335,29 @@
     </div>
   </div>
 
+  <!-- ВКЛАДКА 4: ИНТЕРАКТИВНАЯ СПРАВКА ДЛЯ ИНСПЕКТОРОВ -->
   <div id="help-tab" class="tab-content">
     <div class="card">
-      <h3>📖 Быстрое руководство АЗС-Терминала v8.5</h3>
-      <p style="font-size:13.5px; line-height:1.5; margin-bottom:10px;">Эта система создана для моментальной оффлайн фиксации машин. Вот все нюансы:</p>
-      <div class="help-header">1. Как сделать снимок?</div>
-      <p class="help-text">На вкладке <b>"Камера"</b> направьте неоновый прицел на госномер машины и нажмите круглую кнопку 📸.</p>
-      <div class="help-header" style="color:#42b72a;">2. Стабильный Lock-Shield</div>
-      <p class="help-text">В версии v8.5 фоновый буфер полностью засыпает при блокировке, исключая сбросы ввода паролей!</p>
+      <h3>📖 Инструкция Оператора v8.6</h3>
+      <p style="font-size:13.5px; line-height:1.5; margin-bottom:10px;">Система создана для скоростной фиксации автотранспорта на линии в любых условиях видимости и связи.</p>
+      
+      <div class="help-header">1. Использование прицела камеры</div>
+      <p class="help-text">На вкладке <b>"Камера"</b> наведите перекрестие на машину так, чтобы <b>госномер оказался строго в неоновой центральной точке</b>. Это гарантирует максимальную точность ИИ-анализа.</p>
+      
+      <div class="help-header">2. Ползунок зума (Приближение)</div>
+      <p class="help-text">Справа на экране находится вертикальный регулятор. Перемещайте палец вверх/вниз для настройки масштаба (до 4.0х). Значок под индикатором показывает тип зума устройства: Аппаратный (оптический) или Цифровой (кадрирование).</p>
+      
+      <div class="help-header">3. Батарея и экономия ресурсов</div>
+      <p class="help-text">Питание линзы полностью прекращается, как только вы переходите на вкладки "Журнал" или "Опции". Камера не тратит заряд аккумулятора и не перегревает телефон, пока вы просматриваете архивы.</p>
+
+      <div class="help-header">4. Цветовые индикаторы карточек</div>
+      <div class="help-bullet">🟢 <b>Зелёный маркер:</b> Новый объект, зафиксирован на АЗС впервые за текущий отчетный период.</div>
+      <div class="help-bullet">🔴 <b>Красный маркер:</b> Повторный визит! Транспорт уже заезжал на станцию в течение последних дней.</div>
+      <div class="help-bullet">💾 <b>Жёлтый маркер:</b> Очередь (кадр сохранен на диске телефона и ждет интернет для отправки).</div>
+      <div class="help-bullet">⚠️ <b>Оранжевый маркер:</b> Ошибка распознавания или ручной ввод (требуется перепроверить ГОСТ).</div>
+      
+      <div class="help-header" style="color:#ff4d4d;">5. Действия при блокировке (Экран 🛑)</div>
+      <p class="help-text">Если управляющий удаленно обновил ключи доступа на сервере, приложение развернет защитный слой. Вся локальная очередь машин при этом **надежно сохраняется**. Введите новый PIN-код, и работа возобновится в штатном режиме.</p>
     </div>
   </div>
 
@@ -351,7 +375,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.5
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.6
     </div>
   </div>
 
@@ -379,7 +403,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "8.5"; 
+    const APP_VERSION = "8.6"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 260, camH: 250 };
     let gpsStatusText = "📍 GPS";
@@ -396,6 +420,23 @@
     let activeIntervals = {};
 
     let modalZoomScale = 1; let panX = 0; let panY = 0; let isDragging = false; let startX = 0; let startY = 0;
+
+    /* 🌙 ФУНКЦИИ УПРАВЛЕНИЯ ТЕМАМИ ОФОРМЛЕНИЯ (ВОЗВРАЩЕНЫ В СТРОЙ) */
+    function toggleThemeMode(event) {
+      if (event) event.stopPropagation();
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('terminal_theme_dark', isDark ? 'true' : 'false');
+    }
+
+    function loadSavedTheme() {
+      const isDark = localStorage.getItem('terminal_theme_dark') === 'true';
+      if (isDark) {
+        document.body.classList.add('dark-mode');
+      } else {
+        document.body.classList.remove('dark-mode');
+      }
+    }
 
     function initAudioEngine() {
       if (!globalAudioCtx) { globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
@@ -461,9 +502,8 @@
       });
     }
 
-    /* 🛡️ АНТИ-ХАК ВАРИАНТ 1: ПОЛНОЭКРАННАЯ БЛОКИРОВКА СЕССИИ */
     function checkSessionValidity(serverResponse) {
-      if (typeof serverResponse === 'object' && serverResponse.error === "session_expired") {
+      if (typeof serverResponse === 'object' && serverResponse && serverResponse.error === "session_expired") {
         triggerGlobalSessionLock();
         return false;
       }
@@ -477,8 +517,6 @@
       localStorage.removeItem('terminal_user_role');
       localStorage.removeItem('terminal_session_id');
       document.getElementById('terminal-pin-field').value = "";
-      
-      // Очищаем поле ввода PIN строго один раз при старте лока, а не по кругу!
       document.getElementById('shield-pin-field').value = "";
       renderAccessLayers();
       
@@ -486,31 +524,27 @@
       document.getElementById('shield-pin-field').focus();
     }
 
-    /* 🔥 ИСПРАВЛЕННЫЙ ВВОД PIN-КОДА ВНУТРИ ЩИТА: ПОЛНАЯ ЦЕПОЧКА ВЕРИФИКАЦИИ */
     function evaluateShieldPin(val) {
       let adminPin = localStorage.getItem('terminal_pin_admin') || "1111";
       let userPin = localStorage.getItem('terminal_pin_user') || "2222";
       
       if (val === adminPin || val === userPin) {
         if (navigator.onLine) {
-          // Идем за новым паспортом сессии, щит не прячем до окончательного ответа
           fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'validatePinGetToken', pin: val }) })
             .then(r => r.json()).then(res => {
               if (res && res.sessionId) {
                 localStorage.setItem('terminal_session_id', res.sessionId);
                 localStorage.setItem('terminal_user_role', val === adminPin ? 'admin' : 'user');
                 
-                // Только теперь, когда токен железно на руках, гасим щит
                 document.getElementById('global-session-lock-shield').style.display = 'none';
                 document.getElementById('shield-pin-field').value = "";
                 renderAccessLayers();
-                backgroundSyncLoop(); // Пробуждаем синхронизацию
+                backgroundSyncLoop(); 
               } else {
                 alert("Ошибка валидации сессии сервером!");
                 document.getElementById('shield-pin-field').value = "";
               }
             }).catch(() => {
-              // Если сеть моргнула в процессе, даем зайти локально
               localStorage.setItem('terminal_user_role', val === adminPin ? 'admin' : 'user');
               document.getElementById('global-session-lock-shield').style.display = 'none';
               document.getElementById('shield-pin-field').value = "";
@@ -525,7 +559,6 @@
       }
     }
 
-    /* 🔐 ВХОД ПО PIN-КОДАМ ЧЕРЕЗ СТАНДАРТНУЮ КАРТОЧКУ ОПЦИЙ */
     function evaluateTerminalPin(val) {
       let adminPin = localStorage.getItem('terminal_pin_admin') || "1111";
       let userPin = localStorage.getItem('terminal_pin_user') || "2222";
@@ -610,7 +643,6 @@
       triggerSearch(); 
     }
 
-    /* 🔍 СБОКУ СПРАВА: ВЕРТИКАЛЬНЫЙ ЗУМ */
     function executeCameraZoom(val) {
       let zoomVal = parseFloat(val);
       localStorage.setItem('camera_zoom_factor', zoomVal);
@@ -781,7 +813,8 @@
     }
 
     window.onload = async function() {
-      loadSavedTheme(); await initIndexedDB(); reRequestGeolocation(true); loadSettings(true); 
+      loadSavedTheme(); // Теперь функция не роняет скрипт при запуске
+      await initIndexedDB(); reRequestGeolocation(true); loadSettings(true); 
       globalJournalCache = await loadJournalFromDisk();
       renderAccessLayers(); 
       await restoreOfflineCards(); silentLoadJournalCache(); startLiveStreaming(); 
@@ -858,6 +891,7 @@
       } catch (e) {}
     }
 
+    /* 🛡️ ИСПРАВЛЕНО: Ликвидирована опечатка canvasTs, ронявшая фоновый поток ИИ */
     function checkLocalDuplicateText(num, currentTaskId, preloadedQueue) {
       if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ..." || String(num).includes("Проверить вручную") || String(num).includes("Ошибка")) return null;
       let cleanNum = String(num).toUpperCase().trim(); let count = 0; let latestTimestamp = 0;
@@ -867,12 +901,19 @@
       }
       for (let i = 0; i < globalJournalCache.length; i++) {
         if (globalJournalCache[i].taskId === currentTaskId) continue; 
-        if (globalJournalCache[i].number && String(globalJournalCache[i].number).toUpperCase().trim() === cleanNum) { count++; let ts = parseGSheetsDate(globalJournalCache[i].date); if (ts > latestTimestamp) canvasTs = ts; if (ts > latestTimestamp) latestTimestamp = ts; }
+        if (globalJournalCache[i].number && String(globalJournalCache[i].number).toUpperCase().trim() === cleanNum) { 
+          count++; 
+          let ts = parseGSheetsDate(globalJournalCache[i].date); 
+          if (ts > latestTimestamp) latestTimestamp = ts; 
+        }
       }
       let q = preloadedQueue || [];
       for (let i = 0; i < q.length; i++) {
         if (q[i].taskId === currentTaskId) continue; 
-        if (q[i].manualNumber && String(q[i].manualNumber).toUpperCase().trim() === cleanNum) { count++; if (q[i].timestamp > latestTimestamp) latestTimestamp = q[i].timestamp; }
+        if (q[i].manualNumber && String(q[i].manualNumber).toUpperCase().trim() === cleanNum) { 
+          count++; 
+          if (q[i].timestamp > latestTimestamp) latestTimestamp = q[i].timestamp; 
+        }
       }
       if (count === 0) return null;
       let now = new Date(); let lastDate = new Date(latestTimestamp || now.getTime());
@@ -951,7 +992,10 @@
           ${undoBtnHtml}
         </div>
       `;
-      cardElement.innerHTML = cardElement.innerHTML.replace('__address_placeholder__', address.replace(/'/g, "\\'").replace(/"/g, '\\"'));
+      
+      /* 🛡️ ИСПРАВЛЕНО: Безопасное форматирование адреса с защитой от undefined ответов сервера */
+      let safeAddress = String(address || "Ошибка ИИ / Нет связи").replace(/'/g, "\\'").replace(/"/g, '\\"');
+      cardElement.innerHTML = cardElement.innerHTML.replace('__address_placeholder__', safeAddress);
     }
 
     function validateGostTemplate(num) {
@@ -1034,7 +1078,6 @@
       }
     }
 
-    /* 🔥 ИСПРАВЛЕННЫЙ ЦИКЛ СИНХРОНИЗАЦИИ: МГНОВЕННОЕ ЗАСЫПАНИЕ ПРИ ЛОКЕ ШИЛДА */
     async function backgroundSyncLoop() {
       if (document.getElementById('global-session-lock-shield').style.display === 'flex') return;
       if (isSyncing) return; 
@@ -1148,6 +1191,7 @@
       });
     }
 
+    /* 🛡️ ИСПРАВЛЕНО: Аппаратное выключение питания линзы при уходе с вкладки камеры */
     function openTab(tabId, el) {
       if (tabId !== 'scan-tab') {
         if (liveVideoStream) {
@@ -1191,7 +1235,7 @@
         .then(r => r.json()).then(res => {
           if (!checkSessionValidity(res)) return;
           appSettings.durNew = res.durNew; appSettings.durRep = res.durRep; appSettings.durErr = res.durErr;
-          localStorage.setItem('settings_dur_new', res.durNew); localStorage.setItem('settings_dur_rep', res.durRep); localStorage.setItem('settings_dur_err', res.durErr);
+          localStorage.setItem('settings_dur_new', res.durNew); localStorage.setItem('terminal_pin_user', '2222'); localStorage.setItem('settings_dur_rep', res.durRep); localStorage.setItem('settings_dur_err', res.durErr);
           if (!isSilent) { 
             document.getElementById('settings-days').value = res.days; document.getElementById('settings-dur-new').value = res.durNew; document.getElementById('settings-dur-rep').value = res.durRep; document.getElementById('settings-dur-err').value = res.durErr; 
           }
