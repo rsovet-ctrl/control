@@ -146,7 +146,7 @@
     .journal-item.local-offline .status-right { background: rgba(228, 230, 235, 0.95); color: #555555; }
     .journal-item.local-online-processing .status-right { background: rgba(232, 240, 254, 0.95); color: #1877f2; }
     
-    /* 🔥 СТИЛИЗАЦИЯ И ДИНАМИЧЕСКОЕ МИГАНИЕ ДЛЯ ПЛАШКИ ОШИБКА! */
+    /* 🔥 ИСПРАВЛЕНО: Обведенная плашка ОШИБКА! теперь ярко-оранжевая и циклично мигает */
     .journal-item.error-item .status-right { 
       background: #ff7a00 !important; 
       color: #ffffff !important; 
@@ -382,7 +382,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.6
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.61
     </div>
   </div>
 
@@ -428,7 +428,6 @@
 
     let modalZoomScale = 1; let panX = 0; let panY = 0; let isDragging = false; let startX = 0; let startY = 0;
 
-    /* 🌙 ИСПРАВЛЕНО: Функции переключения ночной темы возвращены в строй */
     function toggleThemeMode(event) {
       if (event) event.stopPropagation();
       document.body.classList.toggle('dark-mode');
@@ -643,7 +642,7 @@
         adminNodes.forEach(n => n.classList.add('admin-hide'));
       } else {
         lockCard.style.display = "block"; geoBlock.style.display = "block"; logoutBtn.style.display = "inline-block"; pinField.style.display = "none";
-        lockTitle.innerText = role === 'admin' ? "👨‍✈️ Профиль: Администратор" : "👷 Профиль: Operator";
+        lockTitle.innerText = role === 'admin' ? "👨‍✈️ Профиль: Администратор" : "👷 Профиль: Оператор";
         if (role === 'admin') { adminNodes.forEach(n => n.classList.remove('admin-hide')); } 
         else { adminNodes.forEach(n => n.classList.add('admin-hide')); }
       }
@@ -801,15 +800,33 @@
       charityTransform();
     }
 
+    /* 🔥 ИСПРАВЛЕНО: Интерактивный перезапуск GPS с мгновенным откликом и голосовыми алертами */
     function reRequestGeolocation(isSilent) {
       if (navigator.geolocation) {
+        if (!isSilent) {
+          gpsStatusText = "⏳ Поиск GPS...";
+          let barText = document.getElementById('sync-status-text');
+          if (barText) barText.innerText = "⏳ Настройка спутников GPS...";
+        }
         navigator.geolocation.getCurrentPosition(async function(position) {
           currentCoords = { latitude: position.coords.latitude, longitude: position.coords.longitude };
           gpsStatusText = "📍 GPS"; await refreshSyncStatusBar();
-          if (!isSilent) alert("📍 Геолокация GPS обновлена!");
+          if (!isSilent) alert("📍 Геолокация GPS успешно обновлена!");
         }, async function(error) {
-          gpsStatusText = (error.code === error.PERMISSION_DENIED) ? "❌ GPS" : "⚠️ GPS"; await refreshSyncStatusBar();
+          gpsStatusText = (error.code === error.PERMISSION_DENIED) ? "❌ GPS" : "⚠️ GPS"; 
+          await refreshSyncStatusBar();
+          if (!isSilent) {
+            if (error.code === error.PERMISSION_DENIED) {
+              alert("❌ Доступ к GPS ограничен! Пожалуйста, разрешите доступ к геопозиции в настройках вашего браузера или смартфона.");
+            } else if (error.code === error.TIMEOUT) {
+              alert("⚠️ Сигнал потерян! Не удалось поймать спутники за 8 секунд. Пожалуйста, выйдите на открытое пространство из-под навеса.");
+            } else {
+              alert("⚠️ Сбой позиционирования: " + error.message);
+            }
+          }
         }, { enableHighAccuracy: true, timeout: 8000 });
+      } else {
+        if (!isSilent) alert("❌ Ваше устройство или браузер не поддерживают спутниковую GPS-навигацию.");
       }
     }
 
@@ -898,7 +915,6 @@
       } catch (e) {}
     }
 
-    /* 🛡️ ИСПРАВЛЕНО: Ликвидирована опечатках canvasTs, ронявшая ИИ-цикл */
     function checkLocalDuplicateText(num, currentTaskId, preloadedQueue) {
       if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ..." || String(num).includes("Проверить вручную") || String(num).includes("Ошибка")) return null;
       let cleanNum = String(num).toUpperCase().trim(); let count = 0; let latestTimestamp = 0;
@@ -950,7 +966,6 @@
       else if (isErr) cardElement.className = "journal-item error-item"; 
       else cardElement.className = `journal-item ${isRep ? 'repeat' : 'new'}`;
       
-      /* 🔥 ИСПРАВЛЕНО: Текст плашки переведен строго в "ОШИБКА!" */
       let badgeLabel = "Новый";
       if (isPending) badgeLabel = "Очередь 💾";
       else if (isProcessing) badgeLabel = "Анализ 🤖";
@@ -1221,7 +1236,6 @@
       }
     }
 
-    /* 🛡️ ИСПРАВЛЕНО: Полная защита от ввода запятых при загрузке настроек */
     function loadSettings(isSilent) {
       let localRecent = localStorage.getItem('settings_recent_mins'); if (localRecent) appSettings.recentMins = parseInt(localRecent);
       let localDays = localStorage.getItem('settings_days'); if (localDays) appSettings.days = parseInt(localDays);
@@ -1260,7 +1274,6 @@
         }).catch(() => {});
     }
     
-    /* 🛡️ ИСПРАВЛЕНО: Полная защита от ввода запятых при фиксации настроек */
     function saveSettings() {
       let days = document.getElementById('settings-days').value;
       let dNew = document.getElementById('settings-dur-new').value.toString().replace(',', '.');
