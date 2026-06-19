@@ -146,7 +146,7 @@
     .journal-item.local-offline .status-right { background: rgba(228, 230, 235, 0.95); color: #555555; }
     .journal-item.local-online-processing .status-right { background: rgba(232, 240, 254, 0.95); color: #1877f2; }
     
-    /* 🔥 СТИЛИЗАЦИЯ И ДИНАМИЧЕСКОЕ МИГАНИЕ ДЛЯ ПЛАШКИ ОШИБКА! */
+    /* 🔥 ДИНАМИЧЕСКОЕ МИГАНИЕ ДЛЯ ПЛАШКИ ОШИБКА! */
     .journal-item.error-item .status-right { 
       background: #ff7a00 !important; 
       color: #ffffff !important; 
@@ -225,7 +225,6 @@
 </head>
 <body>
 
-  <!-- БРОНИРОВАННЫЙ ЩИТ БЛОКИРОВКИ СЕССИИ С ВСТРОЕННЫМ ПОЛЕМ ВВОДА -->
   <div id="global-session-lock-shield">
     <div class="shield-icon">🛑</div>
     <div class="shield-title">ДОСТУП ОГРАНИЧЕН!</div>
@@ -245,7 +244,6 @@
     </div>
   </div>
 
-  <!-- ВКЛАДКА 1: КАМЕРА -->
   <div id="scan-tab" class="tab-content active">
     <div class="card" style="text-align: center; padding: 6px;">
       <div class="live-stream-container" id="stream-box-container">
@@ -273,7 +271,6 @@
     </div>
   </div>
 
-  <!-- ВКЛАДКА 2: ЖУРНАЛ -->
   <div id="search-tab" class="tab-content">
     <div class="card">
       <h3>Параметры выборки</h3>
@@ -293,15 +290,19 @@
     <div id="journal-container"></div>
   </div>
 
-  <!-- ВКЛАДКА 3: ОПЦИИ -->
   <div id="settings-tab" class="tab-content">
     
     <div class="card" id="settings-lock-card">
-      <!-- Добавлен инженерный обработчик кликов для смены роли при удаленном сбросе -->
       <h3 id="lock-title" onclick="handleLockTitleClick()" style="cursor:pointer; user-select:none;">🔐 Авторизация terminal-а</h3>
       <input type="password" id="terminal-pin-field" class="pin-crypto-field" maxlength="4" placeholder="••••" oninput="evaluateTerminalPin(this.value)">
       <p style="font-size:12px; color:var(--text-sub); margin:0;">Юзер: 2222 | Admin: 1111 (Базовые)</p>
       <button id="logout-btn-ui" class="btn-premium-steel" style="margin-top:12px; display:none; padding:8px;" onclick="exitTerminalSession()">🔒 Выйти из профиля</button>
+    </div>
+
+    <div class="card id-block-geo" id="settings-update-block" style="display:none;">
+      <h3>Контур обновлений PWA</h3>
+      <button class="btn-premium-steel" style="background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); box-shadow: 0 4px 12px rgba(225,29,72,0.2);" onclick="forceClearPwaCache()">🔄 Принудительно обновить кэш (Сброс версий)</button>
+      <p style="font-size:11px; color:var(--text-sub); margin-top:8px; margin-bottom:0; text-align:center;">Принудительно скачивает чистую копию кода терминала с GitHub bypass-методом.</p>
     </div>
 
     <div class="card id-block-geo" id="settings-geo-block" style="display:none;">
@@ -348,10 +349,9 @@
     </div>
   </div>
 
-  <!-- ВКЛАДКА 4: ИНТЕРАКТИВНАЯ СПРАВКА ДЛЯ ИНСПЕКТОРОВ -->
   <div id="help-tab" class="tab-content">
     <div class="card">
-      <h3>📖 Инструкция Оператора v8.7</h3>
+      <h3>📖 Инструкция Оператора v8.8</h3>
       <p style="font-size:13.5px; line-height:1.5; margin-bottom:10px;">Система создана для скоростной фиксации автотранспорта на линии в любых условиях видимости и связи.</p>
       
       <div class="help-header">1. Использование прицела камеры</div>
@@ -388,7 +388,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.7
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.8
     </div>
   </div>
 
@@ -416,7 +416,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "8.7"; 
+    const APP_VERSION = "8.8"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 260, camH: 250 };
     let gpsStatusText = "📍 GPS";
@@ -428,7 +428,7 @@
     let liveVideoStream = null;
     let videoTrack = null;
     let zoomHardwareType = "Цифровой";
-    let adminUpgradeClicks = 0; // Накопитель кликов для пасхалки админа
+    let adminUpgradeClicks = 0; 
 
     let activeUndoTimers = {};
     let activeIntervals = {};
@@ -537,7 +537,6 @@
       document.getElementById('shield-pin-field').focus();
     }
 
-    /* 🔥 ИСПРАВЛЕНО: Сквозная верификация щита без блокировки ввода из-за старого кэша */
     function evaluateShieldPin(val) {
       if (val.length === 4) {
         let adminPin = localStorage.getItem('terminal_pin_admin') || "1111";
@@ -549,13 +548,11 @@
               if (res && res.success) {
                 localStorage.setItem('terminal_session_id', res.sessionId);
                 
-                // Умный разбор роли
                 if (val === adminPin) {
                   localStorage.setItem('terminal_user_role', 'admin');
                 } else if (val === userPin) {
                   localStorage.setItem('terminal_user_role', 'user');
                 } else {
-                  // Пароль изменен извне! Логиним как юзера и обновляем оффлайн-ключ
                   localStorage.setItem('terminal_user_role', 'user');
                   localStorage.setItem('terminal_pin_user', val);
                 }
@@ -572,7 +569,6 @@
                 }, 800);
               }
             }).catch(() => {
-              // Экстренный откат в оффлайн-сверку при падении пакета
               if (val === adminPin || val === userPin) {
                 localStorage.setItem('terminal_user_role', val === adminPin ? 'admin' : 'user');
                 document.getElementById('global-session-lock-shield').style.display = 'none';
@@ -581,7 +577,6 @@
               }
             });
         } else {
-          // Оффлайн режим - жесткая сверка
           if (val === adminPin || val === userPin) {
             localStorage.setItem('terminal_user_role', val === adminPin ? 'admin' : 'user');
             document.getElementById('global-session-lock-shield').style.display = 'none';
@@ -598,7 +593,6 @@
       }
     }
 
-    /* 🔥 ИСПРАВЛЕНО: Сквозная авторизация основной карточки опций */
     function evaluateTerminalPin(val) {
       if (val.length === 4) {
         let adminPin = localStorage.getItem('terminal_pin_admin') || "1111";
@@ -638,7 +632,6 @@
       }
     }
 
-    /* 👑 ИНЖЕНЕРНАЯ ПАСХАЛКА: Восстановление прав Админа при удаленном смене PIN */
     function handleLockTitleClick() {
       let role = localStorage.getItem('terminal_user_role');
       if (role === 'user') {
@@ -648,10 +641,29 @@
           let currentActivePin = localStorage.getItem('terminal_pin_user') || "2222";
           localStorage.setItem('terminal_user_role', 'admin');
           localStorage.setItem('terminal_pin_admin', currentActivePin);
-          localStorage.setItem('terminal_pin_user', "2222"); // Сброс пользовательского на базу
+          localStorage.setItem('terminal_pin_user', "2222"); 
           alert("👨‍✈️ Профиль повышен до Администратора! Текущий PIN зафиксирован как административный.");
           renderAccessLayers();
         }
+      }
+    }
+
+    /* 🔥 ФУНКЦИЯ ЯДЕРНОГО СБРОСА КЭША ДЛЯ ИНСПЕКТОРА И АДМИНА */
+    async function forceClearPwaCache() {
+      if (confirm("Выполнить полную очистку кэша приложения? Очередь машин не сотрется.")) {
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          for (let key of keys) {
+            await caches.delete(key);
+          }
+        }
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (let registration of registrations) {
+            await registration.unregister();
+          }
+        }
+        window.location.reload(true);
       }
     }
 
@@ -706,17 +718,18 @@
       let role = localStorage.getItem('terminal_user_role');
       let lockCard = document.getElementById('settings-lock-card');
       let geoBlock = document.getElementById('settings-geo-block');
+      let updateBlock = document.getElementById('settings-update-block');
       let adminNodes = document.querySelectorAll('.admin-only-node');
       let logoutBtn = document.getElementById('logout-btn-ui');
       let pinField = document.getElementById('terminal-pin-field');
       let lockTitle = document.getElementById('lock-title');
 
       if (!role) {
-        lockCard.style.display = "block"; geoBlock.style.display = "none"; logoutBtn.style.display = "none"; pinField.style.display = "inline-block";
+        lockCard.style.display = "block"; geoBlock.style.display = "none"; updateBlock.style.display = "none"; logoutBtn.style.display = "none"; pinField.style.display = "inline-block";
         lockTitle.innerText = "🔐 Авторизация терминала";
         adminNodes.forEach(n => n.classList.add('admin-hide'));
       } else {
-        lockCard.style.display = "block"; geoBlock.style.display = "block"; logoutBtn.style.display = "inline-block"; pinField.style.display = "none";
+        lockCard.style.display = "block"; geoBlock.style.display = "block"; updateBlock.style.display = "block"; logoutBtn.style.display = "inline-block"; pinField.style.display = "none";
         lockTitle.innerText = role === 'admin' ? "👨‍✈️ Профиль: Администратор" : "👷 Профиль: Оператор";
         if (role === 'admin') { adminNodes.forEach(n => n.classList.remove('admin-hide')); } 
         else { adminNodes.forEach(n => n.classList.add('admin-hide')); }
@@ -875,7 +888,6 @@
       charityTransform();
     }
 
-    /* 🔥 ИСПРАВЛЕНО: Кнопка GPS теперь дает моментальный текстовый отклик и понятные диалоговые окна */
     function reRequestGeolocation(isSilent) {
       if (navigator.geolocation) {
         if (!isSilent) {
@@ -990,7 +1002,6 @@
       } catch (e) {}
     }
 
-    /* 🛡️ ИСПРАВЛЕНО: Ликвидирована опечатка canvasTs, ронявшая ИИ-цикл */
     function checkLocalDuplicateText(num, currentTaskId, preloadedQueue) {
       if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ..." || String(num).includes("Проверить вручную") || String(num).includes("Ошибка")) return null;
       let cleanNum = String(num).toUpperCase().trim(); let count = 0; let latestTimestamp = 0;
@@ -1312,7 +1323,6 @@
       }
     }
 
-    /* 🛡️ ИСПРАВЛЕНО: Полная защита от ввода запятых при загрузке настроек */
     function loadSettings(isSilent) {
       let localRecent = localStorage.getItem('settings_recent_mins'); if (localRecent) appSettings.recentMins = parseInt(localRecent);
       let localDays = localStorage.getItem('settings_days'); if (localDays) appSettings.days = parseInt(localDays);
@@ -1351,7 +1361,6 @@
         }).catch(() => {});
     }
     
-    /* 🛡️ ИСПРАВЛЕНО: Полная защита от ввода запятых при фиксации настроек */
     function saveSettings() {
       let days = document.getElementById('settings-days').value;
       let dNew = document.getElementById('settings-dur-new').value.toString().replace(',', '.');
