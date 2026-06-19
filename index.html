@@ -77,9 +77,9 @@
     }
     
     .nav-tab-btn {
-      display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--text-sub); background: none; border: none; cursor: pointer; flex: 1; gap: 2px; transition: color 0.15s; -webkit-tap-highlight-color: transparent;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--text-sub); background: none; border: none; cursor: pointer; flex: 1; gap: 2px; transition: color 0.15s; -webkit-tap-highlight-color: transparent;
     }
-    .nav-tab-btn .nav-icon { font-size: 19px; line-height: 1; }
+    .nav-tab-btn .nav-icon { font-size: 18px; line-height: 1; }
     .nav-tab-btn.active { color: var(--accent-blue); }
 
     .nav-credit-line {
@@ -208,7 +208,6 @@
     }
     #toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-    /* 🛡️ ПОЛНОЭКРАННЫЙ БРОНИРОВАННЫЙ ЩИТ БЛОКИРОВКИ СЕССИИ */
     #global-session-lock-shield {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(18, 18, 18, 0.98); z-index: 99999; flex-direction: column; align-items: center; justify-content: center; color: #ffffff; text-align: center; padding: 24px; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     }
@@ -217,10 +216,16 @@
     .shield-title { font-size: 22px; font-weight: 800; color: #ff4d4d; margin: 0 0 10px 0; letter-spacing: 0.5px; }
     .shield-desc { font-size: 14px; color: #b0b3b8; max-width: 320px; line-height: 1.5; margin: 0 0 25px 0; }
     
-    /* Стили для Справки */
     .help-header { font-weight: bold; font-size: 15px; color: var(--accent-blue); margin-top: 12px; margin-bottom: 4px; text-align: left; }
     .help-text { font-size: 13px; color: var(--text-main); line-height: 1.4; margin: 0 0 12px 0; text-align: left; }
     .help-bullet { margin-left: 8px; margin-bottom: 6px; font-size: 13px; text-align: left; }
+
+    /* СТИЛИ ДЛЯ КАРТОЧЕК УПРАВЛЕНИЯ ТЕРМИНАЛАМИ ИЗ ЛИСТА USER */
+    .user-device-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 14px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .user-device-meta { font-size: 11px; color: var(--text-sub); line-height: 1.4; margin-top: 4px; }
+    .user-inline-row { display: flex; gap: 8px; margin-top: 6px; align-items: center; }
+    .user-inline-input { flex: 1; padding: 8px; font-size: 14px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main); margin-bottom: 0; }
+    .btn-user-save { background: #42b72a; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -276,11 +281,11 @@
       <h3>Параметры выборки</h3>
       <div class="range-container">
         <div>
-          <label>ПЕРИОД ОТ:</label>
+          <label>Период ОТ:</label>
           <input type="date" id="search-start-date" onchange="triggerSearch()">
         </div>
         <div>
-          <label>ПЕРИОД ДО:</label>
+          <label>Period ДО:</label>
           <input type="date" id="search-end-date" onchange="triggerSearch()">
         </div>
       </div>
@@ -288,6 +293,14 @@
       <input type="text" id="search-number" oninput="triggerSearch()" placeholder="Например: В744 или 99">
     </div>
     <div id="journal-container"></div>
+  </div>
+
+  <div id="user-tab" class="tab-content">
+    <div class="card">
+      <h3>👥 Пульт терминалов АЗС (Лист USER)</h3>
+      <button class="btn-premium-blue" style="padding:10px 14px; font-size:13px;" onclick="manuallyRegisterNewDevice()">➕ Зарегистрировать ТА на опережение</button>
+    </div>
+    <div id="user-management-container"></div>
   </div>
 
   <div id="settings-tab" class="tab-content">
@@ -351,14 +364,14 @@
 
   <div id="help-tab" class="tab-content">
     <div class="card">
-      <h3>📖 Инструкция Оператора v8.8</h3>
+      <h3>📖 Инструкция Оператора v8.9</h3>
       <p style="font-size:13.5px; line-height:1.5; margin-bottom:10px;">Система создана для скоростной фиксации автотранспорта на линии в любых условиях видимости и связи.</p>
       
-      <div class="help-header">1. Использование прицела камеры</div>
+      <div class="help-header">1. Автоматический учет терминалов</div>
+      <p class="help-text">Каждому смартфону присваивается уникальный виртуальный ID-отпечаток. Инспекторам больше не нужно заполнять свои имена вручную — система сама подпишет автора карточки в журнале.</p>
+
+      <div class="help-header">2. Использование прицела камеры</div>
       <p class="help-text">На вкладке <b>"Камера"</b> наведите перекрестие на машину так, чтобы <b>госномер оказался строго в неоновой центральной точке</b>. Это гарантирует максимальную точность ИИ-анализа.</p>
-      
-      <div class="help-header">2. Ползунок зума (Приближение)</div>
-      <p class="help-text">Справа на экране находится вертикальный регулятор. Перемещайте палец вверх/вниз для настройки масштаба (до 4.0х). Значок под индикатором показывает тип зума устройства: Аппаратный (оптический) или Цифровой (кадрирование).</p>
       
       <div class="help-header">3. Батарея и экономия ресурсов</div>
       <p class="help-text">Питание линзы полностью прекращается, как только вы переходите на вкладки "Журнал" или "Опции". Камера не тратит заряд аккумулятора и не перегревает телефон, пока вы просматриваете архивы.</p>
@@ -368,9 +381,6 @@
       <div class="help-bullet">🔴 <b>Красный маркер:</b> Повторный визит! Транспорт уже заезжал на станцию в течение последних дней.</div>
       <div class="help-bullet">💾 <b>Жёлтый маркер:</b> Очередь (кадр сохранен на диске телефона и ждет интернет для отправки).</div>
       <div class="help-bullet">⚠️ <b>Оранжевый маркер:</b> Ошибка распознавания или ручной ввод (требуется перепроверить ГОСТ).</div>
-      
-      <div class="help-header" style="color:#ff4d4d;">5. Действия при блокировке (Экран 🛑)</div>
-      <p class="help-text">Если управляющий удаленно обновил ключи доступа на сервере, приложение развернет защитный щит. Вся локальная очередь машин при этом надежно сохраняется. Введите новый PIN-код, и работа возобновится в штатном режиме.</p>
     </div>
   </div>
 
@@ -381,6 +391,9 @@
     <button class="nav-tab-btn" onclick="openTab('search-tab', this); triggerSearch();">
       <span class="nav-icon">📋</span><span>Журнал</span>
     </button>
+    <button class="nav-tab-btn admin-only-node admin-hide" id="nav-btn-users" onclick="openTab('user-tab', this); loadUserManagementList();">
+      <span class="nav-icon">👥</span><span>Юзеры</span>
+    </button>
     <button class="nav-tab-btn" onclick="openTab('settings-tab', this); loadSettings();">
       <span class="nav-icon">⚙️</span><span>Опции</span>
     </button>
@@ -388,7 +401,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.82
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9
     </div>
   </div>
 
@@ -416,7 +429,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "8.8"; 
+    const APP_VERSION = "8.9"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 260, camH: 250 };
     let gpsStatusText = "📍 GPS";
@@ -434,6 +447,16 @@
     let activeIntervals = {};
 
     let modalZoomScale = 1; let panX = 0; let panY = 0; let isDragging = false; let startX = 0; let startY = 0;
+
+    // 🔥 АВТОМАТИЧЕСКАЯ ГЕНЕРАЦИЯ ВИРТУАЛЬНОГО IMEI (UUID УСТРОЙСТВА)
+    function getDeviceUuidToken() {
+      let uuid = localStorage.getItem('terminal_device_id');
+      if (!uuid) {
+        uuid = "device_" + Math.random().toString(36).substring(2, 9) + Date.now().toString(36).substring(5);
+        localStorage.setItem('terminal_device_id', uuid);
+      }
+      return uuid;
+    }
 
     function toggleThemeMode(event) {
       if (event) event.stopPropagation();
@@ -648,7 +671,6 @@
       }
     }
 
-    /* 🔥 ФУНКЦИЯ ЯДЕРНОГО СБРОСА КЭША ДЛЯ ИНСПЕКТОРА И АДМИНА */
     async function forceClearPwaCache() {
       if (confirm("Выполнить полную очистку кэша приложения? Очередь машин не сотрется.")) {
         if ('caches' in window) {
@@ -665,6 +687,91 @@
         }
         window.location.reload(true);
       }
+    }
+
+    /* 🔥 КОНТУР УПРАВЛЕНИЯ ПОЛЬЗОВАТЕЛЯМИ (ИНТЕРФЕЙС АДМИНИСТРАТОРА) */
+    async function loadUserManagementList() {
+      if (!navigator.onLine) {
+        document.getElementById('user-management-container').innerHTML = "<p style='text-align:center; padding:20px; color:var(--text-sub);'>Сводка пользователей недоступна без интернета.</p>";
+        return;
+      }
+      let container = document.getElementById('user-management-container');
+      container.innerHTML = "<p style='text-align:center; padding:20px; color:var(--text-sub);'>⏳ Синхронизация списка устройств...</p>";
+      
+      try {
+        let response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'getUsers', sessionId: localStorage.getItem('terminal_session_id') })
+        });
+        let res = await response.json();
+        if (!checkSessionValidity(res)) return;
+        
+        if (res && res.success) {
+          container.innerHTML = "";
+          if (res.devices.length === 0) {
+            container.innerHTML = "<p style='text-align:center; padding:20px; color:var(--text-sub);'>Активных устройств на линии нет.</p>";
+            return;
+          }
+          res.devices.forEach(dev => {
+            let div = document.createElement('div');
+            div.className = "user-device-card";
+            
+            // Если имя неопознано, выделяем стилем предупреждения
+            let isWarning = dev.name.includes("Неопознанный");
+            let borderStyle = isWarning ? "border-left: 4px solid #ff7a00;" : "border-left: 4px solid #1877f2;";
+            div.setAttribute('style', borderStyle);
+            
+            div.innerHTML = `
+              <div style="font-weight: bold; font-size: 14px; color: var(--text-main);">📝 Изменить кличку:</div>
+              <div class="user-inline-row">
+                <input type="text" class="user-inline-input" id="inp_${dev.id}" value="${dev.name}" placeholder="Например: Пост №1 Север">
+                <button class="btn-user-save" onclick="saveDeviceNickname('${dev.id}')">💾</button>
+              </div>
+              <div class="user-device-meta">
+                <b>Технический ID:</b> <code style="color:var(--accent-blue);">${dev.id}</code><br>
+                <b>🕒 Последняя связь:</b> ${dev.lastActive}<br>
+                <b>📍 Локация АЗС:</b> ${dev.lastAddress}
+              </div>
+            `;
+            container.appendChild(div);
+          });
+        }
+      } catch(e) {
+        container.innerHTML = "<p style='text-align:center; padding:20px; color:#f02849;'>Ошибка загрузки базы USER.</p>";
+      }
+    }
+
+    async function saveDeviceNickname(id) {
+      let newName = document.getElementById(`inp_${id}`).value.trim();
+      if (!newName) return;
+      try {
+        let response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'saveUser', id: id, name: newName, sessionId: localStorage.getItem('terminal_session_id') })
+        });
+        let res = await response.json();
+        if (res && res.success) {
+          alert("Кличка устройства успешно обновлена на сервере!");
+          loadUserManagementList();
+        }
+      } catch(e) { alert("Ошибка сохранения."); }
+    }
+
+    function manuallyRegisterNewDevice() {
+      let id = prompt("Введите технический ID устройства (UUID):\n(Его можно посмотреть на самом аппарате в Справке или Опциях)");
+      if (!id) return;
+      let name = prompt("Задайте человеческое Имя / Пост для этого смартфона:");
+      if (!name) return;
+      
+      fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'saveUser', id: id.trim(), name: name.trim(), sessionId: localStorage.getItem('terminal_session_id') })
+      }).then(r => r.json()).then(res => {
+        if (res && res.success) {
+          alert("Устройство успешно добавлено на опережение!");
+          loadUserManagementList();
+        }
+      }).catch(() => { alert("Ошибка связи."); });
     }
 
     function requestSessionIdFromServer(pin) {
@@ -731,8 +838,16 @@
       } else {
         lockCard.style.display = "block"; geoBlock.style.display = "block"; updateBlock.style.display = "block"; logoutBtn.style.display = "inline-block"; pinField.style.display = "none";
         lockTitle.innerText = role === 'admin' ? "👨‍✈️ Профиль: Администратор" : "👷 Профиль: Оператор";
-        if (role === 'admin') { adminNodes.forEach(n => n.classList.remove('admin-hide')); } 
-        else { adminNodes.forEach(n => n.classList.add('admin-hide')); }
+        
+        // Показываем/скрываем админские блоки и вкладку "Юзеры" в зависимости от роли
+        if (role === 'admin') { 
+          adminNodes.forEach(n => n.classList.remove('admin-hide')); 
+        } else { 
+          adminNodes.forEach(n => n.classList.add('admin-hide')); 
+          if(document.getElementById('user-tab').classList.contains('active')) {
+            openTab('scan-tab', document.querySelector('[onclick*="scan-tab"]'));
+          }
+        }
       }
       triggerSearch(); 
     }
@@ -816,7 +931,16 @@
         ctx.drawImage(videoEl, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
         const rawBase64 = canvas.toDataURL('image/jpeg', 0.75);
 
-        let offlineItem = { taskId: taskId, action: 'scan', image: rawBase64, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: null };
+        // 🔥 ПОДМЕШИВАЕМ ТОКЕН UUID УСТРОЙСТВА В ПАКЕТ
+        let offlineItem = { 
+          taskId: taskId, 
+          action: 'scan', 
+          image: rawBase64, 
+          coords: currentCoords, 
+          timestamp: new Date().getTime(), 
+          manualNumber: null,
+          deviceId: getDeviceUuidToken() 
+        };
         await addIndexedDBItem(offlineItem); 
         
         let scanResultArea = document.getElementById('scan-result');
@@ -828,7 +952,7 @@
         let displayStatus = isOnline ? "Выгрузка 📡" : "Очередь 💾";
         
         activeUndoTimers[taskId] = 10;
-        updateCardUi(itemDiv, displayNum, displayStatus, isOnline ? "Связь с сервером..." : "Сбор координат", "", "🕒 Снимок сделан", rawBase64, taskId);
+        updateCardUi(itemDiv, displayNum, displayStatus, isOnline ? "Связь с сервером..." : "Сбор координат", "", "🕒 Снимок сделан", rawBase64, taskId, "Этот аппарат");
         await refreshSyncStatusBar();
 
         activeIntervals[taskId] = setInterval(async () => {
@@ -925,6 +1049,7 @@
 
     window.onload = async function() {
       loadSavedTheme(); 
+      getDeviceUuidToken(); // Инициализация отпечатка при первом старте
       await initIndexedDB(); reRequestGeolocation(true); loadSettings(true); 
       globalJournalCache = await loadJournalFromDisk();
       renderAccessLayers(); 
@@ -970,7 +1095,7 @@
         let displayNum = item.manualNumber || (isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ");
         let displayStatus = item.manualNumber ? "Внесен 💾" : (isOnline ? "Выгрузка 📡" : "Очередь 💾");
         let localDupStatus = checkLocalDuplicateText(displayNum, item.taskId, q); if (localDupStatus) displayStatus = localDupStatus;
-        updateCardUi(itemDiv, displayNum, displayStatus, item.manualNumber ? "Сохранено в телефоне" : "Ожидание сети", "", "🕒 Ожидает выгрузку", item.image, item.taskId);
+        updateCardUi(itemDiv, displayNum, displayStatus, item.manualNumber ? "Сохранено в телефоне" : "Ожидание сети", "", "🕒 Ожидает выгрузку", item.image, item.taskId, "Этот аппарат");
       });
     }
 
@@ -1041,7 +1166,8 @@
       openTab('search-tab', journalTabBtn); triggerSearch();
     }
 
-    function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId) {
+    /* 🔥 ИСПРАВЛЕНО: Добавлен параметр operatorName для вывода автора фиксации автомобиля */
+    function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId, operatorName) {
       number = number || ""; status = status || "";
       let isRep = String(status).includes("Повтор") || String(status).includes("повтор") || String(status).includes("раз") || String(status).includes("пов."); 
       let isPending = String(status).includes("Ожидание") || String(status).includes("сеть") || String(status).includes("Внесен") || String(status).includes("Очередь") || String(status).includes("кэше");
@@ -1085,6 +1211,10 @@
       let adminPurgeHtml = (localStorage.getItem('terminal_user_role') === 'admin')
         ? `<button class="admin-delete-btn" title="Удалить навсегда" onclick="executeAdminRecordPurge('${cardElement.id}', '${number}')">🗑️</button>` : "";
 
+      // 👤 Линия атрибуции автора
+      let safeOpName = operatorName ? String(operatorName) : "Определяется...";
+      let operatorHtmlLine = `<div style="font-size:11.5px; color:var(--text-sub); margin-top:1px;">👤 Фиксация: <b>${safeOpName}</b></div>`;
+
       cardElement.innerHTML = `
         ${thumbHtml}
         <div class="info-left">
@@ -1098,6 +1228,7 @@
             </div>
           </div>
           <div class="info-date">📅 ${timeStr}</div>
+          ${operatorHtmlLine}
           ${gpsHtmlLine}
           ${undoBtnHtml}
         </div>
@@ -1121,7 +1252,16 @@
       card.className = "journal-item local-online-processing";
       let textSpan = card.querySelector('.plate-display'); if (textSpan) textSpan.innerText = "🤖 ПЕРЕСЧЕТ...";
       try {
-        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'retryOcr', taskId: taskId, photoUrl: serverPhotoUrl, sessionId: localStorage.getItem('terminal_session_id') }) });
+        let response = await fetch(API_URL, { 
+          method: 'POST', 
+          body: JSON.stringify({ 
+            action: 'retryOcr', 
+            taskId: taskId, 
+            photoUrl: serverPhotoUrl, 
+            sessionId: localStorage.getItem('terminal_session_id'),
+            deviceId: getDeviceUuidToken()
+          }) 
+        });
         let res = await response.json();
         if (!checkSessionValidity(res)) return;
         if (res && res.success) {
@@ -1131,9 +1271,9 @@
           if (finalNum === "Не распознан") triggerHardwareAlert('error');
           else if (smartStatus.includes("Повтор")) triggerHardwareAlert('repeat');
           else triggerHardwareAlert('new');
-          updateCardUi(card, finalNum, smartStatus, res.address || "АЗС-Терминал", res.photo || serverPhotoUrl, "Пересчитано", localImg || res.photo, taskId);
+          updateCardUi(card, finalNum, smartStatus, res.address || "АЗС-Терминал", res.photo || serverPhotoUrl, "Пересчитано", localImg || res.photo, taskId, "Повторный ИИ");
         }
-      } catch (e) { updateCardUi(card, "Не распознан", "Ошибка сети ⚠️", "АЗС", serverPhotoUrl, "Ошибка", localImg, taskId); }
+      } catch (e) { updateCardUi(card, "Не распознан", "Ошибка сети ⚠️", "АЗС", serverPhotoUrl, "Ошибка", localImg, taskId, "Сбой ИИ"); }
     }
 
     function openFullscreenEdit(cardId, photoUrl, address, timeStr, imgToDisplay) {
@@ -1158,31 +1298,41 @@
       if (!navigator.onLine) {
         let q = await getIndexedDBQueue(); let matchIdx = q.findIndex(item => item.taskId === savedTaskId);
         if (matchIdx !== -1) { q[matchIdx].manualNumber = newNum; await addIndexedDBItem(q[matchIdx]); } 
-        else { await addIndexedDBItem({ taskId: savedTaskId, action: 'scan', image: imgSrc || photoUrl, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: newNum }); }
+        else { await addIndexedDBItem({ taskId: savedTaskId, action: 'scan', image: imgSrc || photoUrl, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: newNum, deviceId: getDeviceUuidToken() }); }
         let localDupStatus = checkLocalDuplicateText(newNum, savedTaskId, await getIndexedDBQueue());
         triggerHardwareAlert(localDupStatus ? 'repeat' : 'new'); card.setAttribute('data-alert-played', 'true');
-        updateCardUi(card, newNum, localDupStatus || "Внесен 💾", "Сохранено локально на диск", photoUrl, timeStr, imgSrc, savedTaskId);
+        updateCardUi(card, newNum, localDupStatus || "Внесен 💾", "Сохранено локально на диск", photoUrl, timeStr, imgSrc, savedTaskId, "Этот аппарат");
         await refreshSyncStatusBar(); return;
       }
 
       card.className = "journal-item local-online-processing";
       try {
-        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'editRecord', taskId: savedTaskId, photo: photoUrl, newNumber: newNum, sessionId: localStorage.getItem('terminal_session_id') }) });
+        let response = await fetch(API_URL, { 
+          method: 'POST', 
+          body: JSON.stringify({ 
+            action: 'editRecord', 
+            taskId: savedTaskId, 
+            photo: photoUrl, 
+            newNumber: newNum, 
+            sessionId: localStorage.getItem('terminal_session_id'),
+            deviceId: getDeviceUuidToken()
+          }) 
+        });
         let res = await response.json();
         if (!checkSessionValidity(res)) return;
         if (res && res.success) {
           function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
-          globalJournalCache.unshift({ taskId: savedTaskId, number: newNum, date: getGSheetsTimestamp(), address: address, gps: "Network", photo: photoUrl });
+          globalJournalCache.unshift({ taskId: savedTaskId, number: newNum, date: getGSheetsTimestamp(), address: address, gps: "Network", photo: photoUrl, operator: "Ручная правка" });
           await saveJournalToDisk(globalJournalCache); 
           let smartStatus = checkLocalDuplicateText(newNum, savedTaskId, null) || "Новый";
           triggerHardwareAlert(smartStatus.includes("Повтор") ? 'repeat' : 'new');
           card.setAttribute('data-alert-played', 'true');
-          updateCardUi(card, newNum, smartStatus, address, photoUrl, timeStr, imgSrc, savedTaskId); await refreshSyncStatusBar();
+          updateCardUi(card, newNum, smartStatus, address, photoUrl, timeStr, imgSrc, savedTaskId, "Ручная правка"); await refreshSyncStatusBar();
         }
       } catch (e) {
-        await addIndexedDBItem({ taskId: savedTaskId, action: 'scan', image: imgSrc || photoUrl, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: newNum });
+        await addIndexedDBItem({ taskId: savedTaskId, action: 'scan', image: imgSrc || photoUrl, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: newNum, deviceId: getDeviceUuidToken() });
         let localDupStatus = checkLocalDuplicateText(newNum, savedTaskId, await getIndexedDBQueue());
-        updateCardUi(card, newNum, localDupStatus || "Внесен 💾", "Сеть упала • Сохранено в БД", photoUrl, timeStr, imgSrc, savedTaskId);
+        updateCardUi(card, newNum, localDupStatus || "Внесен 💾", "Сеть упала • Сохранено в БД", photoUrl, timeStr, imgSrc, savedTaskId, "Этот аппарат");
         await refreshSyncStatusBar();
       }
     }
@@ -1201,6 +1351,7 @@
       try {
         let payload = item.action === 'delete' ? { action: 'deleteRecord', taskId: item.targetTaskId } : item;
         payload.sessionId = localStorage.getItem('terminal_session_id');
+        payload.deviceId = getDeviceUuidToken(); // Сквозная склейка UUID
 
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
         let res = await response.json(); 
@@ -1219,7 +1370,7 @@
           if (!validateGostTemplate(finalNum) && finalNum !== "Не распознан") finalStatus = "Проверить вручную ⚠️";
 
           function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
-          globalJournalCache.unshift({ taskId: item.taskId, number: finalNum, date: getGSheetsTimestamp(), address: res.address || "Определено GPS", gps: item.coords ? `${item.coords.latitude},${item.coords.longitude}` : "Нет GPS", thumb: item.image, photo: res.photo });
+          globalJournalCache.unshift({ taskId: item.taskId, number: finalNum, date: getGSheetsTimestamp(), address: res.address || "Определено GPS", gps: item.coords ? `${item.coords.latitude},${item.coords.longitude}` : "Нет GPS", thumb: item.image, photo: res.photo, operator: "Выгружен из буфера" });
           await saveJournalToDisk(globalJournalCache); 
 
           let card = document.getElementById("cam_" + item.taskId);
@@ -1232,7 +1383,7 @@
             }
             card.setAttribute('data-alert-played', 'true');
             let smartStatus = checkLocalDuplicateText(finalNum, item.taskId, await getIndexedDBQueue()) || finalStatus;
-            updateCardUi(card, finalNum, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId);
+            updateCardUi(card, finalNum, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId, "Буфер терминала");
           }
         }
       } catch (error) { isSyncing = false; await refreshSyncStatusBar(); return; } 
@@ -1249,7 +1400,15 @@
       container.innerHTML = "<p style='text-align:center; color:var(--text-sub);'>⏳ Чтение локальной памяти...</p>";
       try {
         if (navigator.onLine) {
-          let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: { startDate: sDate, endDate: eDate, number: fNum }, sessionId: localStorage.getItem('terminal_session_id') }) });
+          let response = await fetch(API_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ 
+              action: 'search', 
+              filters: { startDate: sDate, endDate: eDate, number: fNum }, 
+              sessionId: localStorage.getItem('terminal_session_id'),
+              deviceId: getDeviceUuidToken()
+            }) 
+          });
           let records = await response.json(); 
           if (records && records.error === "session_expired") { triggerGlobalSessionLock(); return; }
           if (records && records.length) { globalJournalCache = records; await saveJournalToDisk(records); }
@@ -1272,7 +1431,7 @@
         let taskNum = q.manualNumber || "⏳ ЖДЕТ СЕТЬ";
         if (cleanFilterNum && String(taskNum).toUpperCase().indexOf(cleanFilterNum) === -1) return;
         if (q.timestamp < startTs || q.timestamp > endTs) return;
-        combinedList.push({ isFromQueue: true, taskId: q.taskId, number: taskNum, status: q.manualNumber ? "Очередь 💾" : "В кэше 💾", address: q.manualNumber ? "Сохранено локально" : "Буфер АЗС", photo: "", thumb: q.image, dateStr: new Date(q.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), rawDate: q.timestamp });
+        combinedList.push({ isFromQueue: true, taskId: q.taskId, number: taskNum, status: q.manualNumber ? "Очередь 💾" : "В кэше 💾", address: q.manualNumber ? "Сохранено локально" : "Буфер АЗС", photo: "", thumb: q.image, dateStr: new Date(q.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), rawDate: q.timestamp, operator: "Этот аппарат" });
       });
 
       function parseGSheetsDate(dateStr) {
@@ -1285,7 +1444,7 @@
         if (cleanFilterNum && String(r.number).toUpperCase().indexOf(cleanFilterNum) === -1) return;
         if (sDate && rowTs < startTs) return; if (eDate && rowTs > endTs) return;
         if (queueItems.some(q => q.targetTaskId === r.taskId || q.taskId === r.taskId)) return;
-        combinedList.push({ isFromQueue: false, taskId: r.taskId, number: r.number, status: r.status, address: r.address || "АЗС рейд", photo: r.photo, thumb: r.thumb || "", dateStr: r.date, rawDate: rowTs });
+        combinedList.push({ isFromQueue: false, taskId: r.taskId, number: r.number, status: r.status, address: r.address || "АЗС рейд", photo: r.photo, thumb: r.thumb || "", dateStr: r.date, rawDate: rowTs, operator: r.operator });
       });
 
       combinedList.sort((a, b) => b.rawDate - a.rawDate);
@@ -1296,18 +1455,15 @@
         let itemId = "jour_" + item.taskId; let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
         let finalStatus = item.status;
         if (!item.isFromQueue && !validateGostTemplate(item.number) && item.number !== "Не распознан") finalStatus = "Проверить вручную ⚠️";
-        updateCardUi(itemDiv, item.number, finalStatus, item.address, item.photo, item.dateStr, item.thumb, item.taskId);
+        updateCardUi(itemDiv, item.number, finalStatus, item.address, item.photo, item.dateStr, item.thumb, item.taskId, item.operator);
       });
     }
 
     function openTab(tabId, el) {
       if (tabId !== 'scan-tab') {
         if (liveVideoStream) {
-          try {
-            liveVideoStream.getTracks().forEach(track => track.stop());
-          } catch(e) {}
-          liveVideoStream = null;
-          videoTrack = null;
+          try { liveVideoStream.getTracks().forEach(track => track.stop()); } catch(e) {}
+          liveVideoStream = null; videoTrack = null;
         }
         let videoEl = document.getElementById('live-webcam');
         if (videoEl) videoEl.srcObject = null;
