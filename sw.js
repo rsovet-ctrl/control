@@ -1,11 +1,10 @@
-const CACHE_NAME = 'car-control-v8.0';
+const CACHE_NAME = 'car-control-v8.1';
 const ASSETS_TO_CACHE = [
   './',
   'index.html',
   'manifest.json'
 ];
 
-// 1. Установка: Полное кэширование ядра интерфейса на диск телефона
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -14,7 +13,6 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// 2. Активация: Безопасное удаление старых версий кэша
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -29,7 +27,6 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// 3. Перехват: Стратегия Cache-First с тихим обновлением для мгновенного старта приложения
 self.addEventListener('fetch', (e) => {
   if (e.request.url.includes('script.google.com') || e.request.method !== 'GET') {
     return;
@@ -47,7 +44,7 @@ self.addEventListener('fetch', (e) => {
       }).catch(() => {});
 
       if (e.request.mode === 'navigate') {
-        return cachedResponse || caches.match('index.html') || caches.match('./') || fetchPromise;
+        return cachedResponse || caches.match('index.html') || fetchPromise;
       }
       return cachedResponse || fetchPromise;
     })
