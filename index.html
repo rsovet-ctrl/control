@@ -145,7 +145,19 @@
     .journal-item.repeat .status-right { background: rgba(240, 40, 73, 0.95); color: #ffffff; }
     .journal-item.local-offline .status-right { background: rgba(228, 230, 235, 0.95); color: #555555; }
     .journal-item.local-online-processing .status-right { background: rgba(232, 240, 254, 0.95); color: #1877f2; }
-    .journal-item.error-item .status-right { animation: yellow-orange-pulse 1.2s infinite ease-in-out; }
+    
+    /* 🔥 СТИЛИЗАЦИЯ И ДИНАМИЧЕСКОЕ МИГАНИЕ ДЛЯ ПЛАШКИ ОШИБКА! */
+    .journal-item.error-item .status-right { 
+      background: #ff7a00 !important; 
+      color: #ffffff !important; 
+      font-weight: 900 !important;
+      animation: yellow-orange-pulse 0.7s infinite ease-in-out !important; 
+    }
+    @keyframes yellow-orange-pulse {
+      0% { background-color: #ff7a00; opacity: 1; }
+      50% { background-color: #f02849; opacity: 0.4; }
+      100% { background-color: #ff7a00; opacity: 1; }
+    }
 
     .undo-trigger-btn {
       background: linear-gradient(135deg, #f02849 0%, #c01830 100%); color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 4px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(240, 40, 73, 0.3); width: max-content; animation: pulse-red-undo 1.5s infinite; -webkit-tap-highlight-color: transparent;
@@ -205,7 +217,7 @@
     .shield-title { font-size: 22px; font-weight: 800; color: #ff4d4d; margin: 0 0 10px 0; letter-spacing: 0.5px; }
     .shield-desc { font-size: 14px; color: #b0b3b8; max-width: 320px; line-height: 1.5; margin: 0 0 25px 0; }
     
-    /* Дополнительные стили для справки */
+    /* Стили для Справки */
     .help-header { font-weight: bold; font-size: 15px; color: var(--accent-blue); margin-top: 12px; margin-bottom: 4px; text-align: left; }
     .help-text { font-size: 13px; color: var(--text-main); line-height: 1.4; margin: 0 0 12px 0; text-align: left; }
     .help-bullet { margin-left: 8px; margin-bottom: 6px; font-size: 13px; text-align: left; }
@@ -213,7 +225,6 @@
 </head>
 <body>
 
-  <!-- БРОНИРОВАННЫЙ ЩИТ БЛОКИРОВКИ СЕССИИ С ВСТРОЕННЫМ ПОЛЕМ ВВОДА -->
   <div id="global-session-lock-shield">
     <div class="shield-icon">🛑</div>
     <div class="shield-title">ДОСТУП ОГРАНИЧЕН!</div>
@@ -233,7 +244,6 @@
     </div>
   </div>
 
-  <!-- ВКЛАДКА 1: КАМЕРА -->
   <div id="scan-tab" class="tab-content active">
     <div class="card" style="text-align: center; padding: 6px;">
       <div class="live-stream-container" id="stream-box-container">
@@ -261,7 +271,6 @@
     </div>
   </div>
 
-  <!-- ВКЛАДКА 2: ЖУРНАЛ -->
   <div id="search-tab" class="tab-content">
     <div class="card">
       <h3>Параметры выборки</h3>
@@ -281,7 +290,6 @@
     <div id="journal-container"></div>
   </div>
 
-  <!-- ВКЛАДКА 3: ОПЦИИ -->
   <div id="settings-tab" class="tab-content">
     
     <div class="card" id="settings-lock-card">
@@ -327,15 +335,14 @@
     </div>
     <div class="card admin-only-node admin-hide">
       <h3>Длительность сигналов (в секундах)</h3>
-      <label>Новый объект:</label><input type="number" id="settings-dur-new" min="0.1" max="5" step="0.1">
-      <label>Повторный визит:</label><input type="number" id="settings-dur-rep" min="0.1" max="5" step="0.1">
-      <label>Ошибка / Не распознан:</label><input type="number" id="settings-dur-err" min="0.1" max="5" step="0.1">
+      <label>Новый объект:</label><input type="text" id="settings-dur-new" placeholder="0.1">
+      <label>Повторный визит:</label><input type="text" id="settings-dur-rep" placeholder="0.3">
+      <label>Ошибка / Не распознан:</label><input type="text" id="settings-dur-err" placeholder="0.5">
       <button class="btn-premium-blue" style="margin-top: 10px;" onclick="saveSettings()">💾 Сохранить настройки</button>
       <p id="settings-status" style="color: #42b72a; font-weight: bold; margin-top: 10px; text-align:center;"></p>
     </div>
   </div>
 
-  <!-- ВКЛАДКА 4: ИНТЕРАКТИВНАЯ СПРАВКА ДЛЯ ИНСПЕКТОРОВ -->
   <div id="help-tab" class="tab-content">
     <div class="card">
       <h3>📖 Инструкция Оператора v8.6</h3>
@@ -351,13 +358,13 @@
       <p class="help-text">Питание линзы полностью прекращается, как только вы переходите на вкладки "Журнал" или "Опции". Камера не тратит заряд аккумулятора и не перегревает телефон, пока вы просматриваете архивы.</p>
 
       <div class="help-header">4. Цветовые индикаторы карточек</div>
-      <div class="help-bullet">🟢 <b>Зелёный маркер:</b> Новый объект, зафиксирован на АЗС впервые за текущий отчетный период.</div>
+      <div class="help-bullet">🟢 <b>Зелёный маркер:</b> Новый объект, зафиксирован на АЗС впервые за отчетный период.</div>
       <div class="help-bullet">🔴 <b>Красный маркер:</b> Повторный визит! Транспорт уже заезжал на станцию в течение последних дней.</div>
       <div class="help-bullet">💾 <b>Жёлтый маркер:</b> Очередь (кадр сохранен на диске телефона и ждет интернет для отправки).</div>
       <div class="help-bullet">⚠️ <b>Оранжевый маркер:</b> Ошибка распознавания или ручной ввод (требуется перепроверить ГОСТ).</div>
       
       <div class="help-header" style="color:#ff4d4d;">5. Действия при блокировке (Экран 🛑)</div>
-      <p class="help-text">Если управляющий удаленно обновил ключи доступа на сервере, приложение развернет защитный слой. Вся локальная очередь машин при этом **надежно сохраняется**. Введите новый PIN-код, и работа возобновится в штатном режиме.</p>
+      <p class="help-text">Если управляющий удаленно обновил ключи доступа на сервере, приложение развернет защитный щит. Вся локальная очередь машин при этом надежно сохраняется. Введите новый PIN-код, и работа возобновится в штатном режиме.</p>
     </div>
   </div>
 
@@ -421,7 +428,7 @@
 
     let modalZoomScale = 1; let panX = 0; let panY = 0; let isDragging = false; let startX = 0; let startY = 0;
 
-    /* 🌙 ФУНКЦИИ УПРАВЛЕНИЯ ТЕМАМИ ОФОРМЛЕНИЯ (ВОЗВРАЩЕНЫ В СТРОЙ) */
+    /* 🌙 ИСПРАВЛЕНО: Функции переключения ночной темы возвращены в строй */
     function toggleThemeMode(event) {
       if (event) event.stopPropagation();
       document.body.classList.toggle('dark-mode');
@@ -636,7 +643,7 @@
         adminNodes.forEach(n => n.classList.add('admin-hide'));
       } else {
         lockCard.style.display = "block"; geoBlock.style.display = "block"; logoutBtn.style.display = "inline-block"; pinField.style.display = "none";
-        lockTitle.innerText = role === 'admin' ? "👨‍✈️ Профиль: Администратор" : "👷 Профиль: Оператор";
+        lockTitle.innerText = role === 'admin' ? "👨‍✈️ Профиль: Администратор" : "👷 Профиль: Operator";
         if (role === 'admin') { adminNodes.forEach(n => n.classList.remove('admin-hide')); } 
         else { adminNodes.forEach(n => n.classList.add('admin-hide')); }
       }
@@ -813,7 +820,7 @@
     }
 
     window.onload = async function() {
-      loadSavedTheme(); // Теперь функция не роняет скрипт при запуске
+      loadSavedTheme(); 
       await initIndexedDB(); reRequestGeolocation(true); loadSettings(true); 
       globalJournalCache = await loadJournalFromDisk();
       renderAccessLayers(); 
@@ -891,7 +898,7 @@
       } catch (e) {}
     }
 
-    /* 🛡️ ИСПРАВЛЕНО: Ликвидирована опечатка canvasTs, ронявшая фоновый поток ИИ */
+    /* 🛡️ ИСПРАВЛЕНО: Ликвидирована опечатках canvasTs, ронявшая ИИ-цикл */
     function checkLocalDuplicateText(num, currentTaskId, preloadedQueue) {
       if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ..." || String(num).includes("Проверить вручную") || String(num).includes("Ошибка")) return null;
       let cleanNum = String(num).toUpperCase().trim(); let count = 0; let latestTimestamp = 0;
@@ -936,17 +943,18 @@
       let isRep = String(status).includes("Повтор") || String(status).includes("повтор") || String(status).includes("раз") || String(status).includes("пов."); 
       let isPending = String(status).includes("Ожидание") || String(status).includes("сеть") || String(status).includes("Внесен") || String(status).includes("Очередь") || String(status).includes("кэше");
       let isProcessing = String(number) === "🤖 АНАЛИЗ..." || String(status).includes("Пересчет") || String(status).includes("Анализ") || String(status).includes("Расчет"); 
-      let isErr = String(number) === "Не распознан" || String(number).includes("Ошибка") || String(status).includes("ручную") || String(status).includes("вручную") || String(status).includes("Ошибка");
+      let isErr = String(number) === "Не распознан" || String(number).includes("Ошибка") || String(status).includes("ручную") || String(status).includes("вручную") || String(status).includes("Ошибка") || String(status).includes("ОШИБКА");
       
       if (isPending) cardElement.className = "journal-item local-offline";
       else if (isProcessing) cardElement.className = "journal-item local-online-processing";
       else if (isErr) cardElement.className = "journal-item error-item"; 
       else cardElement.className = `journal-item ${isRep ? 'repeat' : 'new'}`;
       
+      /* 🔥 ИСПРАВЛЕНО: Текст плашки переведен строго в "ОШИБКА!" */
       let badgeLabel = "Новый";
       if (isPending) badgeLabel = "Очередь 💾";
       else if (isProcessing) badgeLabel = "Анализ 🤖";
-      else if (isErr) badgeLabel = "Ошибка ⚠️";
+      else if (isErr) badgeLabel = "ОШИБКА!";
       else if (isRep) { badgeLabel = checkLocalDuplicateText(number, forcedTaskId || cardElement.id, null) || "Повтор"; }
       
       if (photoUrl) cardElement.setAttribute('data-server-photo', photoUrl);
@@ -993,7 +1001,6 @@
         </div>
       `;
       
-      /* 🛡️ ИСПРАВЛЕНО: Безопасное форматирование адреса с защитой от undefined ответов сервера */
       let safeAddress = String(address || "Ошибка ИИ / Нет связи").replace(/'/g, "\\'").replace(/"/g, '\\"');
       cardElement.innerHTML = cardElement.innerHTML.replace('__address_placeholder__', safeAddress);
     }
@@ -1191,7 +1198,6 @@
       });
     }
 
-    /* 🛡️ ИСПРАВЛЕНО: Аппаратное выключение питания линзы при уходе с вкладки камеры */
     function openTab(tabId, el) {
       if (tabId !== 'scan-tab') {
         if (liveVideoStream) {
@@ -1215,15 +1221,16 @@
       }
     }
 
+    /* 🛡️ ИСПРАВЛЕНО: Полная защита от ввода запятых при загрузке настроек */
     function loadSettings(isSilent) {
       let localRecent = localStorage.getItem('settings_recent_mins'); if (localRecent) appSettings.recentMins = parseInt(localRecent);
       let localDays = localStorage.getItem('settings_days'); if (localDays) appSettings.days = parseInt(localDays);
       let localW = localStorage.getItem('settings_cam_w'); if (localW) appSettings.camW = parseInt(localW);
       let localH = localStorage.getItem('settings_cam_h'); if (localH) appSettings.camH = parseInt(localH);
 
-      let localDurNew = localStorage.getItem('settings_dur_new'); if (localDurNew) appSettings.durNew = parseFloat(localDurNew);
-      let localDurRep = localStorage.getItem('settings_dur_rep'); if (localDurRep) appSettings.durRep = parseFloat(localDurRep);
-      let localDurErr = localStorage.getItem('settings_dur_err'); if (localDurErr) appSettings.durErr = parseFloat(localDurErr);
+      let localDurNew = localStorage.getItem('settings_dur_new'); if (localDurNew) appSettings.durNew = parseFloat(localDurNew.toString().replace(',', '.'));
+      let localDurRep = localStorage.getItem('settings_dur_rep'); if (localDurRep) appSettings.durRep = parseFloat(localDurRep.toString().replace(',', '.'));
+      let localDurErr = localStorage.getItem('settings_dur_err'); if (localDurErr) appSettings.durErr = parseFloat(localDurErr.toString().replace(',', '.'));
 
       document.getElementById('settings-recent-mins').value = appSettings.recentMins; document.getElementById('settings-days').value = appSettings.days;
       document.getElementById('settings-cam-w').value = appSettings.camW; document.getElementById('settings-cam-h').value = appSettings.camH;
@@ -1234,26 +1241,39 @@
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings', sessionId: localStorage.getItem('terminal_session_id') }) })
         .then(r => r.json()).then(res => {
           if (!checkSessionValidity(res)) return;
-          appSettings.durNew = res.durNew; appSettings.durRep = res.durRep; appSettings.durErr = res.durErr;
-          localStorage.setItem('settings_dur_new', res.durNew); localStorage.setItem('terminal_pin_user', '2222'); localStorage.setItem('settings_dur_rep', res.durRep); localStorage.setItem('settings_dur_err', res.durErr);
+          
+          appSettings.durNew = parseFloat(res.durNew.toString().replace(',', '.')) || 0.1;
+          appSettings.durRep = parseFloat(res.durRep.toString().replace(',', '.')) || 0.3;
+          appSettings.durErr = parseFloat(res.durErr.toString().replace(',', '.')) || 0.5;
+          
+          localStorage.setItem('settings_dur_new', appSettings.durNew); 
+          localStorage.setItem('settings_dur_rep', appSettings.durRep); 
+          localStorage.setItem('settings_dur_err', appSettings.durErr);
+          
           if (!isSilent) { 
-            document.getElementById('settings-days').value = res.days; document.getElementById('settings-dur-new').value = res.durNew; document.getElementById('settings-dur-rep').value = res.durRep; document.getElementById('settings-dur-err').value = res.durErr; 
+            document.getElementById('settings-days').value = res.days; 
+            document.getElementById('settings-dur-new').value = appSettings.durNew; 
+            document.getElementById('settings-dur-rep').value = appSettings.durRep; 
+            document.getElementById('settings-dur-err').value = appSettings.durErr; 
           }
           refreshSyncStatusBar();
         }).catch(() => {});
     }
     
+    /* 🛡️ ИСПРАВЛЕНО: Полная защита от ввода запятых при фиксации настроек */
     function saveSettings() {
       let days = document.getElementById('settings-days').value;
-      let dNew = document.getElementById('settings-dur-new').value;
-      let dRep = document.getElementById('settings-dur-rep').value;
-      let dErr = document.getElementById('settings-dur-err').value;
+      let dNew = document.getElementById('settings-dur-new').value.toString().replace(',', '.');
+      let dRep = document.getElementById('settings-dur-rep').value.toString().replace(',', '.');
+      let dErr = document.getElementById('settings-dur-err').value.toString().replace(',', '.');
 
       localStorage.setItem('settings_recent_mins', document.getElementById('settings-recent-mins').value); localStorage.setItem('settings_days', days);
       localStorage.setItem('settings_cam_w', document.getElementById('settings-cam-w').value); localStorage.setItem('settings_cam_h', document.getElementById('settings-cam-h').value);
       localStorage.setItem('settings_dur_new', dNew); localStorage.setItem('settings_dur_rep', dRep); localStorage.setItem('settings_dur_err', dErr);
       
-      appSettings.durNew = parseFloat(dNew); appSettings.durRep = parseFloat(dRep); appSettings.durErr = parseFloat(dErr);
+      appSettings.durNew = parseFloat(dNew) || 0.1; 
+      appSettings.durRep = parseFloat(dRep) || 0.3; 
+      appSettings.durErr = parseFloat(dErr) || 0.5;
       applyLocalUiDimensions();
 
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', days: days, durNew: dNew, durRep: dRep, durErr: dErr, sessionId: localStorage.getItem('terminal_session_id') }) })
