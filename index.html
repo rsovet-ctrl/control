@@ -212,6 +212,15 @@
       100% { transform: rotate(1440deg); }
     }
     .turbine-spin { display: inline-block; animation: spin-turbine 0.8s cubic-bezier(0.55, 0.085, 0.68, 0.53) infinite; }
+ 
+@keyframes spin-turbine {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(1440deg); }
+}
+.turbine-spin { 
+  display: inline-block; 
+  animation: spin-turbine 0.8s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards; 
+}
   </style>
 </head>
 <body>
@@ -290,16 +299,18 @@
   </div>
 
   <div id="settings-tab" class="tab-content">
-    <div class="card" id="settings-lock-card">
-      <h3 id="lock-title" onclick="handleLockTitleClick()" style="cursor:pointer; user-select:none;">🔐 Управление сессией</h3>
-      <button id="logout-btn-ui" class="btn-premium-steel" style="background: linear-gradient(135deg, #f02849 0%, #c01830 100%); padding:14px; box-shadow: 0 4px 12px rgba(240,40,73,0.25);" onclick="exitTerminalSession()">🔒 Завершить смену (Выйти из профиля)</button>
-    </div>
+   <div class="card" id="settings-lock-card">
+  <h3 id="lock-title" onclick="handleLockTitleClick()" style="cursor:pointer; user-select:none;">🔐 Управление сессией</h3>
+  <button id="logout-btn-ui" class="btn-premium-steel" style="background: linear-gradient(135deg, #f02849 0%, #c01830 100%); padding:14px; box-shadow: 0 4px 12px rgba(240,40,73,0.25);" onclick="exitTerminalSession()">🔒 Завершить смену (Выйти из профиля)</button>
+</div>
 
-    <div class="card id-block-geo" id="settings-update-block" style="display:none;">
-      <h3>Контур обновлений PWA</h3>
-      <button id="pwa-refresh-btn" class="btn-premium-steel" style="background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); box-shadow: 0 4px 12px rgba(225,29,72,0.2);" onclick="forceClearPwaCache()">🔄 Принудительно обновить кэш (Сброс версий)</button>
-      <p style="font-size:11px; color:var(--text-sub); margin-top:8px; margin-bottom:0; text-align:center;">Принудительно скачивает чистую копию кода терминала с GitHub.</p>
-    </div>
+<div class="card id-block-geo" id="settings-update-block" style="display:block;">
+  <h3>Контур обновлений PWA</h3>
+  <button id="pwa-refresh-btn" class="btn-premium-steel" style="background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); box-shadow: 0 4px 12px rgba(225,29,72,0.2);" onclick="forceClearPwaCache()">
+    <span id="pwa-icon-spin">🔄</span> <span id="pwa-text-btn">Принудительно обновить кэш (Сброс версий)</span>
+  </button>
+  <p style="font-size:11px; color:var(--text-sub); margin-top:8px; margin-bottom:0; text-align:center;">Принудительно скачивает чистую копию кода терминала с GitHub.</p>
+</div>
 
     <div class="card id-block-geo" id="settings-geo-block" style="display:none;">
       <h3>Геометрия окна трансляции (px)</h3>
@@ -328,16 +339,32 @@
     </div>
   </div>
 
-  <div id="help-tab" class="tab-content">
-    <div class="card">
-      <h3>📖 Инструкция Терминала v8.9.6</h3>
-      <p style="font-size:13.5px; line-height:1.5; margin-bottom:10px;">Система создана для параллельной фиксации автотранспорта на линии несколькими устройствами одновременно без конфликтов сессий.</p>
-      <div class="help-header">1. Персональная авторизация</div>
-      <p class="help-text">Пароли и роли теперь привязаны к строкам устройств на листе USER. Администратор меняет уровни доступа удаленно в реальном времени.</p>
-      <div class="help-header">2. Прямые миниатюры фото</div>
-      <p class="help-text">Лента журнала автоматически на лету адаптирует ссылки Google Диска, подтягивая живые изображения в карточки машин.</p>
-    </div>
-  </div>
+ <div class="card">
+  <h3> Biel-Контур: Полная инструкция Терминала v8.9.6</h3>
+  
+  <div class="help-header">1. Авторизация и Белый Список устройств</div>
+  <p class="help-text">В системе полностью ликвидированы общие пароли. При первом старте нового смартфона приложение отправляет на сервер заявку. Пока администратор не одобрит её, экран намертво блокируется красным щитом 🛑.</p>
+  <p class="help-bullet">🔹 <b>Активация:</b> Управляющий со своего телефона задает новому посту имя, роль и личный 4-значный PIN-код.</p>
+  <p class="help-bullet">🔹 <b>Изоляция сессий:</b> Каждый терминал имеет свой токен на листе USER. Вход одного поста больше не выбивает смену у другого.</p>
+
+  <div class="help-header">2. Световой мониторинг линии (Алгоритмы Б и В)</div>
+  <p class="help-text">В панели администратора левые бортики карточек девайсов окрашиваются автоматически на лету:</p>
+  <p class="help-bullet">🟢 <b>Зелёный цвет:</b> Пост активен, связь свежая, инспектор фиксирует машины.</p>
+  <p class="help-bullet">🟡 <b>Оранжевый цвет:</b> Связь свежая, но сработал Контур Б — телефон находится под щитом ввода PIN (каждые 5 минут шлется бесшумный фоновый пульс блокировки).</p>
+  <p class="help-bullet">⚫ <b>Серый цвет:</b> Сработал Контур В — от устройства нет сигналов более 10 минут (телефон выключен или пропала сеть на АЗС).</p>
+
+  <div class="help-header">3. Аппаратный движок сигналов железа</div>
+  <p class="help-text">Web Audio API синтезирует звуковые волны и вибрацию для контроля линии без взгляда на экран:</p>
+  <p class="help-bullet">🔊 <b>Короткий чистый писк (880 Гц) + щелчок:</b> Новая машина успешно внесена в базу.</p>
+  <p class="help-bullet">🔊 <b>Двойной сигнал (Triangle-волна) + пульс:</b> Обнаружен повторный визит автомобиля за смену.</p>
+  <p class="help-bullet">🔊 <b>Низкая сирена (Sawtooth) + тяжелый удар:</b> Ошибка распознавания или неверный ГОСТ госномера.</p>
+
+  <div class="help-header">4. Автономный буфер IndexedDB (Оффлайн)</div>
+  <p class="help-text">При потере интернета на АЗС фиксации не пропадают. Они мгновенно падают в буфер памяти телефона (статус «Буфер 💾»). Очередь автоматически выгрузится на сервер по цепочке сразу после появления сети. Кнопка отмены снимка доступна на экране в течение 10 секунд.</p>
+  
+  <div class="help-header">5. Потоковый веб-формат медиа-архива</div>
+  <p class="help-text">Все фотографии сохраняются в облачную папку Google Диска. Сервер на лету переводит ссылки в прямой легкий CDN-формат. Это исключает появление черных и битых квадратов в Журнале, позволяя оперативно сверять госномера по живой картинке машины.</p>
+</div>
 
   <div class="premium-bottom-nav">
     <button class="nav-tab-btn active" onclick="openTab('scan-tab', this)">
@@ -356,7 +383,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9.7
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9.8
     </div>
   </div>
 
@@ -382,6 +409,7 @@
     </div>
   </div>
 
+  
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
     const APP_VERSION = "8.9.6"; 
@@ -1103,6 +1131,42 @@ res.devices.forEach(dev => {
       setInterval(executeBackgroundGitHubCheck, 15 * 60 * 1000);
       executeBackgroundGitHubCheck();
     };
+
+
+async function forceClearPwaCache() {
+  let btn = document.getElementById('pwa-refresh-btn');
+  let icon = document.getElementById('pwa-icon-spin');
+  let text = document.getElementById('pwa-text-btn');
+  
+  if (btn && icon && text) {
+    btn.disabled = true;
+    icon.classList.add('turbine-spin'); // Запуск анимации
+    text.innerText = "Перезапись модулей PWA...";
+  }
+  
+  // Жесткое удаление всех хранилищ кэша PWA на смартфоне
+  if ('caches' in window) {
+    const keys = await caches.keys();
+    for (let key of keys) { await caches.delete(key); }
+  }
+  
+  // Полное стирание фонового Service Worker
+  if ('serviceWorker' in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (let registration of registrations) { await registration.unregister(); }
+  }
+  
+  // Пауза 0.8с для демонстрации турбины, затем глубокий перезапуск с обходом кэша
+  setTimeout(() => {
+    window.location.reload(true);
+  }, 800);
+}
+
+function exitTerminalSession() {
+  if (confirm("Завершить рабочую смену? Аппарат будет заблокирован щитом доступа.")) {
+    triggerGlobalSessionLock();
+  }
+}
   </script>
 </body>
 </html>
