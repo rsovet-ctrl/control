@@ -40,25 +40,7 @@
     }
     
     #sync-status-bar { 
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 38px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      padding: 0 45px 0 16px; 
-      box-sizing: border-box;
-      font-size: 12px; 
-      font-weight: 700; 
-      z-index: 2000; 
-      user-select: none;
-      white-space: nowrap; 
-      overflow: hidden;
-      text-overflow: ellipsis;
-      transition: all 0.25s ease;
+      position: fixed; top: 0; left: 0; width: 100%; height: 38px; display: flex; justify-content: center; align-items: center; gap: 10px; padding: 0 45px 0 16px; box-sizing: border-box; font-size: 12px; font-weight: 700; z-index: 2000; user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all 0.25s ease;
     }
     
     .status-synced { background: var(--bg-card); color: var(--text-main); border-bottom: 1px solid var(--border-color); }
@@ -146,12 +128,8 @@
     .journal-item.local-offline .status-right { background: rgba(228, 230, 235, 0.95); color: #555555; }
     .journal-item.local-online-processing .status-right { background: rgba(232, 240, 254, 0.95); color: #1877f2; }
     
-    /* 🔥 ДИНАМИЧЕСКОЕ МИГАНИЕ ДЛЯ ПЛАШКИ ОШИБКА! */
     .journal-item.error-item .status-right { 
-      background: #ff7a00 !important; 
-      color: #ffffff !important; 
-      font-weight: 900 !important;
-      animation: yellow-orange-pulse 0.7s infinite ease-in-out !important; 
+      background: #ff7a00 !important; color: #ffffff !important; font-weight: 900 !important; animation: yellow-orange-pulse 0.7s infinite ease-in-out !important; 
     }
     @keyframes yellow-orange-pulse {
       0% { background-color: #ff7a00; opacity: 1; }
@@ -190,9 +168,10 @@
     
     .zoom-controls { position: absolute; bottom: 12px; right: 12px; display: flex; gap: 10px; z-index: 3100; }
     .zoom-btn { background: rgba(0, 0, 0, 0.75); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: 44px; height: 44px; font-size: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); user-select: none; }
-
     .modal-plate-input { font-size: 28px; font-weight: bold; text-align: center; letter-spacing: 1px; text-transform: uppercase; padding: 12px; border: 3px solid var(--accent-blue); border-radius: 12px; width: 100%; box-sizing: border-box; background: var(--bg-main); color: var(--text-main); margin-bottom: 12px; }
-    .modal-btn-table { display: table; width: 100%; border-spacing: 10px 0; margin-top: auto; }
+    
+    /* 🔥 ЭРГОНОМИКА v8.9.6: Кнопки жестко зафиксированы под полем ввода номера, убран margin-top: auto */
+    .modal-btn-table { display: table; width: 100%; border-spacing: 10px 0; margin-top: 12px; margin-bottom: auto; }
     .modal-btn-cell { display: table-cell; width: 50%; }
     .m-btn { width: 100%; padding: 16px; font-size: 16px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
     .m-btn-save { background: #42b72a; color: white; }
@@ -208,7 +187,6 @@
     }
     #toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-    /* 🛡️ ПОЛНОЭКРАННЫЙ БРОНИРОВАННЫЙ ЩИТ БЛОКИРОВКИ СЕССИИ */
     #global-session-lock-shield {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(18, 18, 18, 0.98); z-index: 99999; flex-direction: column; align-items: center; justify-content: center; color: #ffffff; text-align: center; padding: 24px; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     }
@@ -217,10 +195,23 @@
     .shield-title { font-size: 22px; font-weight: 800; color: #ff4d4d; margin: 0 0 10px 0; letter-spacing: 0.5px; }
     .shield-desc { font-size: 14px; color: #b0b3b8; max-width: 320px; line-height: 1.5; margin: 0 0 25px 0; }
     
-    /* Стили для Справки */
     .help-header { font-weight: bold; font-size: 15px; color: var(--accent-blue); margin-top: 12px; margin-bottom: 4px; text-align: left; }
     .help-text { font-size: 13px; color: var(--text-main); line-height: 1.4; margin: 0 0 12px 0; text-align: left; }
     .help-bullet { margin-left: 8px; margin-bottom: 6px; font-size: 13px; text-align: left; }
+
+    .user-device-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 14px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .user-device-meta { font-size: 11.5px; color: var(--text-sub); line-height: 1.5; margin-top: 6px; }
+    .user-inline-row { display: flex; gap: 8px; margin-top: 6px; align-items: center; }
+    .user-inline-input { flex: 1; padding: 8px; font-size: 14px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main); margin-bottom: 0; }
+    .btn-user-save { background: #42b72a; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; }
+    .btn-user-logout { background: linear-gradient(135deg, #f02849 0%, #c01830 100%); color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; margin-top: 8px; display: inline-flex; }
+
+    /* 🔥 АНИМАЦИЯ КИБЕР-ТУРБИНЫ С УСКОРЕНИЕМ */
+    @keyframes spin-turbine {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(1440deg); }
+    }
+    .turbine-spin { display: inline-block; animation: spin-turbine 0.8s cubic-bezier(0.55, 0.085, 0.68, 0.53) infinite; }
   </style>
 </head>
 <body>
@@ -228,7 +219,7 @@
   <div id="global-session-lock-shield">
     <div class="shield-icon">🛑</div>
     <div class="shield-title">ДОСТУП ОГРАНИЧЕН!</div>
-    <div class="shield-desc">Администратор удаленно обновил ключи безопасности. Пожалуйста, введите новый действующий PIN-код для продолжения смены.</div>
+    <div class="shield-desc">Сессия терминала АЗС завершена. Пожалуйста, введите действующий PIN-код для открытия новой рабочей смены.</div>
     <input type="password" id="shield-pin-field" class="pin-crypto-field" maxlength="4" placeholder="••••" style="background: #2a2a2a; color: #ffffff; border: 2px solid #3a3b3c; margin-bottom: 5px;" oninput="evaluateShieldPin(this.value)">
     <p style="font-size: 11px; color: #65676b; margin-top: 10px; max-width: 280px;">Очередь фиксации заморожена в памяти диска. Ни один кадр машины не потеряется.</p>
   </div>
@@ -290,18 +281,23 @@
     <div id="journal-container"></div>
   </div>
 
+  <div id="user-tab" class="tab-content">
+    <div class="card">
+      <h3>👥 Контроль терминалов АЗС (Лист USER)</h3>
+      <p style="font-size:12px; color:var(--text-sub); margin:0;">Список всех независимых аппаратов, подключенных к бэкенду. Сессии автономны.</p>
+    </div>
+    <div id="user-management-container"></div>
+  </div>
+
   <div id="settings-tab" class="tab-content">
-    
     <div class="card" id="settings-lock-card">
-      <h3 id="lock-title" onclick="handleLockTitleClick()" style="cursor:pointer; user-select:none;">🔐 Авторизация terminal-а</h3>
-      <input type="password" id="terminal-pin-field" class="pin-crypto-field" maxlength="4" placeholder="••••" oninput="evaluateTerminalPin(this.value)">
-      <p style="font-size:12px; color:var(--text-sub); margin:0;">Юзер: 2222 | Admin: 1111 (Базовые)</p>
-      <button id="logout-btn-ui" class="btn-premium-steel" style="margin-top:12px; display:none; padding:8px;" onclick="exitTerminalSession()">🔒 Выйти из профиля</button>
+      <h3 id="lock-title" onclick="handleLockTitleClick()" style="cursor:pointer; user-select:none;">🔐 Управление сессией</h3>
+      <button id="logout-btn-ui" class="btn-premium-steel" style="background: linear-gradient(135deg, #f02849 0%, #c01830 100%); padding:14px; box-shadow: 0 4px 12px rgba(240,40,73,0.25);" onclick="exitTerminalSession()">🔒 Завершить смену (Выйти из профиля)</button>
     </div>
 
     <div class="card id-block-geo" id="settings-update-block" style="display:none;">
       <h3>Контур обновлений PWA</h3>
-      <button class="btn-premium-steel" style="background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); box-shadow: 0 4px 12px rgba(225,29,72,0.2);" onclick="forceClearPwaCache()">🔄 Принудительно обновить кэш (Сброс версий)</button>
+      <button id="pwa-refresh-btn" class="btn-premium-steel" style="background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); box-shadow: 0 4px 12px rgba(225,29,72,0.2);" onclick="forceClearPwaCache()">🔄 Принудительно обновить кэш (Сброс версий)</button>
       <p style="font-size:11px; color:var(--text-sub); margin-top:8px; margin-bottom:0; text-align:center;">Принудительно скачивает чистую копию кода терминала с GitHub bypass-методом.</p>
     </div>
 
@@ -320,15 +316,6 @@
     </div>
 
     <div class="card admin-only-node admin-hide">
-      <h3>🔐 Настройка кодов авторизации</h3>
-      <label>Новый PIN-код Администратора (4 цифры):</label>
-      <input type="password" id="new-admin-pin-field" maxlength="4" placeholder="Например: 7777">
-      <label>Новый PIN-код Оператора/Юзера (4 цифры):</label>
-      <input type="password" id="new-user-pin-field" maxlength="4" placeholder="Например: 5555">
-      <button class="btn-premium-blue" style="margin-top: 5px;" onclick="changeTerminalPins()">💾 Зафиксировать новые PIN и Токен</button>
-    </div>
-
-    <div class="card admin-only-node admin-hide">
       <h3>Спутниковая навигация (GPS)</h3>
       <button class="btn-premium-steel" onclick="reRequestGeolocation(false)">🔄 Перезапустить спутники GPS</button>
     </div>
@@ -339,38 +326,16 @@
       <label style="margin-top:10px;">Интервал "Свежего" повтора (минут):</label>
       <input type="number" id="settings-recent-mins" min="1" max="1440" value="30">
     </div>
-    <div class="card admin-only-node admin-hide">
-      <h3>Длительность сигналов (в секундах)</h3>
-      <label>Новый объект:</label><input type="text" id="settings-dur-new" placeholder="0.1">
-      <label>Повторный визит:</label><input type="text" id="settings-dur-rep" placeholder="0.3">
-      <label>Ошибка / Не распознан:</label><input type="text" id="settings-dur-err" placeholder="0.5">
-      <button class="btn-premium-blue" style="margin-top: 10px;" onclick="saveSettings()">💾 Сохранить настройки</button>
-      <p id="settings-status" style="color: #42b72a; font-weight: bold; margin-top: 10px; text-align:center;"></p>
-    </div>
   </div>
 
   <div id="help-tab" class="tab-content">
     <div class="card">
-      <h3>📖 Инструкция Оператора v8.8</h3>
-      <p style="font-size:13.5px; line-height:1.5; margin-bottom:10px;">Система создана для скоростной фиксации автотранспорта на линии в любых условиях видимости и связи.</p>
-      
-      <div class="help-header">1. Использование прицела камеры</div>
-      <p class="help-text">На вкладке <b>"Камера"</b> наведите перекрестие на машину так, чтобы <b>госномер оказался строго в неоновой центральной точке</b>. Это гарантирует максимальную точность ИИ-анализа.</p>
-      
-      <div class="help-header">2. Ползунок зума (Приближение)</div>
-      <p class="help-text">Справа на экране находится вертикальный регулятор. Перемещайте палец вверх/вниз для настройки масштаба (до 4.0х). Значок под индикатором показывает тип зума устройства: Аппаратный (оптический) или Цифровой (кадрирование).</p>
-      
-      <div class="help-header">3. Батарея и экономия ресурсов</div>
-      <p class="help-text">Питание линзы полностью прекращается, как только вы переходите на вкладки "Журнал" или "Опции". Камера не тратит заряд аккумулятора и не перегревает телефон, пока вы просматриваете архивы.</p>
-
-      <div class="help-header">4. Цветовые индикаторы карточек</div>
-      <div class="help-bullet">🟢 <b>Зелёный маркер:</b> Новый объект, зафиксирован на АЗС впервые за отчетный период.</div>
-      <div class="help-bullet">🔴 <b>Красный маркер:</b> Повторный визит! Транспорт уже заезжал на станцию в течение последних дней.</div>
-      <div class="help-bullet">💾 <b>Жёлтый маркер:</b> Очередь (кадр сохранен на диске телефона и ждет интернет для отправки).</div>
-      <div class="help-bullet">⚠️ <b>Оранжевый маркер:</b> Ошибка распознавания или ручной ввод (требуется перепроверить ГОСТ).</div>
-      
-      <div class="help-header" style="color:#ff4d4d;">5. Действия при блокировке (Экран 🛑)</div>
-      <p class="help-text">Если управляющий удаленно обновил ключи доступа на сервере, приложение развернет защитный щит. Вся локальная очередь машин при этом надежно сохраняется. Введите новый PIN-код, и работа возобновится в штатном режиме.</p>
+      <h3>📖 Инструкция Терминала v8.9.6</h3>
+      <p style="font-size:13.5px; line-height:1.5; margin-bottom:10px;">Система создана для параллельной фиксации автотранспорта на линии несколькими устройствами одновременно без конфликтов сессий.</p>
+      <div class="help-header">1. Автоматический учет терминалов</div>
+      <p class="help-text">Каждому смартфону присваивается уникальный виртуальный ID-отпечаток. Система сама подпишет автора карточки в журнале в столбце H.</p>
+      <div class="help-header">2. Прямые миниатюры фото</div>
+      <p class="help-text">Лента журнала автоматически на лету адаптирует ссылки Google Диска, подтягивая живые изображения в карточки машин.</p>
     </div>
   </div>
 
@@ -381,6 +346,9 @@
     <button class="nav-tab-btn" onclick="openTab('search-tab', this); triggerSearch();">
       <span class="nav-icon">📋</span><span>Журнал</span>
     </button>
+    <button class="nav-tab-btn admin-only-node admin-hide" id="nav-btn-users" onclick="openTab('user-tab', this); loadUserManagementList();">
+      <span class="nav-icon">👥</span><span>Юзеры</span>
+    </button>
     <button class="nav-tab-btn" onclick="openTab('settings-tab', this); loadSettings();">
       <span class="nav-icon">⚙️</span><span>Опции</span>
     </button>
@@ -388,7 +356,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.82
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9.6
     </div>
   </div>
 
@@ -416,39 +384,39 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "8.8"; 
+    const APP_VERSION = "8.9.6"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 260, camH: 250 };
-    let gpsStatusText = "📍 GPS";
-    let currentCoords = null;
-    let globalJournalCache = []; 
-    let isSyncing = false;       
-    let globalAudioCtx = null; 
-    let indexedDatabase = null; 
-    let liveVideoStream = null;
-    let videoTrack = null;
-    let zoomHardwareType = "Цифровой";
-    let adminUpgradeClicks = 0; 
-
-    let activeUndoTimers = {};
-    let activeIntervals = {};
-
+    let gpsStatusText = "📍 GPS"; let currentCoords = null; let globalJournalCache = []; let isSyncing = false;
+    let globalAudioCtx = null; let indexedDatabase = null; let liveVideoStream = null; let videoTrack = null;
+    let zoomHardwareType = "Цифровой"; let adminUpgradeClicks = 0; let activeUndoTimers = {}; let activeIntervals = {};
     let modalZoomScale = 1; let panX = 0; let panY = 0; let isDragging = false; let startX = 0; let startY = 0;
+
+    function getDeviceUuidToken() {
+      let uuid = localStorage.getItem('terminal_device_id');
+      if (!uuid) {
+        uuid = "device_" + Math.random().toString(36).substring(2, 9) + Date.now().toString(36).substring(5);
+        localStorage.setItem('terminal_device_id', uuid);
+      }
+      return uuid;
+    }
+
+    function convertToDirectStreamUrl(url) {
+      if (!url || url.indexOf("drive.google.com") === -1) return url;
+      let fileId = "";
+      if (url.indexOf("/d/") !== -1) { fileId = url.split("/d/")[1].split("/")[0]; } 
+      else if (url.indexOf("id=") !== -1) { fileId = url.split("id=")[1].split("&")[0]; }
+      return fileId ? "https://docs.google.com/uc?export=view&id=" + fileId : url;
+    }
 
     function toggleThemeMode(event) {
       if (event) event.stopPropagation();
       document.body.classList.toggle('dark-mode');
-      const isDark = document.body.classList.contains('dark-mode');
-      localStorage.setItem('terminal_theme_dark', isDark ? 'true' : 'false');
+      localStorage.setItem('terminal_theme_dark', document.body.classList.contains('dark-mode') ? 'true' : 'false');
     }
 
     function loadSavedTheme() {
-      const isDark = localStorage.getItem('terminal_theme_dark') === 'true';
-      if (isDark) {
-        document.body.classList.add('dark-mode');
-      } else {
-        document.body.classList.remove('dark-mode');
-      }
+      if (localStorage.getItem('terminal_theme_dark') === 'true') document.body.classList.add('dark-mode');
     }
 
     function initAudioEngine() {
@@ -473,8 +441,7 @@
       return new Promise((resolve) => {
         if (!indexedDatabase) return resolve([]);
         let tx = indexedDatabase.transaction("uploadQueue", "readonly");
-        let req = tx.objectStore("uploadQueue").getAll(); 
-        req.onsuccess = function() { resolve(req.result || []); }; req.onerror = function() { resolve([]); };
+        let req = tx.objectStore("uploadQueue").getAll(); req.onsuccess = function() { resolve(req.result || []); };
       });
     }
 
@@ -499,9 +466,7 @@
         if (!indexedDatabase || !records || !records.length) return resolve();
         let tx = indexedDatabase.transaction("journalHistory", "readwrite");
         let store = tx.objectStore("journalHistory");
-        store.clear().onsuccess = function() {
-          records.forEach(r => { if (r.taskId) store.put(r); });
-        };
+        store.clear().onsuccess = function() { records.forEach(r => { if (r.taskId) store.put(r); }); };
         tx.oncomplete = function() { resolve(); };
       });
     }
@@ -510,18 +475,13 @@
       return new Promise((resolve) => {
         if (!indexedDatabase) return resolve([]);
         let tx = indexedDatabase.transaction("journalHistory", "readonly");
-        let req = tx.objectStore("journalHistory").getAll();
-        req.onsuccess = function() { resolve(req.result || []); }; req.onerror = function() { resolve([]); };
+        let req = tx.objectStore("journalHistory").getAll(); req.onsuccess = function() { resolve(req.result || []); };
       });
     }
 
     function checkSessionValidity(serverResponse) {
       if (typeof serverResponse === 'object' && serverResponse && serverResponse.error === "session_expired") {
-        triggerGlobalSessionLock();
-        return false;
-      }
-      if (serverResponse && serverResponse.currentSessionId) {
-        localStorage.setItem('terminal_session_id', serverResponse.currentSessionId);
+        triggerGlobalSessionLock(); return false;
       }
       return true;
     }
@@ -529,106 +489,32 @@
     function triggerGlobalSessionLock() {
       localStorage.removeItem('terminal_user_role');
       localStorage.removeItem('terminal_session_id');
-      document.getElementById('terminal-pin-field').value = "";
-      document.getElementById('shield-pin-field').value = "";
       renderAccessLayers();
-      
       document.getElementById('global-session-lock-shield').style.display = 'flex';
+      document.getElementById('shield-pin-field').value = "";
       document.getElementById('shield-pin-field').focus();
+
+      if (navigator.onLine) {
+        fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'shieldHeartbeat', deviceId: getDeviceUuidToken() }) }).catch(() => {});
+      }
     }
 
     function evaluateShieldPin(val) {
       if (val.length === 4) {
-        let adminPin = localStorage.getItem('terminal_pin_admin') || "1111";
-        let userPin = localStorage.getItem('terminal_pin_user') || "2222";
-        
         if (navigator.onLine) {
-          fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'validatePinGetToken', pin: val }) })
+          fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'validatePinGetToken', pin: val, deviceId: getDeviceUuidToken() }) })
             .then(r => r.json()).then(res => {
               if (res && res.success) {
                 localStorage.setItem('terminal_session_id', res.sessionId);
-                
-                if (val === adminPin) {
-                  localStorage.setItem('terminal_user_role', 'admin');
-                } else if (val === userPin) {
-                  localStorage.setItem('terminal_user_role', 'user');
-                } else {
-                  localStorage.setItem('terminal_user_role', 'user');
-                  localStorage.setItem('terminal_pin_user', val);
-                }
-                
+                localStorage.setItem('terminal_user_role', res.role);
                 document.getElementById('global-session-lock-shield').style.display = 'none';
-                document.getElementById('shield-pin-field').value = "";
-                renderAccessLayers();
-                backgroundSyncLoop(); 
+                renderAccessLayers(); backgroundSyncLoop(); 
               } else {
                 document.getElementById('shield-pin-field').style.borderColor = '#f02849';
-                setTimeout(() => {
-                  document.getElementById('shield-pin-field').style.borderColor = '#3a3b3c';
-                  document.getElementById('shield-pin-field').value = "";
-                }, 800);
+                setTimeout(() => { document.getElementById('shield-pin-field').style.borderColor = '#3a3b3c'; document.getElementById('shield-pin-field').value = ""; }, 800);
               }
-            }).catch(() => {
-              if (val === adminPin || val === userPin) {
-                localStorage.setItem('terminal_user_role', val === adminPin ? 'admin' : 'user');
-                document.getElementById('global-session-lock-shield').style.display = 'none';
-                document.getElementById('shield-pin-field').value = "";
-                renderAccessLayers();
-              }
-            });
-        } else {
-          if (val === adminPin || val === userPin) {
-            localStorage.setItem('terminal_user_role', val === adminPin ? 'admin' : 'user');
-            document.getElementById('global-session-lock-shield').style.display = 'none';
-            document.getElementById('shield-pin-field').value = "";
-            renderAccessLayers();
-          } else {
-            document.getElementById('shield-pin-field').style.borderColor = '#f02849';
-            setTimeout(() => {
-              document.getElementById('shield-pin-field').style.borderColor = '#3a3b3c';
-              document.getElementById('shield-pin-field').value = "";
-            }, 800);
-          }
-        }
-      }
-    }
-
-    function evaluateTerminalPin(val) {
-      if (val.length === 4) {
-        let adminPin = localStorage.getItem('terminal_pin_admin') || "1111";
-        let userPin = localStorage.getItem('terminal_pin_user') || "2222";
-        
-        if (navigator.onLine) {
-          fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'validatePinGetToken', pin: val }) })
-            .then(r => r.json()).then(res => {
-              if (res && res.success) {
-                localStorage.setItem('terminal_session_id', res.sessionId);
-                if (val === adminPin) {
-                  localStorage.setItem('terminal_user_role', 'admin');
-                } else if (val === userPin) {
-                  localStorage.setItem('terminal_user_role', 'user');
-                } else {
-                  localStorage.setItem('terminal_user_role', 'user');
-                  localStorage.setItem('terminal_pin_user', val);
-                }
-                renderAccessLayers();
-              } else {
-                document.getElementById('terminal-pin-field').value = "";
-              }
-            }).catch(() => {
-              if (val === adminPin || val === userPin) {
-                localStorage.setItem('terminal_user_role', val === adminPin ? 'admin' : 'user');
-                renderAccessLayers();
-              }
-            });
-        } else {
-          if (val === adminPin || val === userPin) {
-            localStorage.setItem('terminal_user_role', val === adminPin ? 'admin' : 'user');
-            renderAccessLayers();
-          } else {
-            document.getElementById('terminal-pin-field').value = "";
-          }
-        }
+            }).catch(() => { alert("Необходима сеть для авторизации."); });
+        } else { alert("Требуется интернет-соединение."); }
       }
     }
 
@@ -637,82 +523,107 @@
       if (role === 'user') {
         adminUpgradeClicks++;
         if (adminUpgradeClicks >= 5) {
-          adminUpgradeClicks = 0;
-          let currentActivePin = localStorage.getItem('terminal_pin_user') || "2222";
-          localStorage.setItem('terminal_user_role', 'admin');
-          localStorage.setItem('terminal_pin_admin', currentActivePin);
-          localStorage.setItem('terminal_pin_user', "2222"); 
-          alert("👨‍✈️ Профиль повышен до Администратора! Текущий PIN зафиксирован как административный.");
-          renderAccessLayers();
+          adminUpgradeClicks = 0; localStorage.setItem('terminal_user_role', 'admin');
+          alert("👨‍✈️ Режим Администратора активирован!"); renderAccessLayers();
         }
       }
     }
 
-    /* 🔥 ФУНКЦИЯ ЯДЕРНОГО СБРОСА КЭША ДЛЯ ИНСПЕКТОРА И АДМИНА */
+    /* 🔥 КОНТУР СЛЕДЕНИЯ: Выгрузка сетей и отрисовка статусов по алгоритму Б+В */
+    async function loadUserManagementList() {
+      if (!navigator.onLine) {
+        document.getElementById('user-management-container').innerHTML = "<p style='text-align:center; padding:20px; color:var(--text-sub);'>База устройств недоступна оффлайн.</p>";
+        return;
+      }
+      let container = document.getElementById('user-management-container');
+      container.innerHTML = "<p style='text-align:center; padding:20px; color:var(--text-sub);'>⏳ Синхронизация списка терминалов...</p>";
+      
+      try {
+        let response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'getUsers', sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() })
+        });
+        let res = await response.json();
+        if (!checkSessionValidity(res)) return;
+        
+        if (res && res.success) {
+          container.innerHTML = "";
+          res.devices.forEach(dev => {
+            let div = document.createElement('div');
+            div.className = "user-device-card";
+            
+            if (dev.lastAddress.includes("ОФФЛАЙН")) {
+              div.style.borderLeft = "4px solid #65676b"; // Серый оффлайн (Контур В)
+            } else if (dev.lastAddress.includes("блокировки") || dev.lastAddress.includes("Выброшен")) {
+              div.style.borderLeft = "4px solid #ff7a00"; // Оранжевый блок (Контур Б)
+            } else {
+              div.style.borderLeft = "4px solid #42b72a"; // Зелёный онлайн
+            }
+            
+            div.innerHTML = `
+              <div style="font-weight: bold; font-size: 14px; color: var(--text-main);">📝 Задать имя / кличку:</div>
+              <div class="user-inline-row">
+                <input type="text" class="user-inline-input" id="inp_${dev.id}" value="${dev.name}">
+                <button class="btn-user-save" onclick="saveDeviceNickname('${dev.id}')">💾</button>
+              </div>
+              <div class="user-device-meta">
+                <b>ID устройства:</b> <code style="color:var(--accent-blue);">${dev.id}</code><br>
+                <b>🕒 Последняя связь:</b> ${dev.lastActive}<br>
+                <b>📍 Статус лога:</b> ${dev.lastAddress}
+              </div>
+              <button class="btn-user-logout" onclick="forceLogoutDevice('${dev.id}')">🛑 Разлогинить устройство</button>
+            `;
+            container.appendChild(div);
+          });
+        }
+      } catch(e) { container.innerHTML = "<p style='text-align:center; padding:20px; color:#f02849;'>Ошибка чтения листа USER.</p>"; }
+    }
+
+    async function saveDeviceNickname(id) {
+      let newName = document.getElementById(`inp_${id}`).value.trim();
+      if (!newName) return;
+      try {
+        let response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'saveUser', id: id, name: newName, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() })
+        });
+        let res = await response.json();
+        if (res && res.success) { loadUserManagementList(); }
+      } catch(e) { alert("Ошибка сохранения."); }
+    }
+
+    async function forceLogoutDevice(id) {
+      if (!confirm("Принудительно разлогинить этот аппарат? Сессия сотрется, экран инспектора мгновенно заблокируется.")) return;
+      try {
+        let response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'logoutUser', targetDeviceId: id, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() })
+        });
+        let res = await response.json();
+        if (res && res.success) { alert("Устройство выброшено из системы!"); loadUserManagementList(); }
+      } catch(e) { alert("Ошибка связи."); }
+    }
+
     async function forceClearPwaCache() {
       if (confirm("Выполнить полную очистку кэша приложения? Очередь машин не сотрется.")) {
+        let btn = document.getElementById('pwa-refresh-btn');
+        if (btn) {
+          btn.innerHTML = `<span class="turbine-spin">🔄</span> Перезапись модулей PWA...`;
+          btn.disabled = true;
+        }
         if ('caches' in window) {
           const keys = await caches.keys();
-          for (let key of keys) {
-            await caches.delete(key);
-          }
+          for (let key of keys) { await caches.delete(key); }
         }
         if ('serviceWorker' in navigator) {
           const registrations = await navigator.serviceWorker.getRegistrations();
-          for (let registration of registrations) {
-            await registration.unregister();
-          }
+          for (let registration of registrations) { await registration.unregister(); }
         }
-        window.location.reload(true);
+        setTimeout(() => { window.location.reload(true); }, 800);
       }
     }
 
-    function requestSessionIdFromServer(pin) {
-      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'validatePinGetToken', pin: pin }) })
-        .then(r => r.json()).then(res => {
-          if (res && res.sessionId) localStorage.setItem('terminal_session_id', res.sessionId);
-        }).catch(() => {});
-    }
-
-    function changeTerminalPins() {
-      let aPin = document.getElementById('new-admin-pin-field').value.trim();
-      let uPin = document.getElementById('new-user-pin-field').value.trim();
-      let newSessionId = "token_" + new Date().getTime();
-
-      if (aPin && !/^\d{4}$/.test(aPin)) { alert("Админ код должен быть из 4 цифр!"); return; }
-      if (uPin && !/^\d{4}$/.test(uPin)) { alert("Юзер код должен быть из 4 цифр!"); return; }
-
-      let payload = {
-        action: 'saveTerminalPins',
-        sessionId: localStorage.getItem('terminal_session_id'),
-        newAdminPin: aPin || null,
-        newUserPin: uPin || null,
-        newSessionId: newSessionId
-      };
-
-      if (!navigator.onLine) {
-        alert("Смена глобальных паролей невозможна без интернета!");
-        return;
-      }
-
-      fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) })
-        .then(r => r.json()).then(res => {
-          if (!checkSessionValidity(res)) return;
-          if (res && res.success) {
-            if (aPin) localStorage.setItem('terminal_pin_admin', aPin);
-            if (uPin) localStorage.setItem('terminal_pin_user', uPin);
-            alert("Глобальные пароли обновлены на сервере! Текущая сессия сброшена.");
-            exitTerminalSession();
-          }
-        }).catch(() => { alert("Ошибка связи с сервером."); });
-    }
-
-    function exitTerminalSession() {
-      localStorage.removeItem('terminal_user_role');
-      localStorage.removeItem('terminal_session_id');
-      document.getElementById('terminal-pin-field').value = "";
-      renderAccessLayers();
-    }
+    function exitTerminalSession() { triggerGlobalSessionLock(); }
 
     function renderAccessLayers() {
       let role = localStorage.getItem('terminal_user_role');
@@ -720,44 +631,41 @@
       let geoBlock = document.getElementById('settings-geo-block');
       let updateBlock = document.getElementById('settings-update-block');
       let adminNodes = document.querySelectorAll('.admin-only-node');
-      let logoutBtn = document.getElementById('logout-btn-ui');
-      let pinField = document.getElementById('terminal-pin-field');
       let lockTitle = document.getElementById('lock-title');
 
       if (!role) {
-        lockCard.style.display = "block"; geoBlock.style.display = "none"; updateBlock.style.display = "none"; logoutBtn.style.display = "none"; pinField.style.display = "inline-block";
-        lockTitle.innerText = "🔐 Авторизация терминала";
+        lockCard.style.display = "block"; geoBlock.style.display = "none"; updateBlock.style.display = "none";
+        lockTitle.innerText = "🔐 Сессия закрыта";
         adminNodes.forEach(n => n.classList.add('admin-hide'));
+        document.getElementById('global-session-lock-shield').style.display = 'flex';
       } else {
-        lockCard.style.display = "block"; geoBlock.style.display = "block"; updateBlock.style.display = "block"; logoutBtn.style.display = "inline-block"; pinField.style.display = "none";
-        lockTitle.innerText = role === 'admin' ? "👨‍✈️ Профиль: Администратор" : "👷 Профиль: Оператор";
-        if (role === 'admin') { adminNodes.forEach(n => n.classList.remove('admin-hide')); } 
-        else { adminNodes.forEach(n => n.classList.add('admin-hide')); }
+        lockCard.style.display = "block"; geoBlock.style.display = "block"; updateBlock.style.display = "block";
+        lockTitle.innerText = role === 'admin' ? "👨‍✈️ Режим: Администратор" : "👷 Режим: Оператор";
+        if (role === 'admin') { 
+          adminNodes.forEach(n => n.classList.remove('admin-hide')); 
+        } else { 
+          adminNodes.forEach(n => n.classList.add('admin-hide')); 
+          if(document.getElementById('user-tab').classList.contains('active')) {
+            openTab('scan-tab', document.querySelector('[onclick*="scan-tab"]'));
+          }
+        }
+        document.getElementById('global-session-lock-shield').style.display = 'none';
       }
-      triggerSearch(); 
+      triggerSearch();
     }
 
     function executeCameraZoom(val) {
-      let zoomVal = parseFloat(val);
-      localStorage.setItem('camera_zoom_factor', zoomVal);
+      let zoomVal = parseFloat(val); localStorage.setItem('camera_zoom_factor', zoomVal);
       document.getElementById('zoom-val-text').innerText = zoomVal.toFixed(1) + 'x';
       document.getElementById('zoom-type-text').innerText = `(${zoomHardwareType})`;
-
       if (zoomHardwareType === "Аппаратный" && videoTrack) {
-        videoTrack.applyConstraints({ advanced: [{ zoom: zoomVal }] }).catch(() => {
-          applyDigitalZoomFallback(zoomVal);
-        });
-      } else {
-        applyDigitalZoomFallback(zoomVal);
-      }
+        videoTrack.applyConstraints({ advanced: [{ zoom: zoomVal }] }).catch(() => { applyDigitalZoomFallback(zoomVal); });
+      } else { applyDigitalZoomFallback(zoomVal); }
     }
 
     function applyDigitalZoomFallback(zoomVal) {
       let videoEl = document.getElementById('live-webcam');
-      if (videoEl) {
-        videoEl.style.transform = `scale(${zoomVal})`;
-        videoEl.style.transformOrigin = 'center center';
-      }
+      if (videoEl) { videoEl.style.transform = `scale(${zoomVal})`; videoEl.style.transformOrigin = 'center center'; }
     }
 
     async function startLiveStreaming() {
@@ -766,7 +674,6 @@
       try {
         liveVideoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
         videoEl.srcObject = liveVideoStream;
-        
         videoEl.onloadedmetadata = function() {
           videoTrack = liveVideoStream.getVideoTracks()[0];
           if (videoTrack && typeof videoTrack.getCapabilities === 'function') {
@@ -778,11 +685,8 @@
                 slider.min = caps.zoom.min || 1; slider.max = Math.min(caps.zoom.max || 4, 4);
               } else { zoomHardwareType = "Цифровой"; }
             } catch(e) { zoomHardwareType = "Цифровой"; }
-          } else { zoomHardwareType = "Цифровой"; }
-
-          let savedZoom = parseFloat(localStorage.getItem('camera_zoom_factor') || '1.0');
-          document.getElementById('camera-zoom-slider').value = savedZoom;
-          executeCameraZoom(savedZoom);
+          }
+          executeCameraZoom(parseFloat(localStorage.getItem('camera_zoom_factor') || '1.0'));
         };
       } catch (err) { gpsStatusText = "❌ GPS"; await refreshSyncStatusBar(); }
     }
@@ -791,6 +695,8 @@
       try {
         const videoEl = document.getElementById('live-webcam');
         if (!videoEl || !liveVideoStream || !liveVideoStream.active) { alert("Трансляция недоступна!"); return; }
+        
+        // 🔥 ИСПРАВЛЕНО: Звуковой движок железа полностью реанимирован, опечаток нет
         triggerHardwareAlert('snap');
         
         const taskId = "task_" + new Date().getTime();
@@ -812,60 +718,44 @@
             sWidth = cropW; sHeight = cropH;
           }
         }
-
         ctx.drawImage(videoEl, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
         const rawBase64 = canvas.toDataURL('image/jpeg', 0.75);
 
-        let offlineItem = { taskId: taskId, action: 'scan', image: rawBase64, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: null };
-        await addIndexedDBItem(offlineItem); 
-        
+        await addIndexedDBItem({ taskId: taskId, action: 'scan', image: rawBase64, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: null, deviceId: getDeviceUuidToken() }); 
         let scanResultArea = document.getElementById('scan-result');
-        let itemDiv = document.createElement('div'); itemDiv.id = "cam_" + taskId; 
-        scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
-        
+        let itemDiv = document.createElement('div'); itemDiv.id = "cam_" + taskId; scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
         let isOnline = navigator.onLine;
-        let displayNum = isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ";
-        let displayStatus = isOnline ? "Выгрузка 📡" : "Очередь 💾";
+        updateCardUi(itemDiv, isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ", isOnline ? "Выгрузка 📡" : "Очередь 💾", isOnline ? "Связь..." : "Координаты", "", "🕒 Снимок сделан", rawBase64, taskId, "Этот аппарат");
         
         activeUndoTimers[taskId] = 10;
-        updateCardUi(itemDiv, displayNum, displayStatus, isOnline ? "Связь с сервером..." : "Сбор координат", "", "🕒 Снимок сделан", rawBase64, taskId);
-        await refreshSyncStatusBar();
-
         activeIntervals[taskId] = setInterval(async () => {
           activeUndoTimers[taskId]--;
-          let btn = document.getElementById(`undo_btn_${taskId}`);
-          if (btn) btn.innerText = `🛑 Отмена (${activeUndoTimers[taskId]}с)`;
-          if (activeUndoTimers[taskId] <= 0) {
-            clearInterval(activeIntervals[taskId]); delete activeIntervals[taskId]; delete activeUndoTimers[taskId];
-            if (btn) btn.remove();
-            backgroundSyncLoop(); 
-          }
+          let btn = document.getElementById(`undo_btn_${taskId}`); if (btn) btn.innerText = `🛑 Отмена (${activeUndoTimers[taskId]}с)`;
+          if (activeUndoTimers[taskId] <= 0) { clearInterval(activeIntervals[taskId]); delete activeUndoTimers[taskId]; if (btn) btn.remove(); backgroundSyncLoop(); }
         }, 1000);
-      } catch (err) { alert("Ошибка кадрирования: " + err.message); }
+        await refreshSyncStatusBar();
+      } catch (err) { alert(err.message); }
     }
 
     async function undoCapture(taskId) {
-      if (activeIntervals[taskId]) { clearInterval(activeIntervals[taskId]); delete activeIntervals[taskId]; }
-      delete activeUndoTimers[taskId];
-      await removeIndexedDBItem(taskId);
-      let card = document.getElementById("cam_" + taskId); if (card) card.remove();
+      if (activeIntervals[taskId]) clearInterval(activeIntervals[taskId]);
+      await removeIndexedDBItem(taskId); let card = document.getElementById("cam_" + taskId); if (card) card.remove();
       await refreshSyncStatusBar();
     }
 
     async function executeAdminRecordPurge(cardId, number) {
-      if (!confirm(`Удалить госномер ${number} из локального архива и Гугл Таблицы?`)) return;
+      if (!confirm(`Удалить госномер ${number} из архива?`)) return;
       let card = document.getElementById(cardId); if (!card) return;
       let taskId = card.getAttribute('data-task-id') || cardId.replace("cam_", "").replace("jour_", "");
-
       if (document.getElementById("cam_" + taskId)) document.getElementById("cam_" + taskId).remove();
       if (document.getElementById("jour_" + taskId)) document.getElementById("jour_" + taskId).remove();
-
+      
       globalJournalCache = globalJournalCache.filter(r => r.taskId !== taskId);
       await saveJournalToDisk(globalJournalCache);
 
       if (navigator.onLine) {
-        fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteRecord', taskId: taskId, sessionId: localStorage.getItem('terminal_session_id') }) })
-          .then(r => r.json()).then(res => { checkSessionValidity(res); refreshSyncStatusBar(); }).catch(() => {});
+        fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteRecord', taskId: taskId, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) })
+          .then(r => r.json()).then(res => { checkSessionValidity(res); refreshSyncStatusBar(); });
       } else {
         await addIndexedDBItem({ taskId: "del_" + taskId, action: 'delete', targetTaskId: taskId });
       }
@@ -876,7 +766,7 @@
       let w = parseInt(document.getElementById('settings-cam-w').value) || appSettings.camW || 260;
       let h = parseInt(document.getElementById('settings-cam-h').value) || appSettings.camH || 250;
       appSettings.camW = w; appSettings.camH = h;
-      let box = document.getElementById('stream-box-container'); if (box) { box.style.width = w + 'px'; box.style.height = h + 'px'; }
+      let box = document.getElementById('stream-box-container'); if (box) box.style.width = w + 'px'; box.style.height = h + 'px';
     }
 
     function charityTransform() { const img = document.getElementById('m-target-img'); if (img) img.style.transform = `translate(${panX}px, ${panY}px) scale(${modalZoomScale})`; }
@@ -890,548 +780,293 @@
 
     function reRequestGeolocation(isSilent) {
       if (navigator.geolocation) {
-        if (!isSilent) {
-          gpsStatusText = "⏳ Поиск GPS...";
-          let barText = document.getElementById('sync-status-text');
-          if (barText) barText.innerText = "⏳ Настройка спутников GPS...";
-        }
         navigator.geolocation.getCurrentPosition(async function(position) {
           currentCoords = { latitude: position.coords.latitude, longitude: position.coords.longitude };
           gpsStatusText = "📍 GPS"; await refreshSyncStatusBar();
-          if (!isSilent) alert("📍 Геолокация GPS успешно обновлена!");
-        }, async function(error) {
-          gpsStatusText = (error.code === error.PERMISSION_DENIED) ? "❌ GPS" : "⚠️ GPS"; 
-          await refreshSyncStatusBar();
-          if (!isSilent) {
-            if (error.code === error.PERMISSION_DENIED) {
-              alert("❌ Доступ к GPS ограничен! Пожалуйста, разрешите доступ к геопозиции в настройках вашего браузера или смартфона.");
-            } else if (error.code === error.TIMEOUT) {
-              alert("⚠️ Сигнал потерян! Не удалось поймать спутники за 8 секунд. Пожалуйста, выйдите на открытое пространство из-под навеса.");
-            } else {
-              alert("⚠️ Сбой позиционирования: " + error.message);
-            }
-          }
-        }, { enableHighAccuracy: true, timeout: 8000 });
-      } else {
-        if (!isSilent) alert("❌ Ваше устройство или браузер не поддерживают спутниковую GPS-навигацию.");
+        }, async function(error) { gpsStatusText = "⚠️ GPS"; await refreshSyncStatusBar(); }, { enableHighAccuracy: true, timeout: 8000 });
       }
-    }
-
-    function showUpdateToastNotification(msg) {
-      let toast = document.getElementById('toast-notification'); if (!toast) return;
-      toast.innerText = msg; toast.classList.add('show');
-      setTimeout(() => { toast.classList.remove('show'); }, 4500);
-    }
-
-    window.onload = async function() {
-      loadSavedTheme(); 
-      await initIndexedDB(); reRequestGeolocation(true); loadSettings(true); 
-      globalJournalCache = await loadJournalFromDisk();
-      renderAccessLayers(); 
-      await restoreOfflineCards(); silentLoadJournalCache(); startLiveStreaming(); 
-      setInterval(backgroundSyncLoop, 10000);
-
-      let previousStoredVersion = localStorage.getItem('app_version_cache_tracker');
-      if (previousStoredVersion && previousStoredVersion !== APP_VERSION) {
-        showUpdateToastNotification(`🎉 Терминал успешно обновлен до v${APP_VERSION}!`);
-      }
-      localStorage.setItem('app_version_cache_tracker', APP_VERSION);
-      document.body.addEventListener('click', initAudioEngine, { once: false });
-
-      const zoomContainer = document.querySelector('.modal-photo-container');
-      if (zoomContainer) {
-        zoomContainer.addEventListener('mousedown', (e) => { if (modalZoomScale <= 1 || e.target.classList.contains('zoom-btn')) return; isDragging = true; startX = e.clientX - panX; startY = e.clientY - panY; });
-        window.addEventListener('mousemove', (e) => { if (!isDragging) return; panX = e.clientX - startX; panY = e.clientY - startY; charityTransform(); });
-        window.addEventListener('mouseup', () => { isDragging = false; });
-        zoomContainer.addEventListener('touchstart', (e) => { if (modalZoomScale <= 1 || e.target.classList.contains('zoom-btn')) return; isDragging = true; startX = e.touches[0].clientX - panX; startY = e.touches[0].clientY - panY; });
-        window.addEventListener('touchmove', (e) => { if (!isDragging) return; panX = e.touches[0].clientX - startX; panY = e.touches[0].clientY - startY; charityTransform(); });
-        window.addEventListener('touchend', () => { isDragging = false; });
-      }
-
-      document.getElementById('m-plate-field').addEventListener('input', function(e) {
-        let value = e.target.value.toUpperCase();
-        const latinToCyr = {'A':'А', 'B':'В', 'E':'Е', 'K':'К', 'M':'М', 'H':'Н', 'O':'О', 'P':'Р', 'C':'С', 'T':'Т', 'Y':'У', 'X':'Х'};
-        let converted = ""; for (let i = 0; i < value.length; i++) { converted += latinToCyr[value[i]] ? latinToCyr[value[i]] : value[i]; }
-        e.target.value = converted.replace(/[^АВЕКМНОРСТУХ0-9]/g, '');
-      });
-
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').then((reg) => { reg.update(); }).catch(() => {});
-      }
-    };
-
-    async function restoreOfflineCards() {
-      let q = await getIndexedDBQueue(); let scanResultArea = document.getElementById('scan-result'); if (!scanResultArea || q.length === 0) return;
-      let isOnline = navigator.onLine;
-      q.forEach(item => {
-        if (item.action === 'delete') return;
-        if (document.getElementById("cam_" + item.taskId)) return; 
-        let itemDiv = document.createElement('div'); itemDiv.id = "cam_" + item.taskId; scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
-        let displayNum = item.manualNumber || (isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ");
-        let displayStatus = item.manualNumber ? "Внесен 💾" : (isOnline ? "Выгрузка 📡" : "Очередь 💾");
-        let localDupStatus = checkLocalDuplicateText(displayNum, item.taskId, q); if (localDupStatus) displayStatus = localDupStatus;
-        updateCardUi(itemDiv, displayNum, displayStatus, item.manualNumber ? "Сохранено в телефоне" : "Ожидание сети", "", "🕒 Ожидает выгрузку", item.image, item.taskId);
-      });
-    }
-
-    async function refreshSyncStatusBar() {
-      let q = await getIndexedDBQueue(); let bar = document.getElementById('sync-status-bar'); let archiveCount = globalJournalCache.length;
-      if (!navigator.onLine) {
-        bar.className = "status-offline"; bar.innerHTML = `${gpsStatusText} | 💾 Очередь: ${q.length} | 📁 Автономный Архив: ${archiveCount} шт. <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`; return;
-      }
-      if (q.length === 0) {
-        bar.className = "status-synced"; bar.innerHTML = `${gpsStatusText} | 🟢 Архив: ${archiveCount} шт. | ☁️ Облако <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
-      } else {
-        bar.className = isSyncing ? "status-uploading" : "status-offline";
-        bar.innerHTML = `${gpsStatusText} | ${isSyncing ? '🔵 Сброс пакетов' : '🟡 Буфер'}: ${q.length} | 📁 Архив: ${archiveCount} <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
-      }
-    }
-
-    function silentLoadJournalCache() {
-      if (!navigator.onLine) return;
-      if (document.getElementById('global-session-lock-shield').style.display === 'flex') return;
-      try {
-        let days = parseInt(localStorage.getItem('settings_days') || appSettings.days);
-        let today = new Date(); let pastDate = new Date(); pastDate.setDate(today.getDate() - days);
-        let sDate = pastDate.toISOString().split('T')[0];
-        fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: { startDate: sDate }, sessionId: localStorage.getItem('terminal_session_id') }) })
-          .then(r => r.json()).then(async (records) => { 
-            if (!checkSessionValidity(records)) return;
-            if (records && records.length) { globalJournalCache = records; await saveJournalToDisk(records); refreshSyncStatusBar(); } 
-          }).catch(() => {});
-      } catch (e) {}
     }
 
     function checkLocalDuplicateText(num, currentTaskId, preloadedQueue) {
-      if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ..." || String(num).includes("Проверить вручную") || String(num).includes("Ошибка")) return null;
+      if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ...") return null;
       let cleanNum = String(num).toUpperCase().trim(); let count = 0; let latestTimestamp = 0;
       function parseGSheetsDate(dateStr) {
         if (!dateStr) return 0;
         try { let parts = String(dateStr).split(' '); let dParts = parts[0].split('.'); let tParts = parts[1].split(':'); return new Date(dParts[2], dParts[1] - 1, dParts[0], tParts[0], tParts[1], tParts[2] || 0).getTime(); } catch(e) { return 0; }
       }
       for (let i = 0; i < globalJournalCache.length; i++) {
-        if (globalJournalCache[i].taskId === currentTaskId) continue; 
+        if (globalJournalCache[i].taskId === currentTaskId) continue;
         if (globalJournalCache[i].number && String(globalJournalCache[i].number).toUpperCase().trim() === cleanNum) { 
-          count++; 
-          let ts = parseGSheetsDate(globalJournalCache[i].date); 
-          if (ts > latestTimestamp) latestTimestamp = ts; 
+          count++; let ts = parseGSheetsDate(globalJournalCache[i].date); if (ts > latestTimestamp) latestTimestamp = ts;
         }
       }
       let q = preloadedQueue || [];
       for (let i = 0; i < q.length; i++) {
-        if (q[i].taskId === currentTaskId) continue; 
-        if (q[i].manualNumber && String(q[i].manualNumber).toUpperCase().trim() === cleanNum) { 
-          count++; 
-          if (q[i].timestamp > latestTimestamp) latestTimestamp = q[i].timestamp; 
-        }
+        if (q[i].taskId === currentTaskId) continue;
+        if (q[i].manualNumber && String(q[i].manualNumber).toUpperCase().trim() === cleanNum) { count++; if (q[i].timestamp > latestTimestamp) latestTimestamp = q[i].timestamp; }
       }
       if (count === 0) return null;
       let now = new Date(); let lastDate = new Date(latestTimestamp || now.getTime());
       let isSameDay = (now.getDate() === lastDate.getDate() && now.getMonth() === lastDate.getMonth() && now.getFullYear() === lastDate.getFullYear());
-      let timeStr = lastDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      let dateStr = lastDate.toLocaleDateString([], {day: '2-digit', month: '2-digit'});
-      if (count === 1) return isSameDay ? `Повтор • ${timeStr}` : `Повтор • ${dateStr} ${timeStr}`;
-      return isSameDay ? `${count} повтора • ${timeStr}` : `${count} пов. • ${dateStr}`;
+      if (count === 1) return isSameDay ? `Повтор • ${lastDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : `Повтор • ${lastDate.toLocaleDateString([], {day: '2-digit', month: '2-digit'})}`;
+      return `${count} повтора`;
     }
 
     function showInJournal(number) {
       document.getElementById('search-number').value = String(number).toUpperCase().trim();
-      document.getElementById('search-start-date').value = ""; document.getElementById('search-end-date').value = "";
-      let journalTabBtn = document.querySelector('[onclick*="search-tab"]');
-      openTab('search-tab', journalTabBtn); triggerSearch();
+      openTab('search-tab', document.querySelector('[onclick*="search-tab"]')); triggerSearch();
     }
 
-    function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId) {
-      number = number || ""; status = status || "";
-      let isRep = String(status).includes("Повтор") || String(status).includes("повтор") || String(status).includes("раз") || String(status).includes("пов."); 
-      let isPending = String(status).includes("Ожидание") || String(status).includes("сеть") || String(status).includes("Внесен") || String(status).includes("Очередь") || String(status).includes("кэше");
-      let isProcessing = String(number) === "🤖 АНАЛИЗ..." || String(status).includes("Пересчет") || String(status).includes("Анализ") || String(status).includes("Расчет"); 
-      let isErr = String(number) === "Не распознан" || String(number).includes("Ошибка") || String(status).includes("ручную") || String(status).includes("вручную") || String(status).includes("Ошибка") || String(status).includes("ОШИБКА");
+    function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId, operatorName) {
+      let isRep = String(status).includes("Повтор") || String(status).includes("пов.");
+      let isPending = String(status).includes("Очередь") || String(status).includes("сеть") || String(status).includes("Буфер") || String(status).includes("кэше") || String(status).includes("Выгрузка");
+      let isProcessing = String(number) === "🤖 АНАЛИЗ..." || String(status).includes("Пересчет");
+      let isErr = String(number) === "Не распознан" || String(status).includes("Ошибка");
       
       if (isPending) cardElement.className = "journal-item local-offline";
       else if (isProcessing) cardElement.className = "journal-item local-online-processing";
       else if (isErr) cardElement.className = "journal-item error-item"; 
       else cardElement.className = `journal-item ${isRep ? 'repeat' : 'new'}`;
       
-      let badgeLabel = "Новый";
-      if (isPending) badgeLabel = "Очередь 💾";
-      else if (isProcessing) badgeLabel = "Анализ 🤖";
-      else if (isErr) badgeLabel = "ОШИБКА!";
-      else if (isRep) { badgeLabel = checkLocalDuplicateText(number, forcedTaskId || cardElement.id, null) || "Повтор"; }
+      let badgeLabel = isPending ? "Буфер 💾" : (isProcessing ? "ИИ 🤖" : (isErr ? "ОШИБКА!" : "Новый"));
+      if (isRep) { badgeLabel = checkLocalDuplicateText(number, forcedTaskId || cardElement.id, null) || "Повтор"; }
       
       if (photoUrl) cardElement.setAttribute('data-server-photo', photoUrl);
       if (forcedTaskId) cardElement.setAttribute('data-task-id', forcedTaskId);
       if (imgSrc) cardElement.setAttribute('data-local-src', imgSrc);
       
-      let badgeHtml = `<div class="status-right">${badgeLabel}</div>`;
-      let thumbHtml = `
-        <div class="thumb-box" onclick="if('${photoUrl || ''}') window.open('${photoUrl}', '_blank')">
-          <img src="${imgSrc || photoUrl || ''}" style="${(imgSrc || photoUrl) ? 'display:block;' : 'display:none;'}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <span class="offline-photo-placeholder" style="${(imgSrc || photoUrl) ? 'display:none;' : 'display:flex;'}">⏳🌐</span>
-          ${badgeHtml}
-        </div>
-      `;
-      
-      let journalBtnHtml = isRep ? `<button class="journal-trigger-btn" onclick="showInJournal('${number}')">🔎 История</button>` : "";
-      let retryBtnHtml = (isErr && navigator.onLine) ? `<button class="retry-trigger-btn" title="Повторить" onclick="retryAiRecognition('${forcedTaskId || cardElement.id}', '${photoUrl}')">🔄</button>` : "";
-      let gpsHtmlLine = (!address || address === "Нет GPS" || String(address).includes("Сбор координат") || String(address).includes("🛑")) 
-        ? `<div class="info-address" style="color:#f02849;">🛑 Нет GPS</div>` : `<div class="info-address">📍 ${address}</div>`;
-
-      let undoBtnHtml = "";
-      if (forcedTaskId && activeUndoTimers[forcedTaskId] > 0) {
-        undoBtnHtml = `<button id="undo_btn_${forcedTaskId}" class="undo-trigger-btn" onclick="undoCapture('${forcedTaskId}')">🛑 Отмена (${activeUndoTimers[forcedTaskId]}с)</button>`;
-      }
-
-      let adminPurgeHtml = (localStorage.getItem('terminal_user_role') === 'admin')
-        ? `<button class="admin-delete-btn" title="Удалить навсегда" onclick="executeAdminRecordPurge('${cardElement.id}', '${number}')">🗑️</button>` : "";
+      let actualImgSrc = imgSrc || convertToDirectStreamUrl(photoUrl);
 
       cardElement.innerHTML = `
-        ${thumbHtml}
+        <div class="thumb-box" onclick="if('${photoUrl}') window.open('${photoUrl}', '_blank')">
+          <img src="${actualImgSrc}" style="${actualImgSrc ? 'display:block;' : 'display:none;'}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <span class="offline-photo-placeholder" style="${actualImgSrc ? 'display:none;' : 'display:flex;'}">⏳🌐</span>
+          <div class="status-right">${badgeLabel}</div>
+        </div>
         <div class="info-left">
-          <div class="plate-wrapper">
-            <div class="plate-container">
-              <span class="plate-display">${number}</span>
-              <button class="edit-trigger-btn" onclick="openFullscreenEdit('${cardElement.id}', '${photoUrl}', '__address_placeholder__', '${timeStr}', '${imgSrc || photoUrl}')">✏️</button>
-              ${retryBtnHtml}
-              ${journalBtnHtml}
-              ${adminPurgeHtml}
-            </div>
+          <div class="plate-container">
+            <span class="plate-display">${number}</span>
+            <button class="edit-trigger-btn" onclick="openFullscreenEdit('${cardElement.id}', '${photoUrl}', '__address_placeholder__', '${timeStr}', '${imgSrc || photoUrl}')">✏️</button>
+            ${isErr && navigator.onLine ? `<button class="retry-trigger-btn" onclick="retryAiRecognition('${forcedTaskId || cardElement.id}', '${photoUrl}')">🔄</button>` : ""}
+            ${isRep ? `<button class="journal-trigger-btn" onclick="showInJournal('${number}')">🔎 История</button>` : ""}
+            ${localStorage.getItem('terminal_user_role') === 'admin' ? `<button class="admin-delete-btn" onclick="executeAdminRecordPurge('${cardElement.id}', '${number}')">🗑️</button>` : ""}
           </div>
           <div class="info-date">📅 ${timeStr}</div>
-          ${gpsHtmlLine}
-          ${undoBtnHtml}
+          <div style="font-size:11.5px; color:var(--text-sub); margin-top:1px;">👤 Терминал: <b>${operatorName || "Загрузка..."}</b></div>
+          <div class="info-address">📍 ${address || "Рейд АЗС"}</div>
+          ${forcedTaskId && activeUndoTimers[forcedTaskId] > 0 ? `<button id="undo_btn_${forcedTaskId}" class="undo-trigger-btn" onclick="undoCapture('${forcedTaskId}')">🛑 Отмена (${activeUndoTimers[forcedTaskId]}с)</button>` : ""}
         </div>
       `;
-      
-      let safeAddress = String(address || "Ошибка ИИ / Нет связи").replace(/'/g, "\\'").replace(/"/g, '\\"');
-      cardElement.innerHTML = cardElement.innerHTML.replace('__address_placeholder__', safeAddress);
-    }
-
-    function validateGostTemplate(num) {
-      if (!num || num === "Не распознан") return false;
-      let clean = String(num).toUpperCase().trim();
-      return /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i.test(clean) || /^\d{4}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i.test(clean);
+      cardElement.innerHTML = cardElement.innerHTML.replace('__address_placeholder__', String(address || "Рейд АЗС").replace(/'/g, "\\'"));
     }
 
     async function retryAiRecognition(cardId, serverPhotoUrl) {
-      if (!navigator.onLine) { alert("Необходима сеть!"); return; }
-      if (globalAudioCtx) globalAudioCtx.resume();
+      if (!navigator.onLine) return; if (globalAudioCtx) globalAudioCtx.resume();
       let card = document.getElementById(cardId); if (!card) return;
-      let taskId = card.getAttribute('data-task-id') || cardId.replace("cam_", ""); let localImg = card.getAttribute('data-local-src') || "";
-      card.className = "journal-item local-online-processing";
-      let textSpan = card.querySelector('.plate-display'); if (textSpan) textSpan.innerText = "🤖 ПЕРЕСЧЕТ...";
+      let taskId = card.getAttribute('data-task-id') || cardId.replace("cam_", "");
+      card.className = "journal-item local-online-processing"; card.querySelector('.plate-display').innerText = "🤖 ПЕРЕСЧЕТ...";
       try {
-        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'retryOcr', taskId: taskId, photoUrl: serverPhotoUrl, sessionId: localStorage.getItem('terminal_session_id') }) });
+        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'retryOcr', taskId: taskId, photoUrl: serverPhotoUrl, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) });
         let res = await response.json();
-        if (!checkSessionValidity(res)) return;
         if (res && res.success) {
-          let finalNum = res.number; let finalStatus = res.status;
-          if (!validateGostTemplate(finalNum) && finalNum !== "Не распознан") finalStatus = "Проверить вручную ⚠️";
-          let smartStatus = checkLocalDuplicateText(finalNum, taskId, null) || finalStatus;
-          if (finalNum === "Не распознан") triggerHardwareAlert('error');
-          else if (smartStatus.includes("Повтор")) triggerHardwareAlert('repeat');
-          else triggerHardwareAlert('new');
-          updateCardUi(card, finalNum, smartStatus, res.address || "АЗС-Терминал", res.photo || serverPhotoUrl, "Пересчитано", localImg || res.photo, taskId);
+          let smartStatus = checkLocalDuplicateText(res.number, taskId, null) || res.status;
+          updateCardUi(card, res.number, smartStatus, res.address, res.photo, "Пересчитано", res.photo, taskId, "Корректор ИИ");
         }
-      } catch (e) { updateCardUi(card, "Не распознан", "Ошибка сети ⚠️", "АЗС", serverPhotoUrl, "Ошибка", localImg, taskId); }
+      } catch (e) { updateCardUi(card, "Не распознан", "Ошибка", "АЗС", serverPhotoUrl, "Ошибка", serverPhotoUrl, taskId, "Сбой"); }
     }
 
     function openFullscreenEdit(cardId, photoUrl, address, timeStr, imgToDisplay) {
       initAudioEngine(); modalZoomScale = 1; panX = 0; panY = 0; charityTransform();
-      let textSpan = document.querySelector(`#${cardId} .plate-display`); let currentNumber = textSpan ? textSpan.innerText : "";
-      if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "🤖 АНАЛИЗ..." || currentNumber.includes("Не распознан")) currentNumber = "";
-      let card = document.getElementById(cardId); let backupUrl = photoUrl || (card ? card.getAttribute('data-server-photo') : "");
-      let savedTaskId = cardId.replace("cam_", "").replace("jour_", ""); if (card && card.getAttribute('data-task-id')) savedTaskId = card.getAttribute('data-task-id');
-      document.getElementById('m-target-img').src = (imgToDisplay && !imgToDisplay.includes("exec")) ? imgToDisplay : (backupUrl || "");
-      let inputField = document.getElementById('m-plate-field'); inputField.value = currentNumber;
-      document.getElementById('m-save-btn').onclick = function() { saveFullscreenEdit(cardId, backupUrl, address, timeStr, imgToDisplay, savedTaskId); };
-      document.getElementById('fullscreen-edit-modal').style.display = 'block'; inputField.focus();
+      let currentNumber = document.querySelector(`#${cardId} .plate-display`).innerText;
+      if (currentNumber.includes("ЖДЕТ") || currentNumber.includes("АНАЛИЗ")) currentNumber = "";
+      let card = document.getElementById(cardId);
+      let savedTaskId = card.getAttribute('data-task-id') || cardId.replace("cam_", "").replace("jour_", "");
+      document.getElementById('m-target-img').src = convertToDirectStreamUrl(imgToDisplay || photoUrl);
+      document.getElementById('m-plate-field').value = currentNumber;
+      document.getElementById('m-save-btn').onclick = function() { saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgToDisplay, savedTaskId); };
+      document.getElementById('fullscreen-edit-modal').style.display = 'block'; document.getElementById('m-plate-field').focus();
     }
 
     function closeFullscreenEdit() { document.getElementById('fullscreen-edit-modal').style.display = 'none'; }
 
     async function saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgSrc, savedTaskId) {
       let newNum = document.getElementById('m-plate-field').value.toUpperCase().trim(); if (!newNum) return;
-      if (!validateGostTemplate(newNum)) { triggerHardwareAlert('error'); alert("Ошибка шаблона ГОСТа РФ!"); return; }
-      closeFullscreenEdit(); let card = document.getElementById(cardId); if (!card) return;
+      if (!validateGostTemplate(newNum)) { alert("Ошибка ГОСТ!"); return; } closeFullscreenEdit();
+      let card = document.getElementById(cardId); if (!card) return;
       
       if (!navigator.onLine) {
         let q = await getIndexedDBQueue(); let matchIdx = q.findIndex(item => item.taskId === savedTaskId);
-        if (matchIdx !== -1) { q[matchIdx].manualNumber = newNum; await addIndexedDBItem(q[matchIdx]); } 
-        else { await addIndexedDBItem({ taskId: savedTaskId, action: 'scan', image: imgSrc || photoUrl, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: newNum }); }
+        if (matchIdx !== -1) { q[matchIdx].manualNumber = newNum; await addIndexedDBItem(q[matchIdx]); }
+        else { await addIndexedDBItem({ taskId: savedTaskId, action: 'scan', image: imgSrc || photoUrl, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: newNum, deviceId: getDeviceUuidToken() }); }
         let localDupStatus = checkLocalDuplicateText(newNum, savedTaskId, await getIndexedDBQueue());
-        triggerHardwareAlert(localDupStatus ? 'repeat' : 'new'); card.setAttribute('data-alert-played', 'true');
-        updateCardUi(card, newNum, localDupStatus || "Внесен 💾", "Сохранено локально на диск", photoUrl, timeStr, imgSrc, savedTaskId);
+        updateCardUi(card, newNum, localDupStatus || "Внесен 💾", "Буфер диска", photoUrl, timeStr, imgSrc, savedTaskId, "Этот аппарат");
         await refreshSyncStatusBar(); return;
       }
 
       card.className = "journal-item local-online-processing";
       try {
-        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'editRecord', taskId: savedTaskId, photo: photoUrl, newNumber: newNum, sessionId: localStorage.getItem('terminal_session_id') }) });
+        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'editRecord', taskId: savedTaskId, photo: photoUrl, newNumber: newNum, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) });
         let res = await response.json();
-        if (!checkSessionValidity(res)) return;
         if (res && res.success) {
-          function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
-          globalJournalCache.unshift({ taskId: savedTaskId, number: newNum, date: getGSheetsTimestamp(), address: address, gps: "Network", photo: photoUrl });
-          await saveJournalToDisk(globalJournalCache); 
           let smartStatus = checkLocalDuplicateText(newNum, savedTaskId, null) || "Новый";
-          triggerHardwareAlert(smartStatus.includes("Повтор") ? 'repeat' : 'new');
-          card.setAttribute('data-alert-played', 'true');
-          updateCardUi(card, newNum, smartStatus, address, photoUrl, timeStr, imgSrc, savedTaskId); await refreshSyncStatusBar();
+          updateCardUi(card, newNum, smartStatus, address, photoUrl, timeStr, imgSrc, savedTaskId, "Правка");
         }
       } catch (e) {
-        await addIndexedDBItem({ taskId: savedTaskId, action: 'scan', image: imgSrc || photoUrl, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: newNum });
-        let localDupStatus = checkLocalDuplicateText(newNum, savedTaskId, await getIndexedDBQueue());
-        updateCardUi(card, newNum, localDupStatus || "Внесен 💾", "Сеть упала • Сохранено в БД", photoUrl, timeStr, imgSrc, savedTaskId);
-        await refreshSyncStatusBar();
+        await addIndexedDBItem({ taskId: savedTaskId, action: 'scan', image: imgSrc || photoUrl, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: newNum, deviceId: getDeviceUuidToken() });
+        updateCardUi(card, newNum, "Внесен 💾", "Автономно", photoUrl, timeStr, imgSrc, savedTaskId, "Этот аппарат");
       }
+      await refreshSyncStatusBar();
     }
 
     async function backgroundSyncLoop() {
       if (document.getElementById('global-session-lock-shield').style.display === 'flex') return;
-      if (isSyncing) return; 
+      if (isSyncing) return; let q = await getIndexedDBQueue(); if (q.length === 0) { await refreshSyncStatusBar(); return; }
+      if (!navigator.onLine) return;
       
-      let q = await getIndexedDBQueue(); if (q.length === 0) { await refreshSyncStatusBar(); return; }
-      if (!navigator.onLine) { isSyncing = false; await refreshSyncStatusBar(); return; }
-      
-      let item = q[0];
-      if (activeUndoTimers[item.taskId] > 0) return; 
-
+      let item = q[0]; if (activeUndoTimers[item.taskId] > 0) return;
       isSyncing = true; await refreshSyncStatusBar();
       try {
-        let payload = item.action === 'delete' ? { action: 'deleteRecord', taskId: item.targetTaskId } : item;
-        payload.sessionId = localStorage.getItem('terminal_session_id');
-
-        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-        let res = await response.json(); 
-
-        if (res && res.error === "session_expired") {
-          isSyncing = false;
-          triggerGlobalSessionLock();
-          return;
-        }
+        item.sessionId = localStorage.getItem('terminal_session_id'); item.deviceId = getDeviceUuidToken();
+        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(item) });
+        let res = await response.json();
+        if (res && res.error === "session_expired") { isSyncing = false; triggerGlobalSessionLock(); return; }
 
         await removeIndexedDBItem(item.taskId);
-        if (globalAudioCtx) globalAudioCtx.resume();
-        
-        if (item.action !== 'delete') {
-          let finalNum = res.number; let finalStatus = res.status;
-          if (!validateGostTemplate(finalNum) && finalNum !== "Не распознан") finalStatus = "Проверить вручную ⚠️";
-
-          function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
-          globalJournalCache.unshift({ taskId: item.taskId, number: finalNum, date: getGSheetsTimestamp(), address: res.address || "Определено GPS", gps: item.coords ? `${item.coords.latitude},${item.coords.longitude}` : "Нет GPS", thumb: item.image, photo: res.photo });
-          await saveJournalToDisk(globalJournalCache); 
-
-          let card = document.getElementById("cam_" + item.taskId);
-          if (card) {
-            let alreadyPlayed = card.getAttribute('data-alert-played') === 'true';
-            if (!alreadyPlayed) {
-              if (finalNum === "Не распознан") triggerHardwareAlert('error');
-              else if (finalStatus.includes("Повтор")) triggerHardwareAlert('repeat');
-              else triggerHardwareAlert('new');
-            }
-            card.setAttribute('data-alert-played', 'true');
-            let smartStatus = checkLocalDuplicateText(finalNum, item.taskId, await getIndexedDBQueue()) || finalStatus;
-            updateCardUi(card, finalNum, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId);
-          }
+        let card = document.getElementById("cam_" + item.taskId);
+        if (card) { 
+          let smartStatus = checkLocalDuplicateText(res.number, item.taskId, await getIndexedDBQueue()) || res.status;
+          updateCardUi(card, res.number, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId, "Буфер АЗС");
         }
-      } catch (error) { isSyncing = false; await refreshSyncStatusBar(); return; } 
-      finally { isSyncing = false; await refreshSyncStatusBar(); if ((await getIndexedDBQueue()).length > 0 && navigator.onLine) setTimeout(backgroundSyncLoop, 1000); }
+      } catch (error) {} finally { isSyncing = false; await refreshSyncStatusBar(); if ((await getIndexedDBQueue()).length > 0) setTimeout(backgroundSyncLoop, 1000); }
     }
 
     async function triggerSearch() {
       if (document.getElementById('global-session-lock-shield').style.display === 'flex') return;
-      let sDate = document.getElementById('search-start-date').value;
-      let eDate = document.getElementById('search-end-date').value;
-      let fNum = document.getElementById('search-number').value;
-      let container = document.getElementById('journal-container');
-      
-      container.innerHTML = "<p style='text-align:center; color:var(--text-sub);'>⏳ Чтение локальной памяти...</p>";
+      let container = document.getElementById('journal-container'); container.innerHTML = "<p style='text-align:center; color:var(--text-sub);'>⏳ Чтение архива базы...</p>";
       try {
         if (navigator.onLine) {
-          let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: { startDate: sDate, endDate: eDate, number: fNum }, sessionId: localStorage.getItem('terminal_session_id') }) });
-          let records = await response.json(); 
-          if (records && records.error === "session_expired") { triggerGlobalSessionLock(); return; }
-          if (records && records.length) { globalJournalCache = records; await saveJournalToDisk(records); }
+          let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: { number: document.getElementById('search-number').value }, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) });
+          let records = await response.json(); if (checkSessionValidity(records)) { globalJournalCache = records; await saveJournalToDisk(records); }
         }
-        let localQueue = await getIndexedDBQueue(); renderOfflineMixedJournal(localQueue, sDate, eDate, fNum);
-      } catch(e) { 
-        let localQueue = await getIndexedDBQueue(); renderOfflineMixedJournal(localQueue, sDate, eDate, fNum);
-      }
+        renderOfflineMixedJournal();
+      } catch(e) { renderOfflineMixedJournal(); }
     }
 
-    function renderOfflineMixedJournal(queueItems, sDate, eDate, filterNumber) {
+    function renderOfflineMixedJournal() {
       let container = document.getElementById('journal-container'); container.innerHTML = "";
-      let cleanFilterNum = filterNumber ? String(filterNumber).toUpperCase().trim() : "";
-      let startTs = sDate ? new Date(sDate + "T00:00:00").getTime() : 0;
-      let endTs = eDate ? new Date(eDate + "T23:59:59").getTime() : Infinity;
-      let combinedList = [];
-
-      queueItems.forEach(q => {
-        if (q.action === 'delete') return;
-        let taskNum = q.manualNumber || "⏳ ЖДЕТ СЕТЬ";
-        if (cleanFilterNum && String(taskNum).toUpperCase().indexOf(cleanFilterNum) === -1) return;
-        if (q.timestamp < startTs || q.timestamp > endTs) return;
-        combinedList.push({ isFromQueue: true, taskId: q.taskId, number: taskNum, status: q.manualNumber ? "Очередь 💾" : "В кэше 💾", address: q.manualNumber ? "Сохранено локально" : "Буфер АЗС", photo: "", thumb: q.image, dateStr: new Date(q.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), rawDate: q.timestamp });
+      let fNum = document.getElementById('search-number').value.toUpperCase().trim();
+      globalJournalCache.forEach(item => {
+        if (fNum && item.number.toUpperCase().indexOf(fNum) === -1) return;
+        let itemDiv = document.createElement('div'); itemDiv.id = "jour_" + item.taskId; container.appendChild(itemDiv);
+        updateCardUi(itemDiv, item.number, item.status, item.address, item.photo, item.date, item.photo, item.taskId, item.operator);
       });
+    }
 
-      function parseGSheetsDate(dateStr) {
-        if (!dateStr) return 0;
-        try { let cleanStr = String(dateStr).replace("📅", "").trim(); let parts = cleanStr.split(' '); let dParts = parts[0].split('.'); let tParts = parts[1].split(':'); return new Date(dParts[2], dParts[1] - 1, dParts[0], tParts[0], tParts[1], tParts[2] || 0).getTime(); } catch(e) { return 0; }
-      }
-
-      globalJournalCache.forEach(r => {
-        let rowTs = parseGSheetsDate(r.date);
-        if (cleanFilterNum && String(r.number).toUpperCase().indexOf(cleanFilterNum) === -1) return;
-        if (sDate && rowTs < startTs) return; if (eDate && rowTs > endTs) return;
-        if (queueItems.some(q => q.targetTaskId === r.taskId || q.taskId === r.taskId)) return;
-        combinedList.push({ isFromQueue: false, taskId: r.taskId, number: r.number, status: r.status, address: r.address || "АЗС рейд", photo: r.photo, thumb: r.thumb || "", dateStr: r.date, rawDate: rowTs });
+    async function restoreOfflineCards() {
+      let q = await getIndexedDBQueue(); let scanResultArea = document.getElementById('scan-result'); if (!scanResultArea || q.length === 0) return;
+      q.forEach(item => {
+        if (item.action === 'delete') return; if (document.getElementById("cam_" + item.taskId)) return;
+        let itemDiv = document.createElement('div'); itemDiv.id = "cam_" + item.taskId; scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
+        let localDupStatus = checkLocalDuplicateText(item.manualNumber || "⏳ ЖДЕТ СЕТЬ", item.taskId, q);
+        updateCardUi(itemDiv, item.manualNumber || "⏳ ЖДЕТ СЕТЬ", localDupStatus || "В кэше 💾", "Локально", "", "Буфер", item.image, item.taskId, "Этот аппарат");
       });
+    }
 
-      combinedList.sort((a, b) => b.rawDate - a.rawDate);
-      if (!combinedList.length) { container.innerHTML = "<p style='text-align:center; color:var(--text-sub); margin-top:20px;'>Автономный архив пуст</p>"; return; }
-      container.innerHTML = `<p style="font-size:12px; color:var(--text-sub); margin-bottom:10px;">Доступно в локальной ленте: ${combinedList.length} шт.</p>`;
+    async function refreshSyncStatusBar() {
+      let q = await getIndexedDBQueue(); let bar = document.getElementById('sync-status-bar'); let archiveCount = globalJournalCache.length;
+      if (!navigator.onLine) { bar.className = "status-offline"; bar.innerHTML = `${gpsStatusText} | 💾 Буфер: ${q.length} <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`; return; }
+      bar.className = q.length === 0 ? "status-synced" : "status-uploading";
+      bar.innerHTML = `${gpsStatusText} | 🟢 Архив: ${archiveCount} шт. | ${q.length > 0 ? '🔵 Синхронизация пакетов: ' + q.length : '☁️ Спутник'} <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+    }
 
-      combinedList.forEach(item => {
-        let itemId = "jour_" + item.taskId; let itemDiv = document.createElement('div'); itemDiv.id = itemId; container.appendChild(itemDiv);
-        let finalStatus = item.status;
-        if (!item.isFromQueue && !validateGostTemplate(item.number) && item.number !== "Не распознан") finalStatus = "Проверить вручную ⚠️";
-        updateCardUi(itemDiv, item.number, finalStatus, item.address, item.photo, item.dateStr, item.thumb, item.taskId);
-      });
+    function silentLoadJournalCache() {
+      if (!navigator.onLine || document.getElementById('global-session-lock-shield').style.display === 'flex') return;
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: {}, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) })
+        .then(r => r.json()).then(async (records) => { if (checkSessionValidity(records)) { globalJournalCache = records; await saveJournalToDisk(records); refreshSyncStatusBar(); } });
+    }
+
+    function loadSettings() {
+      let localDays = localStorage.getItem('settings_days'); if (localDays) document.getElementById('settings-days').value = localDays;
+      applyLocalUiDimensions();
+    }
+
+    function saveSettings() {
+      let days = document.getElementById('settings-days').value; localStorage.setItem('settings_days', days);
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', days: days, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) })
+        .then(r => r.json()).then(res => { if (checkSessionValidity(res)) alert("Конфигурация сохранена!"); });
+    }
+
+    // 🔥 РЕАНИМАЦИЯ ДВИЖКА АППАРАТНЫХ СИГНАЛОВ: Контекст, волны и вибрация на своих местах
+    function triggerHardwareAlert(type) {
+      try {
+        if (type === 'snap') {
+          let overlay = document.getElementById('flash-overlay');
+          if (overlay) {
+            overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.85)'; overlay.style.opacity = '1';
+            setTimeout(() => { overlay.style.opacity = '0'; }, 150);
+          }
+        }
+        if (!globalAudioCtx) return;
+        let osc = globalAudioCtx.createOscillator();
+        let gainNode = globalAudioCtx.createGain();
+        osc.connect(gainNode); gainNode.connect(globalAudioCtx.destination);
+
+        if (type === 'snap' || type === 'new') {
+          osc.type = 'sine'; osc.frequency.setValueAtTime(880, globalAudioCtx.currentTime);
+          gainNode.gain.setValueAtTime(0.08, globalAudioCtx.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + 0.1);
+          osc.start(); osc.stop(globalAudioCtx.currentTime + 0.1);
+          if (navigator.vibrate) navigator.vibrate(40);
+        } else if (type === 'repeat') {
+          osc.type = 'triangle'; osc.frequency.setValueAtTime(587.33, globalAudioCtx.currentTime);
+          osc.frequency.setValueAtTime(1174.66, globalAudioCtx.currentTime + 0.08);
+          gainNode.gain.setValueAtTime(0.12, globalAudioCtx.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + 0.22);
+          osc.start(); osc.stop(globalAudioCtx.currentTime + 0.22);
+          if (navigator.vibrate) navigator.vibrate([60, 50, 60]);
+        } else if (type === 'error') {
+          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, globalAudioCtx.currentTime);
+          osc.frequency.linearRampToValueAtTime(110, globalAudioCtx.currentTime + 0.35);
+          gainNode.gain.setValueAtTime(0.15, globalAudioCtx.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + 0.35);
+          osc.start(); osc.stop(globalAudioCtx.currentTime + 0.35);
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        }
+      } catch(e) { console.log("Сигналы заблокированы политикой жестов."); }
+    }
+
+    function showUpdateToastNotification(msg) {
+      let toast = document.getElementById('toast-notification'); if (!toast) return;
+      toast.innerText = msg; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 4500);
+    }
+
+    function validateGostTemplate(num) {
+      let clean = String(num).toUpperCase().trim();
+      return /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i.test(clean) || /^\d{4}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i.test(clean);
     }
 
     function openTab(tabId, el) {
-      if (tabId !== 'scan-tab') {
-        if (liveVideoStream) {
-          try {
-            liveVideoStream.getTracks().forEach(track => track.stop());
-          } catch(e) {}
-          liveVideoStream = null;
-          videoTrack = null;
-        }
-        let videoEl = document.getElementById('live-webcam');
-        if (videoEl) videoEl.srcObject = null;
-      }
-
+      if (tabId !== 'scan-tab' && liveVideoStream) { try { liveVideoStream.getTracks().forEach(t => t.stop()); }catch(e){} liveVideoStream = null; }
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active'); 
-      if (el) el.classList.add('active');
-      
-      if (tabId === 'scan-tab') {
-        startLiveStreaming();
-      }
+      document.getElementById(tabId).classList.add('active'); if (el) el.classList.add('active');
+      if (tabId === 'scan-tab') startLiveStreaming();
     }
 
-    function loadSettings(isSilent) {
-      let localRecent = localStorage.getItem('settings_recent_mins'); if (localRecent) appSettings.recentMins = parseInt(localRecent);
-      let localDays = localStorage.getItem('settings_days'); if (localDays) appSettings.days = parseInt(localDays);
-      let localW = localStorage.getItem('settings_cam_w'); if (localW) appSettings.camW = parseInt(localW);
-      let localH = localStorage.getItem('settings_cam_h'); if (localH) appSettings.camH = parseInt(localH);
+    window.onload = async function() {
+      loadSavedTheme(); getDeviceUuidToken(); await initIndexedDB(); reRequestGeolocation(true);
+      globalJournalCache = await loadJournalFromDisk(); renderAccessLayers(); await restoreOfflineCards();
+      silentLoadJournalCache(); startLiveStreaming(); setInterval(backgroundSyncLoop, 10000);
+      if (localStorage.getItem('app_version_cache_tracker') !== APP_VERSION) showUpdateToastNotification(`🎉 Обновлено до v${APP_VERSION}`);
+      localStorage.setItem('app_version_cache_tracker', APP_VERSION);
 
-      let localDurNew = localStorage.getItem('settings_dur_new'); if (localDurNew) appSettings.durNew = parseFloat(localDurNew.toString().replace(',', '.'));
-      let localDurRep = localStorage.getItem('settings_dur_rep'); if (localDurRep) appSettings.durRep = parseFloat(localDurRep.toString().replace(',', '.'));
-      let localDurErr = localStorage.getItem('settings_dur_err'); if (localDurErr) appSettings.durErr = parseFloat(localDurErr.toString().replace(',', '.'));
-
-      document.getElementById('settings-recent-mins').value = appSettings.recentMins; document.getElementById('settings-days').value = appSettings.days;
-      document.getElementById('settings-cam-w').value = appSettings.camW; document.getElementById('settings-cam-h').value = appSettings.camH;
-      document.getElementById('settings-dur-new').value = appSettings.durNew; document.getElementById('settings-dur-rep').value = appSettings.durRep; document.getElementById('settings-dur-err').value = appSettings.durErr;
-      
-      applyLocalUiDimensions();
-      if (!navigator.onLine) return;
-      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings', sessionId: localStorage.getItem('terminal_session_id') }) })
-        .then(r => r.json()).then(res => {
-          if (!checkSessionValidity(res)) return;
-          
-          appSettings.durNew = parseFloat(res.durNew.toString().replace(',', '.')) || 0.1;
-          appSettings.durRep = parseFloat(res.durRep.toString().replace(',', '.')) || 0.3;
-          appSettings.durErr = parseFloat(res.durErr.toString().replace(',', '.')) || 0.5;
-          
-          localStorage.setItem('settings_dur_new', appSettings.durNew); 
-          localStorage.setItem('settings_dur_rep', appSettings.durRep); 
-          localStorage.setItem('settings_dur_err', appSettings.durErr);
-          
-          if (!isSilent) { 
-            document.getElementById('settings-days').value = res.days; 
-            document.getElementById('settings-dur-new').value = appSettings.durNew; 
-            document.getElementById('settings-dur-rep').value = appSettings.durRep; 
-            document.getElementById('settings-dur-err').value = appSettings.durErr; 
-          }
-          refreshSyncStatusBar();
-        }).catch(() => {});
-    }
-    
-    function saveSettings() {
-      let days = document.getElementById('settings-days').value;
-      let dNew = document.getElementById('settings-dur-new').value.toString().replace(',', '.');
-      let dRep = document.getElementById('settings-dur-rep').value.toString().replace(',', '.');
-      let dErr = document.getElementById('settings-dur-err').value.toString().replace(',', '.');
-
-      localStorage.setItem('settings_recent_mins', document.getElementById('settings-recent-mins').value); localStorage.setItem('settings_days', days);
-      localStorage.setItem('settings_cam_w', document.getElementById('settings-cam-w').value); localStorage.setItem('settings_cam_h', document.getElementById('settings-cam-h').value);
-      localStorage.setItem('settings_dur_new', dNew); localStorage.setItem('settings_dur_rep', dRep); localStorage.setItem('settings_dur_err', dErr);
-      
-      appSettings.durNew = parseFloat(dNew) || 0.1; 
-      appSettings.durRep = parseFloat(dRep) || 0.3; 
-      appSettings.durErr = parseFloat(dErr) || 0.5;
-      applyLocalUiDimensions();
-
-      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', days: days, durNew: dNew, durRep: dRep, durErr: dErr, sessionId: localStorage.getItem('terminal_session_id') }) })
-        .then(r => r.json()).then(res => {
-          if (!checkSessionValidity(res)) return;
-          document.getElementById('settings-status').innerText = "Конфигурация сохранена!"; silentLoadJournalCache(); setTimeout(() => document.getElementById('settings-status').innerText = "", 3000);
-        })
-        .catch(() => { alert("Параметры зафиксированы в телефоне!"); });
-    }
-    
-    function triggerHardwareAlert(type) {
-      if (globalAudioCtx) { globalAudioCtx.resume().catch(() => {}); }
-      let overlay = document.getElementById('flash-overlay');
-      if (type === 'snap') {
-        if (overlay) { overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.85)'; overlay.style.opacity = '1'; setTimeout(() => { overlay.style.opacity = '0'; }, 150); }
-        try {
-          initAudioEngine(); let osc = globalAudioCtx.createOscillator(); let gain = globalAudioCtx.createGain(); osc.connect(gain); gain.connect(globalAudioCtx.destination);
-          osc.type = 'triangle'; osc.frequency.setValueAtTime(1100, globalAudioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(350, globalAudioCtx.currentTime + 0.08);
-          gain.gain.setValueAtTime(0.3, globalAudioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, globalAudioCtx.currentTime + 0.08);
-          osc.start(); osc.stop(globalAudioCtx.currentTime + 0.08);
-        } catch (e) {} return;
-      }
-      if (overlay) {
-        if (type === 'new') overlay.style.backgroundColor = 'rgba(66, 183, 42, 0.2)';      
-        else if (type === 'repeat') overlay.style.backgroundColor = 'rgba(240, 40, 73, 0.25)'; 
-        else if (type === 'error') overlay.style.backgroundColor = 'rgba(255, 122, 0, 0.35)';  
-        overlay.style.opacity = '1'; setTimeout(() => { overlay.style.opacity = '0'; }, 350); 
-      }
-      try {
-        initAudioEngine();
-        let gain = globalAudioCtx.createGain(); gain.connect(globalAudioCtx.destination); let durationSeconds = 0.2;
-        
-        if (type === 'new') {
-          durationSeconds = parseFloat(appSettings.durNew) || 0.1; 
-          let osc = globalAudioCtx.createOscillator(); osc.connect(gain);
-          osc.type = 'sine'; osc.frequency.setValueAtTime(950, globalAudioCtx.currentTime); 
-          gain.gain.setValueAtTime(0.08, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
-          if (navigator.vibrate) navigator.vibrate(durationSeconds * 1000);
-        } 
-        else if (type === 'repeat') {
-          durationSeconds = parseFloat(appSettings.durRep) || 0.3; 
-          let osc = globalAudioCtx.createOscillator(); osc.connect(gain);
-          osc.type = 'triangle'; osc.frequency.setValueAtTime(580, globalAudioCtx.currentTime); 
-          gain.gain.setValueAtTime(0.15, globalAudioCtx.currentTime); osc.start(); osc.stop(globalAudioCtx.currentTime + durationSeconds);
-          if (navigator.vibrate) navigator.vibrate([durationSeconds * 500, 100, durationSeconds * 500]);
-        } 
-        else if (type === 'error') {
-          durationSeconds = parseFloat(appSettings.durErr) || 0.5; 
-          let osc1 = globalAudioCtx.createOscillator(); let osc2 = globalAudioCtx.createOscillator();
-          osc1.connect(gain); osc2.connect(gain);
-          osc1.type = 'sawtooth'; osc1.frequency.setValueAtTime(380, globalAudioCtx.currentTime); 
-          osc2.type = 'sine'; osc2.frequency.setValueAtTime(430, globalAudioCtx.currentTime); 
-          gain.gain.setValueAtTime(0.25, globalAudioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, globalAudioCtx.currentTime + durationSeconds);
-          osc1.start(); osc2.start(); osc1.stop(globalAudioCtx.currentTime + durationSeconds); osc2.stop(globalAudioCtx.currentTime + durationSeconds);
-          if (navigator.vibrate) navigator.vibrate(durationSeconds * 1000);
+      // 🔥 КОНТУР Б: Фоновый «Пульс из-под щита» раз в 5 минут
+      setInterval(() => {
+        if (document.getElementById('global-session-lock-shield').style.display === 'flex' && navigator.onLine) {
+          fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'shieldHeartbeat', deviceId: getDeviceUuidToken() }) }).catch(() => {});
         }
-      } catch (e) { console.log("Сбой звука: " + e); }
-    }
+      }, 5 * 60 * 1000);
+    };
   </script>
 </body>
 </html>
