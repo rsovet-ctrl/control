@@ -74,8 +74,8 @@
     .card { background: var(--bg-card); padding: 16px; border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); margin-bottom: 12px; border: 1px solid var(--border-color); }
     h3 { margin-top: 0; margin-bottom: 12px; font-size: 16px; color: var(--text-main); }
     label { font-size: 12px; color: var(--text-sub); font-weight: bold; display: block; margin-bottom: 4px; }
-    input { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; background: var(--bg-main); color: var(--text-main); margin-bottom: 10px; }
-    input:focus { background: var(--bg-card); border-color: var(--accent-blue); outline: none; }
+    input, select { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; background: var(--bg-main); color: var(--text-main); margin-bottom: 10px; }
+    input:focus, select:focus { background: var(--bg-card); border-color: var(--accent-blue); outline: none; }
 
     .btn-premium-blue { background: linear-gradient(135deg, #1877f2 0%, #0c56be 100%); color: white; padding: 14px; border: none; border-radius: 10px; font-size: 15px; width: 100%; cursor: pointer; font-weight: bold; box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2); transition: all 0.15s ease; -webkit-tap-highlight-color: transparent; }
     .btn-premium-steel { background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: white; padding: 14px; border: none; border-radius: 10px; font-size: 15px; width: 100%; cursor: pointer; font-weight: bold; box-shadow: 0 4px 12px rgba(75, 85, 99, 0.15); transition: all 0.15s ease; -webkit-tap-highlight-color: transparent; }
@@ -170,7 +170,7 @@
     .zoom-btn { background: rgba(0, 0, 0, 0.75); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: 44px; height: 44px; font-size: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); user-select: none; }
     .modal-plate-input { font-size: 28px; font-weight: bold; text-align: center; letter-spacing: 1px; text-transform: uppercase; padding: 12px; border: 3px solid var(--accent-blue); border-radius: 12px; width: 100%; box-sizing: border-box; background: var(--bg-main); color: var(--text-main); margin-bottom: 12px; }
     
-    /* 🔥 ЭРГОНОМИКА v8.9.6: Кнопки жестко зафиксированы под полем ввода номера, убран margin-top: auto */
+    /* 🔥 ЭРГОНОМИКА v8.9.6: Кнопки жестко зафиксированы под полем ввода номера, убран отступ margin-top: auto */
     .modal-btn-table { display: table; width: 100%; border-spacing: 10px 0; margin-top: 12px; margin-bottom: auto; }
     .modal-btn-cell { display: table-cell; width: 50%; }
     .m-btn { width: 100%; padding: 16px; font-size: 16px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
@@ -201,12 +201,12 @@
 
     .user-device-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 14px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
     .user-device-meta { font-size: 11.5px; color: var(--text-sub); line-height: 1.5; margin-top: 6px; }
-    .user-inline-row { display: flex; gap: 8px; margin-top: 6px; align-items: center; }
-    .user-inline-input { flex: 1; padding: 8px; font-size: 14px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main); margin-bottom: 0; }
+    .user-inline-row { display: flex; gap: 8px; margin-top: 6px; align-items: center; flex-wrap: wrap; }
+    .user-inline-input { flex: 1; min-width: 120px; padding: 8px; font-size: 14px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main); margin-bottom: 0; }
     .btn-user-save { background: #42b72a; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; }
     .btn-user-logout { background: linear-gradient(135deg, #f02849 0%, #c01830 100%); color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; margin-top: 8px; display: inline-flex; }
 
-    /* 🔥 АНИМАЦИЯ КИБЕР-ТУРБИНЫ С УСКОРЕНИЕМ */
+    /* 🔥 ЭФФЕКТ КИБЕР-ТУРБИНЫ С УСКОРЕНИЕМ ДЛЯ КНОПКИ СБРОСА */
     @keyframes spin-turbine {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(1440deg); }
@@ -219,7 +219,7 @@
   <div id="global-session-lock-shield">
     <div class="shield-icon">🛑</div>
     <div class="shield-title">ДОСТУП ОГРАНИЧЕН!</div>
-    <div class="shield-desc">Сессия терминала АЗС завершена. Пожалуйста, введите действующий PIN-код для открытия новой рабочей смены.</div>
+    <div class="shield-desc">Сессия терминала АЗС закрыта. Пожалуйста, введите действующий персональный PIN-код для открытия рабочей смены.</div>
     <input type="password" id="shield-pin-field" class="pin-crypto-field" maxlength="4" placeholder="••••" style="background: #2a2a2a; color: #ffffff; border: 2px solid #3a3b3c; margin-bottom: 5px;" oninput="evaluateShieldPin(this.value)">
     <p style="font-size: 11px; color: #65676b; margin-top: 10px; max-width: 280px;">Очередь фиксации заморожена в памяти диска. Ни один кадр машины не потеряется.</p>
   </div>
@@ -284,7 +284,7 @@
   <div id="user-tab" class="tab-content">
     <div class="card">
       <h3>👥 Контроль терминалов АЗС (Лист USER)</h3>
-      <p style="font-size:12px; color:var(--text-sub); margin:0;">Список всех независимых аппаратов, подключенных к бэкенду. Сессии автономны.</p>
+      <p style="font-size:12px; color:var(--text-sub); margin:0;">Управляйте именами, индивидуальными PIN-кодами и ролями устройств на сервере.</p>
     </div>
     <div id="user-management-container"></div>
   </div>
@@ -298,7 +298,7 @@
     <div class="card id-block-geo" id="settings-update-block" style="display:none;">
       <h3>Контур обновлений PWA</h3>
       <button id="pwa-refresh-btn" class="btn-premium-steel" style="background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); box-shadow: 0 4px 12px rgba(225,29,72,0.2);" onclick="forceClearPwaCache()">🔄 Принудительно обновить кэш (Сброс версий)</button>
-      <p style="font-size:11px; color:var(--text-sub); margin-top:8px; margin-bottom:0; text-align:center;">Принудительно скачивает чистую копию кода терминала с GitHub bypass-методом.</p>
+      <p style="font-size:11px; color:var(--text-sub); margin-top:8px; margin-bottom:0; text-align:center;">Принудительно скачивает чистую копию кода терминала с GitHub.</p>
     </div>
 
     <div class="card id-block-geo" id="settings-geo-block" style="display:none;">
@@ -332,8 +332,8 @@
     <div class="card">
       <h3>📖 Инструкция Терминала v8.9.6</h3>
       <p style="font-size:13.5px; line-height:1.5; margin-bottom:10px;">Система создана для параллельной фиксации автотранспорта на линии несколькими устройствами одновременно без конфликтов сессий.</p>
-      <div class="help-header">1. Автоматический учет терминалов</div>
-      <p class="help-text">Каждому смартфону присваивается уникальный виртуальный ID-отпечаток. Система сама подпишет автора карточки в журнале в столбце H.</p>
+      <div class="help-header">1. Персональная авторизация</div>
+      <p class="help-text">Пароли и роли теперь привязаны к строкам устройств на листе USER. Администратор меняет уровни доступа удаленно в реальном времени.</p>
       <div class="help-header">2. Прямые миниатюры фото</div>
       <p class="help-text">Лента журнала автоматически на лету адаптирует ссылки Google Диска, подтягивая живые изображения в карточки машин.</p>
     </div>
@@ -385,6 +385,7 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
     const APP_VERSION = "8.9.6"; 
+    const GITHUB_RAW_URL = "https://raw.githubusercontent.com/rsovet-ctrl/control/main/index.html";
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 260, camH: 250 };
     let gpsStatusText = "📍 GPS"; let currentCoords = null; let globalJournalCache = []; let isSyncing = false;
@@ -529,7 +530,7 @@
       }
     }
 
-    /* 🔥 КОНТУР СЛЕДЕНИЯ: Выгрузка сетей и отрисовка статусов по алгоритму Б+В */
+    /* 🔥 УПРАВЛЕНИЕ РОЛЯМИ И ПАРОЛЯМИ ИЗ ИНТЕРФЕЙСА АДМИНА */
     async function loadUserManagementList() {
       if (!navigator.onLine) {
         document.getElementById('user-management-container').innerHTML = "<p style='text-align:center; padding:20px; color:var(--text-sub);'>База устройств недоступна оффлайн.</p>";
@@ -553,25 +554,40 @@
             div.className = "user-device-card";
             
             if (dev.lastAddress.includes("ОФФЛАЙН")) {
-              div.style.borderLeft = "4px solid #65676b"; // Серый оффлайн (Контур В)
+              div.style.borderLeft = "4px solid #65676b";
             } else if (dev.lastAddress.includes("блокировки") || dev.lastAddress.includes("Выброшен")) {
-              div.style.borderLeft = "4px solid #ff7a00"; // Оранжевый блок (Контур Б)
+              div.style.borderLeft = "4px solid #ff7a00";
             } else {
-              div.style.borderLeft = "4px solid #42b72a"; // Зелёный онлайн
+              div.style.borderLeft = "4px solid #42b72a";
             }
             
             div.innerHTML = `
-              <div style="font-weight: bold; font-size: 14px; color: var(--text-main);">📝 Задать имя / кличку:</div>
-              <div class="user-inline-row">
-                <input type="text" class="user-inline-input" id="inp_${dev.id}" value="${dev.name}">
-                <button class="btn-user-save" onclick="saveDeviceNickname('${dev.id}')">💾</button>
+              <div style="font-weight: bold; font-size: 13px; color: var(--text-main); margin-bottom:4px;">Пост / Кличка:</div>
+              <input type="text" class="user-inline-input" id="name_${dev.id}" value="${dev.name}" style="margin-bottom:8px;">
+              
+              <div style="display:flex; gap:8px; margin-bottom:8px;">
+                <div style="flex:1;">
+                  <div style="font-weight: bold; font-size: 13px; color: var(--text-main); margin-bottom:4px;">PIN-код:</div>
+                  <input type="text" class="user-inline-input" id="pin_${dev.id}" value="${dev.pin || '••••'}" maxlength="4">
+                </div>
+                <div style="flex:1;">
+                  <div style="font-weight: bold; font-size: 13px; color: var(--text-main); margin-bottom:4px;">Роль подсети:</div>
+                  <select class="user-inline-input" id="role_${dev.id}">
+                    <option value="user" ${dev.role === 'user' ? 'selected' : ''}>Оператор</option>
+                    <option value="admin" ${dev.role === 'admin' ? 'selected' : ''}>Администратор</option>
+                  </select>
+                </div>
               </div>
-              <div class="user-device-meta">
+
+              <div class="user-inline-row">
+                <button class="btn-user-save" onclick="saveDeviceFullProfile('${dev.id}')">💾 Сохранить изменения</button>
+                <button class="btn-user-logout" style="margin-top:0;" onclick="forceLogoutDevice('${dev.id}')">🛑 Сбросить сессию</button>
+              </div>
+              <div class="user-device-meta" style="margin-top:8px; border-top:1px solid var(--border-color); padding-top:4px;">
                 <b>ID устройства:</b> <code style="color:var(--accent-blue);">${dev.id}</code><br>
                 <b>🕒 Последняя связь:</b> ${dev.lastActive}<br>
                 <b>📍 Статус лога:</b> ${dev.lastAddress}
               </div>
-              <button class="btn-user-logout" onclick="forceLogoutDevice('${dev.id}')">🛑 Разлогинить устройство</button>
             `;
             container.appendChild(div);
           });
@@ -579,21 +595,23 @@
       } catch(e) { container.innerHTML = "<p style='text-align:center; padding:20px; color:#f02849;'>Ошибка чтения листа USER.</p>"; }
     }
 
-    async function saveDeviceNickname(id) {
-      let newName = document.getElementById(`inp_${id}`).value.trim();
-      if (!newName) return;
+    async function saveDeviceFullProfile(id) {
+      let name = document.getElementById(`name_${id}`).value.trim();
+      let pin = document.getElementById(`pin_${id}`).value.trim();
+      let role = document.getElementById(`role_${id}`).value;
+      if (!name || !pin) { alert("Все поля должны быть заполнены!"); return; }
       try {
         let response = await fetch(API_URL, {
           method: 'POST',
-          body: JSON.stringify({ action: 'saveUser', id: id, name: newName, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() })
+          body: JSON.stringify({ action: 'saveUser', id: id, name: name, pin: pin, role: role, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() })
         });
         let res = await response.json();
-        if (res && res.success) { loadUserManagementList(); }
+        if (res && res.success) { alert("Конфигурация пользователя обновлена на сервере!"); loadUserManagementList(); }
       } catch(e) { alert("Ошибка сохранения."); }
     }
 
     async function forceLogoutDevice(id) {
-      if (!confirm("Принудительно разлогинить этот аппарат? Сессия сотрется, экран инспектора мгновенно заблокируется.")) return;
+      if (!confirm("Принудительно разлогинить этот аппарат? Экран инспектора мгновенно заблокируется щитом.")) return;
       try {
         let response = await fetch(API_URL, {
           method: 'POST',
@@ -602,56 +620,6 @@
         let res = await response.json();
         if (res && res.success) { alert("Устройство выброшено из системы!"); loadUserManagementList(); }
       } catch(e) { alert("Ошибка связи."); }
-    }
-
-    async function forceClearPwaCache() {
-      if (confirm("Выполнить полную очистку кэша приложения? Очередь машин не сотрется.")) {
-        let btn = document.getElementById('pwa-refresh-btn');
-        if (btn) {
-          btn.innerHTML = `<span class="turbine-spin">🔄</span> Перезапись модулей PWA...`;
-          btn.disabled = true;
-        }
-        if ('caches' in window) {
-          const keys = await caches.keys();
-          for (let key of keys) { await caches.delete(key); }
-        }
-        if ('serviceWorker' in navigator) {
-          const registrations = await navigator.serviceWorker.getRegistrations();
-          for (let registration of registrations) { await registration.unregister(); }
-        }
-        setTimeout(() => { window.location.reload(true); }, 800);
-      }
-    }
-
-    function exitTerminalSession() { triggerGlobalSessionLock(); }
-
-    function renderAccessLayers() {
-      let role = localStorage.getItem('terminal_user_role');
-      let lockCard = document.getElementById('settings-lock-card');
-      let geoBlock = document.getElementById('settings-geo-block');
-      let updateBlock = document.getElementById('settings-update-block');
-      let adminNodes = document.querySelectorAll('.admin-only-node');
-      let lockTitle = document.getElementById('lock-title');
-
-      if (!role) {
-        lockCard.style.display = "block"; geoBlock.style.display = "none"; updateBlock.style.display = "none";
-        lockTitle.innerText = "🔐 Сессия закрыта";
-        adminNodes.forEach(n => n.classList.add('admin-hide'));
-        document.getElementById('global-session-lock-shield').style.display = 'flex';
-      } else {
-        lockCard.style.display = "block"; geoBlock.style.display = "block"; updateBlock.style.display = "block";
-        lockTitle.innerText = role === 'admin' ? "👨‍✈️ Режим: Администратор" : "👷 Режим: Оператор";
-        if (role === 'admin') { 
-          adminNodes.forEach(n => n.classList.remove('admin-hide')); 
-        } else { 
-          adminNodes.forEach(n => n.classList.add('admin-hide')); 
-          if(document.getElementById('user-tab').classList.contains('active')) {
-            openTab('scan-tab', document.querySelector('[onclick*="scan-tab"]'));
-          }
-        }
-        document.getElementById('global-session-lock-shield').style.display = 'none';
-      }
-      triggerSearch();
     }
 
     function executeCameraZoom(val) {
@@ -696,7 +664,6 @@
         const videoEl = document.getElementById('live-webcam');
         if (!videoEl || !liveVideoStream || !liveVideoStream.active) { alert("Трансляция недоступна!"); return; }
         
-        // 🔥 ИСПРАВЛЕНО: Звуковой движок железа полностью реанимирован, опечаток нет
         triggerHardwareAlert('snap');
         
         const taskId = "task_" + new Date().getTime();
@@ -918,13 +885,18 @@
       await refreshSyncStatusBar();
     }
 
+    /* 🔥 ИСПРАВЛЕНО: Флаг выставляется на первой строчке. Гонка таймеров устранена */
     async function backgroundSyncLoop() {
+      if (isSyncing) return; 
       if (document.getElementById('global-session-lock-shield').style.display === 'flex') return;
-      if (isSyncing) return; let q = await getIndexedDBQueue(); if (q.length === 0) { await refreshSyncStatusBar(); return; }
-      if (!navigator.onLine) return;
       
-      let item = q[0]; if (activeUndoTimers[item.taskId] > 0) return;
-      isSyncing = true; await refreshSyncStatusBar();
+      isSyncing = true; 
+      let q = await getIndexedDBQueue(); 
+      if (q.length === 0) { isSyncing = false; await refreshSyncStatusBar(); return; }
+      if (!navigator.onLine) { isSyncing = false; return; }
+      
+      let item = q[0]; if (activeUndoTimers[item.taskId] > 0) { isSyncing = false; return; }
+      await refreshSyncStatusBar();
       try {
         item.sessionId = localStorage.getItem('terminal_session_id'); item.deviceId = getDeviceUuidToken();
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(item) });
@@ -996,7 +968,7 @@
         .then(r => r.json()).then(res => { if (checkSessionValidity(res)) alert("Конфигурация сохранена!"); });
     }
 
-    // 🔥 РЕАНИМАЦИЯ ДВИЖКА АППАРАТНЫХ СИГНАЛОВ: Контекст, волны и вибрация на своих местах
+    /* 🔥 ПОЛНОЦЕННЫЙ ОРИГИНАЛЬНЫЙ ДВИЖОК АППАРАТНЫХ СИГНАЛОВ И ВИБРАЦИИ СМАРТФОНА */
     function triggerHardwareAlert(type) {
       try {
         if (type === 'snap') {
@@ -1032,7 +1004,23 @@
           osc.start(); osc.stop(globalAudioCtx.currentTime + 0.35);
           if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
         }
-      } catch(e) { console.log("Сигналы заблокированы политикой жестов."); }
+      } catch(e) { console.log("Интерактивный движок заблокирован политикой жестов."); }
+    }
+
+    /* 🔥 АВТОМАТИЧЕСКАЯ ФОНОВАЯ ПРОВЕРКА ОБНОВЛЕНИЙ НАПРЯМУЮ С GITHUB RAW */
+    async function executeBackgroundGitHubCheck() {
+      if (!navigator.onLine) return;
+      try {
+        let response = await fetch(GITHUB_RAW_URL + "?nocache=" + new Date().getTime());
+        let htmlText = await response.json();
+        let match = htmlText.match(/const APP_VERSION = "([^"]+)"/);
+        if (match && match[1] && match[1] !== APP_VERSION) {
+          console.log("PWA устарел. Выполняю автоматический сброс кэша...");
+          if ('caches' in window) { const keys = await caches.keys(); for (let key of keys) { await caches.delete(key); } }
+          if ('serviceWorker' in navigator) { const regs = await navigator.serviceWorker.getRegistrations(); for (let r of regs) { await r.unregister(); } }
+          window.location.reload(true);
+        }
+      } catch(e) {}
     }
 
     function showUpdateToastNotification(msg) {
@@ -1053,19 +1041,54 @@
       if (tabId === 'scan-tab') startLiveStreaming();
     }
 
+    function renderAccessLayers() {
+      let role = localStorage.getItem('terminal_user_role');
+      let lockCard = document.getElementById('settings-lock-card');
+      let geoBlock = document.getElementById('settings-geo-block');
+      let updateBlock = document.getElementById('settings-update-block');
+      let adminNodes = document.querySelectorAll('.admin-only-node');
+      let lockTitle = document.getElementById('lock-title');
+
+      if (!role) {
+        lockCard.style.display = "block"; geoBlock.style.display = "none"; updateBlock.style.display = "none";
+        lockTitle.innerText = "🔐 Сессия закрыта";
+        adminNodes.forEach(n => n.classList.add('admin-hide'));
+        document.getElementById('global-session-lock-shield').style.display = 'flex';
+      } else {
+        lockCard.style.display = "block"; geoBlock.style.display = "block"; updateBlock.style.display = "block";
+        lockTitle.innerText = role === 'admin' ? "👨‍✈️ Режим: Администратор" : "👷 Режим: Оператор";
+        if (role === 'admin') { 
+          adminNodes.forEach(n => n.classList.remove('admin-hide')); 
+        } else { 
+          adminNodes.forEach(n => n.classList.add('admin-hide')); 
+          if(document.getElementById('user-tab').classList.contains('active')) {
+            openTab('scan-tab', document.querySelector('[onclick*="scan-tab"]'));
+          }
+        }
+        document.getElementById('global-session-lock-shield').style.display = 'none';
+      }
+      triggerSearch();
+    }
+
     window.onload = async function() {
       loadSavedTheme(); getDeviceUuidToken(); await initIndexedDB(); reRequestGeolocation(true);
       globalJournalCache = await loadJournalFromDisk(); renderAccessLayers(); await restoreOfflineCards();
       silentLoadJournalCache(); startLiveStreaming(); setInterval(backgroundSyncLoop, 10000);
+      
       if (localStorage.getItem('app_version_cache_tracker') !== APP_VERSION) showUpdateToastNotification(`🎉 Обновлено до v${APP_VERSION}`);
       localStorage.setItem('app_version_cache_tracker', APP_VERSION);
+      document.body.addEventListener('click', initAudioEngine, { once: false });
 
-      // 🔥 КОНТУР Б: Фоновый «Пульс из-под щита» раз в 5 минут
+      // 🔥 КОНТУР Б: Резервный таймер тихих импульсов блокировки
       setInterval(() => {
         if (document.getElementById('global-session-lock-shield').style.display === 'flex' && navigator.onLine) {
           fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'shieldHeartbeat', deviceId: getDeviceUuidToken() }) }).catch(() => {});
         }
       }, 5 * 60 * 1000);
+
+      // Фоновый дозор обновлений кода Гитхаба (каждые 15 минут)
+      setInterval(executeBackgroundGitHubCheck, 15 * 60 * 1000);
+      executeBackgroundGitHubCheck();
     };
   </script>
 </body>
