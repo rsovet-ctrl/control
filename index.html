@@ -338,7 +338,7 @@
       <input type="number" id="settings-recent-mins" min="1" max="1440" value="30">
     </div>
   </div>
-
+<div id="help-tab" class="tab-content">
  <div class="card">
   <h3> Biel-Контур: Полная инструкция Терминала v8.9.6</h3>
   
@@ -1112,6 +1112,19 @@ res.devices.forEach(dev => {
     }
 
     window.onload = async function() {
+      // ВСТАВИТЬ В САМОЕ НАЧАЛО ФУНКЦИИ window.onload В <script>:
+
+// Проверяем, не перезагрузился ли телефон только что после успешного обновления
+let updatedVersionSuccess = localStorage.getItem('pwa_just_updated_version_flag');
+if (updatedVersionSuccess) {
+  localStorage.removeItem('pwa_just_updated_version_flag'); // Сразу стираем маркер
+  
+  // Вызываем всплывающее окно-тост (оно у нас уже оформлено красивой плашкой в CSS)
+  setTimeout(() => {
+    showUpdateToastNotification(`🎉 База успешно перезаписана! Терминал обновлен до v${updatedVersionSuccess}`);
+  }, 1000);
+}
+      
       loadSavedTheme(); getDeviceUuidToken(); await initIndexedDB(); reRequestGeolocation(true);
       globalJournalCache = await loadJournalFromDisk(); renderAccessLayers(); await restoreOfflineCards();
       silentLoadJournalCache(); startLiveStreaming(); setInterval(backgroundSyncLoop, 10000);
@@ -1133,6 +1146,8 @@ res.devices.forEach(dev => {
     };
 
 
+// НА ЧТО МЕНЯЕМ ФУНКЦИЮ forceClearPwaCache() В <script>:
+
 async function forceClearPwaCache() {
   let btn = document.getElementById('pwa-refresh-btn');
   let icon = document.getElementById('pwa-icon-spin');
@@ -1140,26 +1155,70 @@ async function forceClearPwaCache() {
   
   if (btn && icon && text) {
     btn.disabled = true;
-    icon.classList.add('turbine-spin'); // Запуск анимации
-    text.innerText = "Перезапись модулей PWA...";
+    icon.classList.add('turbine-spin'); // Запуск вращения турбины
+    text.innerText = "Сверка версий с GitHub...";
   }
-  
-  // Жесткое удаление всех хранилищ кэша PWA на смартфоне
-  if ('caches' in window) {
-    const keys = await caches.keys();
-    for (let key of keys) { await caches.delete(key); }
+
+  try {
+    // 1. Запрашиваем свежий код index.html напрямую с GitHub bypass-методом
+    let response = await fetch(GITHUB_RAW_URL + "?nocache=" + new Date().getTime());
+    let htmlText = await response.text();
+    
+    // Ищем регулярным выражением строку const APP_VERSION = "X.X.X" в коде GitHub
+    let match = htmlText.match(/const APP_VERSION = "([^"]+)"/);
+    
+    if (match && match[1]) {
+      let githubVersion = match[1];
+      
+      // 2. Если версия на GitHub СОВПАДАЕТ с текущей локальной константой APP_VERSION
+      if (githubVersion === APP_VERSION) {
+        alert(`Новых версий нет! У вас уже установлена самая актуальная сборка v${APP_VERSION}`);
+        
+        // Возвращаем кнопку в исходное рабочее состояние
+        if (btn && icon && text) {
+          btn.disabled = false;
+          icon.classList.remove('turbine-spin');
+          text.innerText = "Принудительно обновить кэш (Сброс версий)";
+        }
+        return; // Прерываем функцию, ничего не стираем
+      }
+      
+      // 3. Если на GitHub лежит НОВАЯ версия — запускаем процедуру жесткой зачистки
+      if (text) text.innerText = `Найдена v${githubVersion}! Перезапись модулей...`;
+      
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        for (let key of keys) { await caches.delete(key); }
+      }
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) { await registration.unregister(); }
+      }
+      
+      // Секретный маркер в память: запишем версию, чтобы поймать её ПОСЛЕ перезагрузки страницы
+      localStorage.setItem('pwa_just_updated_version_flag', githubVersion);
+      
+      setTimeout(() => {
+        window.location.reload(true);
+      }, 800);
+      
+    } else {
+      alert("Не удалось прочитать маркер версии в репозитории GitHub.");
+      resetPwaUpdateBtn(btn, icon, text);
+    }
+  } catch (e) {
+    alert("Ошибка сети! Не удалось связаться с сервером обновлений GitHub.");
+    resetPwaUpdateBtn(btn, icon, text);
   }
-  
-  // Полное стирание фонового Service Worker
-  if ('serviceWorker' in navigator) {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    for (let registration of registrations) { await registration.unregister(); }
+}
+
+// Вспомогательная функция сброса кнопки при ошибках сети
+function resetPwaUpdateBtn(btn, icon, text) {
+  if (btn && icon && text) {
+    btn.disabled = false;
+    icon.classList.remove('turbine-spin');
+    text.innerText = "Принудительно обновить кэш (Сброс версий)";
   }
-  
-  // Пауза 0.8с для демонстрации турбины, затем глубокий перезапуск с обходом кэша
-  setTimeout(() => {
-    window.location.reload(true);
-  }, 800);
 }
 
 function exitTerminalSession() {
