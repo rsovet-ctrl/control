@@ -356,7 +356,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9.6
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9.7
     </div>
   </div>
 
@@ -549,48 +549,61 @@
         
         if (res && res.success) {
           container.innerHTML = "";
-          res.devices.forEach(dev => {
-            let div = document.createElement('div');
-            div.className = "user-device-card";
-            
-            if (dev.lastAddress.includes("ОФФЛАЙН")) {
-              div.style.borderLeft = "4px solid #65676b";
-            } else if (dev.lastAddress.includes("блокировки") || dev.lastAddress.includes("Выброшен")) {
-              div.style.borderLeft = "4px solid #ff7a00";
-            } else {
-              div.style.borderLeft = "4px solid #42b72a";
-            }
-            
-            div.innerHTML = `
-              <div style="font-weight: bold; font-size: 13px; color: var(--text-main); margin-bottom:4px;">Пост / Кличка:</div>
-              <input type="text" class="user-inline-input" id="name_${dev.id}" value="${dev.name}" style="margin-bottom:8px;">
-              
-              <div style="display:flex; gap:8px; margin-bottom:8px;">
-                <div style="flex:1;">
-                  <div style="font-weight: bold; font-size: 13px; color: var(--text-main); margin-bottom:4px;">PIN-код:</div>
-                  <input type="text" class="user-inline-input" id="pin_${dev.id}" value="${dev.pin || '••••'}" maxlength="4">
-                </div>
-                <div style="flex:1;">
-                  <div style="font-weight: bold; font-size: 13px; color: var(--text-main); margin-bottom:4px;">Роль подсети:</div>
-                  <select class="user-inline-input" id="role_${dev.id}">
-                    <option value="user" ${dev.role === 'user' ? 'selected' : ''}>Оператор</option>
-                    <option value="admin" ${dev.role === 'admin' ? 'selected' : ''}>Администратор</option>
-                  </select>
-                </div>
-              </div>
+        // НА ЧТО МЕНЯЕМ ЦИКЛ ОТРИСОВКИ СТРОК ВНУТРИ "loadUserManagementList":
 
-              <div class="user-inline-row">
-                <button class="btn-user-save" onclick="saveDeviceFullProfile('${dev.id}')">💾 Сохранить изменения</button>
-                <button class="btn-user-logout" style="margin-top:0;" onclick="forceLogoutDevice('${dev.id}')">🛑 Сбросить сессию</button>
-              </div>
-              <div class="user-device-meta" style="margin-top:8px; border-top:1px solid var(--border-color); padding-top:4px;">
-                <b>ID устройства:</b> <code style="color:var(--accent-blue);">${dev.id}</code><br>
-                <b>🕒 Последняя связь:</b> ${dev.lastActive}<br>
-                <b>📍 Статус лога:</b> ${dev.lastAddress}
-              </div>
-            `;
-            container.appendChild(div);
-          });
+res.devices.forEach(dev => {
+  let div = document.createElement('div');
+  div.className = "user-device-card";
+  
+  // Умная подсветка бортов карточки (Контуры Б, В + Ожидание активации)
+  let isNewRequest = (dev.pin === "");
+  if (isNewRequest) {
+    div.style.borderLeft = "4px solid #ff7a00"; // Оранжевый маркер заявки
+  } else if (dev.lastAddress.includes("ОФФЛАЙН")) {
+    div.style.borderLeft = "4px solid #65676b"; // Серый оффлайн
+  } else if (dev.lastAddress.includes("блокировки")) {
+    div.style.borderLeft = "4px solid #ff7a00"; // Оранжевый блок щита
+  } else {
+    div.style.borderLeft = "4px solid #42b72a"; // Зелёный онлайн
+  }
+  
+  // Подготовка полей с защитой от пустых значений
+  let nameValue = dev.name;
+  let pinPlaceholder = isNewRequest ? "placeholder='ЗАДАЙТЕ PIN!'" : `value="${dev.pin}"`;
+  let alertBadge = isNewRequest ? `<span style="color:#ff7a00; font-weight:900; font-size:11px; display:block; margin-bottom:4px;">⚠️ ТРЕБУЕТ АКТИВАЦИИ!</span>` : "";
+  let pinStyle = isNewRequest ? "style='border: 2px solid #ff7a00; background: #fff3e0; font-weight:bold;'" : "";
+
+  div.innerHTML = `
+    ${alertBadge}
+    <div style="font-weight: bold; font-size: 13px; color: var(--text-main); margin-bottom:4px;">Пост / Кличка:</div>
+    <input type="text" class="user-inline-input" id="name_${dev.id}" value="${nameValue}" style="margin-bottom:8px;">
+    
+    <div style="display:flex; gap:8px; margin-bottom:8px;">
+      <div style="flex:1;">
+        <div style="font-weight: bold; font-size: 13px; color: var(--text-main); margin-bottom:4px;">Персональный PIN:</div>
+        <input type="text" class="user-inline-input" id="pin_${dev.id}" ${pinPlaceholder} ${pinStyle} maxlength="4">
+      </div>
+      <div style="flex:1;">
+        <div style="font-weight: bold; font-size: 13px; color: var(--text-main); margin-bottom:4px;">Роль подсети:</div>
+        <select class="user-inline-input" id="role_${dev.id}">
+          <option value="user" ${dev.role === 'user' ? 'selected' : ''}>Оператор</option>
+          <option value="admin" ${dev.role === 'admin' ? 'selected' : ''}>Администратор</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="user-inline-row">
+      <button class="btn-user-save" onclick="saveDeviceFullProfile('${dev.id}')">💾 Активировать / Сохранить</button>
+      <button class="btn-user-logout" style="margin-top:0;" onclick="forceLogoutDevice('${dev.id}')">🛑 Сбросить сессию</button>
+    </div>
+    <div class="user-device-meta" style="margin-top:8px; border-top:1px solid var(--border-color); padding-top:4px;">
+      <b>ID устройства:</b> <code style="color:var(--accent-blue);">${dev.id}</code><br>
+      <b>🕒 Последняя связь:</b> ${dev.lastActive}<br>
+      <b>📍 Статус лога:</b> ${dev.lastAddress}
+    </div>
+  `;
+  container.appendChild(div);
+});
         }
       } catch(e) { container.innerHTML = "<p style='text-align:center; padding:20px; color:#f02849;'>Ошибка чтения листа USER.</p>"; }
     }
