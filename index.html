@@ -597,7 +597,6 @@
         
         if (res && res.success) {
           container.innerHTML = "";
-        // НА ЧТО МЕНЯЕМ ЦИКЛ ОТРИСОВКИ СТРОК ВНУТРИ "loadUserManagementList":
 
 res.devices.forEach(dev => {
   let div = document.createElement('div');
@@ -657,6 +656,7 @@ res.devices.forEach(dev => {
         }
       } catch(e) { container.innerHTML = "<p style='text-align:center; padding:20px; color:#f02849;'>Ошибка чтения листа USER.</p>"; }
     }
+} // <--- ВОТ ЭТА СКОБКА ДОЛЖНА ЗАКРЫВАТЬ ФУНКЦИЮ loadUserManagementList!
 
     async function saveDeviceFullProfile(id) {
       let name = document.getElementById(`name_${id}`).value.trim();
@@ -1162,7 +1162,13 @@ if (card) {
     triggerHardwareAlert('new');
   }
 }
-
+} catch (error) {} 
+      finally { 
+        isSyncing = false; 
+        await refreshSyncStatusBar(); 
+        if ((await getIndexedDBQueue()).length > 0) setTimeout(backgroundSyncLoop, 1000); 
+      }
+    }
     async function triggerSearch() {
       if (document.getElementById('global-session-lock-shield').style.display === 'flex') return;
       let container = document.getElementById('journal-container'); container.innerHTML = "<p style='text-align:center; color:var(--text-sub);'>⏳ Чтение архива базы...</p>";
