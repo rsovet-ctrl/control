@@ -656,7 +656,7 @@ res.devices.forEach(dev => {
         }
       } catch(e) { container.innerHTML = "<p style='text-align:center; padding:20px; color:#f02849;'>Ошибка чтения листа USER.</p>"; }
     }
-} // <--- ВОТ ЭТА СКОБКА ДОЛЖНА ЗАКРЫВАТЬ ФУНКЦИЮ loadUserManagementList!
+//} // <--- ВОТ ЭТА СКОБКА ДОЛЖНА ЗАКРЫВАТЬ ФУНКЦИЮ loadUserManagementList!
 
     async function saveDeviceFullProfile(id) {
       let name = document.getElementById(`name_${id}`).value.trim();
