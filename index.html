@@ -170,7 +170,7 @@
     .zoom-btn { background: rgba(0, 0, 0, 0.75); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: 44px; height: 44px; font-size: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); user-select: none; }
     .modal-plate-input { font-size: 28px; font-weight: bold; text-align: center; letter-spacing: 1px; text-transform: uppercase; padding: 12px; border: 3px solid var(--accent-blue); border-radius: 12px; width: 100%; box-sizing: border-box; background: var(--bg-main); color: var(--text-main); margin-bottom: 12px; }
     
-    /* 🔥 ИСПРАВЛЕНО: Изменена эргономика. Кнопки подняты под инпут, margin-top изменен на 12px, убран auto сброс вниз */
+    /* 🔥 ЭРГОНОМИЧНЫЙ БЛОК ДЕЙСТВИЙ: Поднят строго под инпут, сброшено нижнее прижатие */
     .modal-btn-table { display: table; width: 100%; border-spacing: 10px 0; margin-top: 12px; margin-bottom: auto; }
     .modal-btn-cell { display: table-cell; width: 50%; }
     .m-btn { width: 100%; padding: 16px; font-size: 16px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
@@ -187,18 +187,6 @@
     }
     #toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-    #global-session-lock-shield {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(18, 18, 18, 0.98); z-index: 99999; flex-direction: column; align-items: center; justify-content: center; color: #ffffff; text-align: center; padding: 24px; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    .shield-icon { font-size: 64px; margin-bottom: 16px; animation: pulse-shield-red 2s infinite ease-in-out; }
-    @keyframes pulse-shield-red { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
-    .shield-title { font-size: 22px; font-weight: 800; color: #ff4d4d; margin: 0 0 10px 0; letter-spacing: 0.5px; }
-    .shield-desc { font-size: 14px; color: #b0b3b8; max-width: 320px; line-height: 1.5; margin: 0 0 25px 0; }
-    
-    .help-header { font-weight: bold; font-size: 15px; color: var(--accent-blue); margin-top: 12px; margin-bottom: 4px; text-align: left; }
-    .help-text { font-size: 13px; color: var(--text-main); line-height: 1.4; margin: 0 0 12px 0; text-align: left; }
-    .help-bullet { margin-left: 8px; margin-bottom: 6px; font-size: 13px; text-align: left; }
-
     .user-device-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 14px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
     .user-device-meta { font-size: 11.5px; color: var(--text-sub); line-height: 1.5; margin-top: 6px; }
     .user-inline-row { display: flex; gap: 8px; margin-top: 6px; align-items: center; }
@@ -206,7 +194,7 @@
     .btn-user-save { background: #42b72a; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; }
     .btn-user-logout { background: linear-gradient(135deg, #f02849 0%, #c01830 100%); color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; margin-top: 8px; display: inline-flex; }
 
-    /* 🔥 АНИМАЦИЯ ТУРБИНЫ ДЛЯ КНОПКИ ОБНОВЛЕНИЯ КЭША */
+    /* 🔥 ЭФФЕКТ КИБЕР-ТУРБИНЫ ДЛЯ СБРОСА КЭША Модулей PWA */
     @keyframes spin-turbine {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(1440deg); }
@@ -298,7 +286,7 @@
     <div class="card id-block-geo" id="settings-update-block" style="display:none;">
       <h3>Контур обновлений PWA</h3>
       <button id="pwa-refresh-btn" class="btn-premium-steel" style="background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); box-shadow: 0 4px 12px rgba(225,29,72,0.2);" onclick="forceClearPwaCache()">🔄 Принудительно обновить кэш (Сброс версий)</button>
-      <p style="font-size:11px; color:var(--text-sub); margin-top:8px; margin-bottom:0; text-align:center;">Принудительно скачивает чистую копию кода терминала с GitHub bypass-методом.</p>
+      <p style="font-size:11px; color:var(--text-sub); margin-top:8px; margin-bottom:0; text-align:center;">Принудительно скачивает чистую копию кода терминала с GitHub.</p>
     </div>
 
     <div class="card id-block-geo" id="settings-geo-block" style="display:none;">
@@ -330,10 +318,10 @@
 
   <div id="help-tab" class="tab-content">
     <div class="card">
-      <h3>📖 Инструкция Терминала v8.9.5</h3>
+      <h3>📖 Инструкция Терминала v8.9.6</h3>
       <p style="font-size:13.5px; line-height:1.5; margin-bottom:10px;">Система создана для параллельной фиксации автотранспорта на линии несколькими устройствами одновременно без конфликтов сессий.</p>
       <div class="help-header">1. Автоматический учет терминалов</div>
-      <p class="help-text">Каждому смартфону присваивается уникальный виртуальный ID-отпечаток. Система сама подпишет автора карточки в журнале в столбце H.</p>
+      <p class="help-text">Каждому человеку выделена персональная автономная строка на сервере. Принудительный сброс админом выбивает только выбранный аппарат.</p>
       <div class="help-header">2. Прямые миниатюры фото</div>
       <p class="help-text">Лента журнала автоматически на лету адаптирует ссылки Google Диска, подтягивая живые изображения в карточки машин.</p>
     </div>
@@ -356,7 +344,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9.5
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9.6
     </div>
   </div>
 
@@ -384,7 +372,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "8.9.5"; 
+    const APP_VERSION = "8.9.6"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 260, camH: 250 };
     let gpsStatusText = "📍 GPS"; let currentCoords = null; let globalJournalCache = []; let isSyncing = false;
@@ -461,7 +449,6 @@
       });
     }
 
-    // Сохранение журнала на диск
     function saveJournalToDisk(records) {
       return new Promise((resolve) => {
         if (!indexedDatabase || !records || !records.length) return resolve();
@@ -495,7 +482,6 @@
       document.getElementById('shield-pin-field').value = "";
       document.getElementById('shield-pin-field').focus();
 
-      // Направляем прощальный/блокировочный статус в бэкенд мгновенно
       if (navigator.onLine) {
         fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'shieldHeartbeat', deviceId: getDeviceUuidToken() }) }).catch(() => {});
       }
@@ -531,7 +517,6 @@
       }
     }
 
-    /* ИНТЕРФЕЙС АДМИНИСТРАТОРА: ВЫГРУЗКА, ИЗМЕНЕНИЕ ИМЕНИ И ЖЕСТКИЙ СБРОС ТЕРМИНАЛОВ */
     async function loadUserManagementList() {
       if (!navigator.onLine) {
         document.getElementById('user-management-container').innerHTML = "<p style='text-align:center; padding:20px; color:var(--text-sub);'>База устройств недоступна оффлайн.</p>";
@@ -556,11 +541,11 @@
             
             // Динамический раскрас под Контуры Б и В
             if (dev.lastAddress.includes("ОФФЛАЙН")) {
-              div.style.borderLeft = "4px solid #65676b"; // Серый оффлайн
-            } else if (dev.lastAddress.includes("блокировки")) {
-              div.style.borderLeft = "4px solid #ff7a00"; // Оранжевый блок
+              div.style.borderLeft = "4px solid #65676b";
+            } else if (dev.lastAddress.includes("блокировки") || dev.lastAddress.includes("Выброшен")) {
+              div.style.borderLeft = "4px solid #ff7a00";
             } else {
-              div.style.borderLeft = "4px solid #1877f2"; // Живой онлайн
+              div.style.borderLeft = "4px solid #42b72a";
             }
             
             div.innerHTML = `
@@ -607,7 +592,6 @@
       } catch(e) { alert("Ошибка связи."); }
     }
 
-    /* 🔥 ИСПРАВЛЕНО: Добавлена анимация «Турбины» (Вариант 1) при сбросе воркеров */
     async function forceClearPwaCache() {
       if (confirm("Выполнить полную очистку кэша приложения? Очередь машин не сотрется.")) {
         let btn = document.getElementById('pwa-refresh-btn');
@@ -644,7 +628,7 @@
         document.getElementById('global-session-lock-shield').style.display = 'flex';
       } else {
         lockCard.style.display = "block"; geoBlock.style.display = "block"; updateBlock.style.display = "block";
-        lockTitle.innerText = role === 'admin' ? "👨‍✈️ Режим: Администратор" : "👷 Режим: Оператор";
+        lockTitle.innerText = role === 'admin' ? "👨‍✈️ Режим: Administrator" : "👷 Режим: Оператор";
         if (role === 'admin') { 
           adminNodes.forEach(n => n.classList.remove('admin-hide')); 
         } else { 
@@ -699,7 +683,10 @@
       try {
         const videoEl = document.getElementById('live-webcam');
         if (!videoEl || !liveVideoStream || !liveVideoStream.active) { alert("Трансляция недоступна!"); return; }
+        
+        // 🔥 ИСПРАВЛЕНО: Полностью реанимирован вызов сигналов железа (скобки закрыты верно)
         triggerHardwareAlert('snap');
+        
         const taskId = "task_" + new Date().getTime();
         const boxW = appSettings.camW; const boxH = appSettings.camH;
         const canvas = document.createElement('canvas'); canvas.width = boxW * 2; canvas.height = boxH * 2;
@@ -997,10 +984,61 @@
         .then(r => r.json()).then(res => { if (checkSessionValidity(res)) alert("Конфигурация сохранена!"); });
     }
 
+    // 🔥 ПОЛНОЦЕННЫЙ МОНОЛИТНЫЙ ДВИЖОК АППАРАТНЫХ СИГНАЛОВ И ВИБРАЦИИ (БЕЗ СБОЕВ)
+    function triggerHardwareAlert(type) {
+      try {
+        if (type === 'snap') {
+          let overlay = document.getElementById('flash-overlay');
+          if (overlay) {
+            overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.85)'; overlay.style.opacity = '1';
+            setTimeout(() => { overlay.style.opacity = '0'; }, 150);
+          }
+        }
+        if (!globalAudioCtx) return;
+        let osc = globalAudioCtx.createOscillator();
+        let gainNode = globalAudioCtx.createGain();
+        osc.connect(gainNode); gainNode.connect(globalAudioCtx.destination);
+
+        if (type === 'snap' || type === 'new') {
+          osc.type = 'sine'; osc.frequency.setValueAtTime(880, globalAudioCtx.currentTime);
+          gainNode.gain.setValueAtTime(0.08, globalAudioCtx.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + 0.1);
+          osc.start(); osc.stop(globalAudioCtx.currentTime + 0.1);
+          if (navigator.vibrate) navigator.vibrate(40);
+        } else if (type === 'repeat') {
+          osc.type = 'triangle'; osc.frequency.setValueAtTime(587.33, globalAudioCtx.currentTime);
+          osc.frequency.setValueAtTime(1174.66, globalAudioCtx.currentTime + 0.08);
+          gainNode.gain.setValueAtTime(0.12, globalAudioCtx.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + 0.22);
+          osc.start(); osc.stop(globalAudioCtx.currentTime + 0.22);
+          if (navigator.vibrate) navigator.vibrate([60, 50, 60]);
+        } else if (type === 'error') {
+          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, globalAudioCtx.currentTime);
+          osc.frequency.linearRampToValueAtTime(110, globalAudioCtx.currentTime + 0.35);
+          gainNode.gain.setValueAtTime(0.15, globalAudioCtx.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + 0.35);
+          osc.start(); osc.stop(globalAudioCtx.currentTime + 0.35);
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        }
+      } catch(e) { console.log("Сигналы заблокированы политикой жестов."); }
+    }
+
+    function showUpdateToastNotification(msg) {
+      let toast = document.getElementById('toast-notification'); if (!toast) return;
+      toast.innerText = msg; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 4500);
+    }
+
+    function validateGostTemplate(num) {
+      let clean = String(num).toUpperCase().trim();
+      return /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i.test(clean) || /^\d{4}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i.test(clean);
+    }
+
     function openTab(tabId, el) {
-      if (tabId !== 'scan-tab' && liveVideoStream) { try { liveVideoStream.getTracks().forEach(t => track.stop()); }catch(e){} liveVideoStream = null; }
+      if (tabId !== 'scan-tab' && liveVideoStream) { try { liveVideoStream.getTracks().forEach(t => t.stop()); }catch(e){} liveVideoStream = null; }
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active'); if (tabId === 'scan-tab') startLiveStreaming();
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active'); if (el) el.classList.add('active');
+      if (tabId === 'scan-tab') startLiveStreaming();
     }
 
     window.onload = async function() {
@@ -1010,7 +1048,7 @@
       if (localStorage.getItem('app_version_cache_tracker') !== APP_VERSION) showUpdateToastNotification(`🎉 Обновлено до v${APP_VERSION}`);
       localStorage.setItem('app_version_cache_tracker', APP_VERSION);
 
-      // 🔥 КОНТУР Б: Запускаем тихий пульс экрана блокировки раз в 5 минут
+      // 🔥 КОНТУР Б: Резервный таймер отправки тихих сигналов блокировки на сервер раз в 5 минут
       setInterval(() => {
         if (document.getElementById('global-session-lock-shield').style.display === 'flex' && navigator.onLine) {
           fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'shieldHeartbeat', deviceId: getDeviceUuidToken() }) }).catch(() => {});
