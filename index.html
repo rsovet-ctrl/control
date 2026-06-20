@@ -326,10 +326,12 @@
       </div>
     </div>
 
-    <div class="card admin-only-node admin-hide">
-      <h3>Спутниковая навигация (GPS)</h3>
-      <button class="btn-premium-steel" onclick="reRequestGeolocation(false)">🔄 Перезапустить спутники GPS</button>
-    </div>
+  <div class="card admin-only-node admin-hide">
+  <h3>Спутниковая навигация (GPS)</h3>
+  <button id="gps-refresh-btn" class="btn-premium-steel" onclick="reRequestGeolocation(false)">
+    <span id="gps-icon-spin">🔄</span> <span id="gps-text-btn">Перезапустить спутники GPS</span>
+  </button>
+</div>
     <div class="card admin-only-node admin-hide">
       <h3>Окно повторов</h3>
       <label>Глубина отслеживания дубликатов (дней):</label>
@@ -621,9 +623,11 @@ res.devices.forEach(dev => {
     </div>
 
     <div class="user-inline-row">
-      <button class="btn-user-save" onclick="saveDeviceFullProfile('${dev.id}')">💾 Активировать / Сохранить</button>
-      <button class="btn-user-logout" style="margin-top:0;" onclick="forceLogoutDevice('${dev.id}')">🛑 Сбросить сессию</button>
-    </div>
+  <button class="btn-user-save" onclick="saveDeviceFullProfile('${dev.id}')">💾 Активировать / Сохранить</button>
+  <button class="btn-user-logout" style="margin-top:0;" onclick="forceLogoutDevice('${dev.id}')">🛑 Сбросить сессию</button>
+  
+  <button class="btn-user-logout" style="margin-top:0; background: #242526; color: #ff4d4d; border: 1px solid var(--border-color);" onclick="deleteDeviceCompletely('${dev.id}')">🗑️ Удалить</button>
+</div>
     <div class="user-device-meta" style="margin-top:8px; border-top:1px solid var(--border-color); padding-top:4px;">
       <b>ID устройства:</b> <code style="color:var(--accent-blue);">${dev.id}</code><br>
       <b>🕒 Последняя связь:</b> ${dev.lastActive}<br>
@@ -662,6 +666,34 @@ res.devices.forEach(dev => {
         if (res && res.success) { alert("Устройство выброшено из системы!"); loadUserManagementList(); }
       } catch(e) { alert("Ошибка связи."); }
     }
+    // ВСТАВИТЬ В <script> СТРОГО ПОД ФУНКЦИЮ forceLogoutDevice(id):
+
+async function deleteDeviceCompletely(id) {
+  if (!confirm("⚠️ ВНИМАНИЕ! Удалить это устройство из белого списка навсегда? Его строка сотрется из Excel, доступ будет полностью заблокирован.")) return;
+  
+  try {
+    let response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ 
+        action: 'deleteUser', 
+        targetDeviceId: id, 
+        sessionId: localStorage.getItem('terminal_session_id'), 
+        deviceId: getDeviceUuidToken() 
+      })
+    });
+    let res = await response.json();
+    if (!checkSessionValidity(res)) return;
+    
+    if (res && res.success) {
+      alert("Устройство полностью стерто из базы данных USER!");
+      loadUserManagementList(); // Мгновенно обновляем список на экране админа
+    } else {
+      alert("Ошибка сервера: " + (res.error || "не удалось удалить"));
+    }
+  } catch(e) { 
+    alert("Ошибка связи! Не удалось выполнить удаление без интернета."); 
+  }
+}
 
     function executeCameraZoom(val) {
       let zoomVal = parseFloat(val); localStorage.setItem('camera_zoom_factor', zoomVal);
@@ -786,14 +818,66 @@ res.devices.forEach(dev => {
       charityTransform();
     }
 
-    function reRequestGeolocation(isSilent) {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(async function(position) {
-          currentCoords = { latitude: position.coords.latitude, longitude: position.coords.longitude };
-          gpsStatusText = "📍 GPS"; await refreshSyncStatusBar();
-        }, async function(error) { gpsStatusText = "⚠️ GPS"; await refreshSyncStatusBar(); }, { enableHighAccuracy: true, timeout: 8000 });
+// НА ЧТО ТОЧЕЧНО ЗАМЕНИТЬ ФУНКЦИЮ reRequestGeolocation В <script>:
+
+function reRequestGeolocation(isSilent) {
+  let btn = document.getElementById('gps-refresh-btn');
+  let icon = document.getElementById('gps-icon-spin');
+  let text = document.getElementById('gps-text-btn');
+
+  if (navigator.geolocation) {
+    if (!isSilent) {
+      gpsStatusText = "⏳ Поиск GPS...";
+      let barText = document.getElementById('sync-status-text');
+      if (barText) barText.innerText = "⏳ Настройка спутников GPS...";
+      
+      // 🔥 Включаем вращение турбины и меняем текст
+      if (btn && icon && text) {
+        btn.disabled = true;
+        icon.classList.add('turbine-spin');
+        text.innerText = "Поиск спутников GPS...";
       }
     }
+    
+    navigator.geolocation.getCurrentPosition(async function(position) {
+      currentCoords = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+      gpsStatusText = "📍 GPS"; 
+      await refreshSyncStatusBar();
+      
+      // 🔥 Выключаем вращение при успешном получении координат
+      if (!isSilent) {
+        if (btn && icon && text) {
+          btn.disabled = false;
+          icon.classList.remove('turbine-spin');
+          text.innerText = "Перезапустить спутники GPS";
+        }
+        alert("📍 Геолокация GPS успешно обновлена!");
+      }
+    }, async function(error) {
+      gpsStatusText = (error.code === error.PERMISSION_DENIED) ? "❌ GPS" : "⚠️ GPS"; 
+      await refreshSyncStatusBar();
+      
+      // 🔥 Выключаем вращение, если произошел сбой или таймаут
+      if (!isSilent) {
+        if (btn && icon && text) {
+          btn.disabled = false;
+          icon.classList.remove('turbine-spin');
+          text.innerText = "Перезапустить спутники GPS";
+        }
+        
+        if (error.code === error.PERMISSION_DENIED) {
+          alert("❌ Доступ к GPS ограничен! Пожалуйста, разрешите доступ к геопозиции в настройках вашего браузера или смартфона.");
+        } else if (error.code === error.TIMEOUT) {
+          alert("⚠️ Сигнал потерян! Не удалось поймать спутники за 8 секунд. Пожалуйста, выйдите на открытое пространство из-под навеса.");
+        } else {
+          alert("⚠️ Сбой позиционирования: " + error.message);
+        }
+      }
+    }, { enableHighAccuracy: true, timeout: 8000 });
+  } else {
+    if (!isSilent) alert("❌ Ваше устройство или браузер не поддерживают спутниковую GPS-навигацию.");
+  }
+}
 
     function checkLocalDuplicateText(num, currentTaskId, preloadedQueue) {
       if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ...") return null;
