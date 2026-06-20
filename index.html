@@ -336,7 +336,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9.41
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9.42
     </div>
   </div>
 
@@ -386,8 +386,8 @@ function convertToDirectStreamUrl(url) {
       let fileId = "";
       if (url.indexOf("/d/") !== -1) { fileId = url.split("/d/")[1].split("/")[0]; } 
       else if (url.indexOf("id=") !== -1) { fileId = url.split("id=")[1].split("&")[0]; }
-      // Используем современный быстрый хостинг картинок Google User Content
-      return fileId ? "https://lh3.googleusercontent.com/d/" + fileId : url;
+      // Добавляем обязательный параметр =w500 для быстрой и стабильной отдачи превью
+      return fileId ? "https://lh3.googleusercontent.com/d/" + fileId + "=w500" : url;
     }
 
     function toggleThemeMode(event) {
@@ -467,13 +467,24 @@ function convertToDirectStreamUrl(url) {
       return true;
     }
 
-    function triggerGlobalSessionLock() {
+   function triggerGlobalSessionLock() {
       localStorage.removeItem('terminal_user_role');
       localStorage.removeItem('terminal_session_id');
+      
+      // Сначала жестко включаем отображение щита и переводим его в flex
+      const shield = document.getElementById('global-session-lock-shield');
+      if (shield) {
+        shield.style.setProperty('display', 'flex', 'important');
+      }
+      
+      // Только потом перерисовываем остальные слои под ним
       renderAccessLayers();
-      document.getElementById('global-session-lock-shield').style.display = 'flex';
-      document.getElementById('shield-pin-field').value = "";
-      document.getElementById('shield-pin-field').focus();
+      
+      const pinField = document.getElementById('shield-pin-field');
+      if (pinField) {
+        pinField.value = "";
+        pinField.focus();
+      }
     }
 
     function evaluateShieldPin(val) {
