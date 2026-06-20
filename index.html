@@ -970,20 +970,60 @@ function reRequestGeolocation(isSilent) {
       cardElement.innerHTML = cardElement.innerHTML.replace('__address_placeholder__', String(address || "Рейд АЗС").replace(/'/g, "\\'"));
     }
 
-    async function retryAiRecognition(cardId, serverPhotoUrl) {
-      if (!navigator.onLine) return; if (globalAudioCtx) globalAudioCtx.resume();
-      let card = document.getElementById(cardId); if (!card) return;
-      let taskId = card.getAttribute('data-task-id') || cardId.replace("cam_", "");
-      card.className = "journal-item local-online-processing"; card.querySelector('.plate-display').innerText = "🤖 ПЕРЕСЧЕТ...";
-      try {
-        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'retryOcr', taskId: taskId, photoUrl: serverPhotoUrl, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) });
-        let res = await response.json();
-        if (res && res.success) {
-          let smartStatus = checkLocalDuplicateText(res.number, taskId, null) || res.status;
-          updateCardUi(card, res.number, smartStatus, res.address, res.photo, "Пересчитано", res.photo, taskId, "Корректор ИИ");
-        }
-      } catch (e) { updateCardUi(card, "Не распознан", "Ошибка", "АЗС", serverPhotoUrl, "Ошибка", serverPhotoUrl, taskId, "Сбой"); }
+ async function retryAiRecognition(cardId, serverPhotoUrl) {
+  if (!navigator.onLine) {
+    alert("Пересчёт ИИ недоступен оффлайн!");
+    return;
+  }
+  
+  if (globalAudioCtx) globalAudioCtx.resume();
+  let card = document.getElementById(cardId); 
+  if (!card) return;
+  
+  let taskId = card.getAttribute('data-task-id') || cardId.replace("cam_", "");
+  
+  // Переводим карточку в состояние ожидания ответа ИИ
+  card.className = "journal-item local-online-processing"; 
+  card.querySelector('.plate-display').innerText = "🤖 ПЕРЕСЧЕТ...";
+  
+  try {
+    let response = await fetch(API_URL, { 
+      method: 'POST', 
+      body: JSON.stringify({ 
+        action: 'retryOcr', 
+        taskId: taskId, 
+        photoUrl: serverPhotoUrl, 
+        sessionId: localStorage.getItem('terminal_session_id'), 
+        deviceId: getDeviceUuidToken() 
+      }) 
+    });
+    
+    let res = await response.json();
+    if (!checkSessionValidity(res)) return;
+    
+    if (res && res.success) {
+      let smartStatus = checkLocalDuplicateText(res.number, taskId, null) || res.status;
+      updateCardUi(card, res.number, smartStatus, res.address, res.photo, "Пересчитано", res.photo, taskId, "Корректор ИИ");
+      
+      // 🔥 АВТОМАТИЧЕСКАЯ ОЗВУЧКА РЕЗУЛЬТАТА ИИ-ПЕРЕСЧЁТА:
+      if (res.number === "Не распознан" || String(smartStatus).includes("игнорирован")) {
+        triggerHardwareAlert('error');
+      } else if (String(smartStatus).includes("Повтор") || String(res.status).includes("Повтор")) {
+        triggerHardwareAlert('repeat');
+      } else {
+        triggerHardwareAlert('new');
+      }
+    } else {
+      // Если сервер вернул ошибку обработки
+      updateCardUi(card, "Не распознан", "Ошибка ИИ", "АЗС", serverPhotoUrl, "Сбой ИИ", serverPhotoUrl, taskId, "Сбой");
+      triggerHardwareAlert('error');
     }
+  } catch (e) {
+    // Если упала сеть во время запроса
+    updateCardUi(card, "Не распознан", "Ошибка сети", "АЗС", serverPhotoUrl, "Ошибка связи", serverPhotoUrl, taskId, "Сбой");
+    triggerHardwareAlert('error');
+  }
+}
 
     function openFullscreenEdit(cardId, photoUrl, address, timeStr, imgToDisplay) {
       initAudioEngine(); modalZoomScale = 1; panX = 0; panY = 0; charityTransform();
@@ -997,36 +1037,97 @@ function reRequestGeolocation(isSilent) {
       document.getElementById('fullscreen-edit-modal').style.display = 'block'; document.getElementById('m-plate-field').focus();
     }
 
-    function closeFullscreenEdit() { document.getElementById('fullscreen-edit-modal').style.display = 'none'; }
+   function closeFullscreenEdit() { 
+  document.getElementById('fullscreen-edit-modal').style.display = 'none'; 
+}
 
-    async function saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgSrc, savedTaskId) {
-      let newNum = document.getElementById('m-plate-field').value.toUpperCase().trim(); if (!newNum) return;
-      if (!validateGostTemplate(newNum)) { alert("Ошибка ГОСТ!"); return; } closeFullscreenEdit();
-      let card = document.getElementById(cardId); if (!card) return;
-      
-      if (!navigator.onLine) {
-        let q = await getIndexedDBQueue(); let matchIdx = q.findIndex(item => item.taskId === savedTaskId);
-        if (matchIdx !== -1) { q[matchIdx].manualNumber = newNum; await addIndexedDBItem(q[matchIdx]); }
-        else { await addIndexedDBItem({ taskId: savedTaskId, action: 'scan', image: imgSrc || photoUrl, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: newNum, deviceId: getDeviceUuidToken() }); }
-        let localDupStatus = checkLocalDuplicateText(newNum, savedTaskId, await getIndexedDBQueue());
-        updateCardUi(card, newNum, localDupStatus || "Внесен 💾", "Буфер диска", photoUrl, timeStr, imgSrc, savedTaskId, "Этот аппарат");
-        await refreshSyncStatusBar(); return;
-      }
-
-      card.className = "journal-item local-online-processing";
-      try {
-        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'editRecord', taskId: savedTaskId, photo: photoUrl, newNumber: newNum, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) });
-        let res = await response.json();
-        if (res && res.success) {
-          let smartStatus = checkLocalDuplicateText(newNum, savedTaskId, null) || "Новый";
-          updateCardUi(card, newNum, smartStatus, address, photoUrl, timeStr, imgSrc, savedTaskId, "Правка");
-        }
-      } catch (e) {
-        await addIndexedDBItem({ taskId: savedTaskId, action: 'scan', image: imgSrc || photoUrl, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: newNum, deviceId: getDeviceUuidToken() });
-        updateCardUi(card, newNum, "Внесен 💾", "Автономно", photoUrl, timeStr, imgSrc, savedTaskId, "Этот аппарат");
-      }
-      await refreshSyncStatusBar();
+async function saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgSrc, savedTaskId) {
+  let newNum = document.getElementById('m-plate-field').value.toUpperCase().trim(); 
+  if (!newNum) return;
+  
+  if (!validateGostTemplate(newNum)) { 
+    alert("Ошибка ГОСТ!"); 
+    return; 
+  } 
+  
+  closeFullscreenEdit();
+  let card = document.getElementById(cardId); 
+  if (!card) return;
+  
+  // Режим РАБОТЫ ОФФЛАЙН (Интернета на АЗС нет)
+  if (!navigator.onLine) {
+    let q = await getIndexedDBQueue(); 
+    let matchIdx = q.findIndex(item => item.taskId === savedTaskId);
+    
+    if (matchIdx !== -1) { 
+      q[matchIdx].manualNumber = newNum; 
+      await addIndexedDBItem(q[matchIdx]); 
+    } else { 
+      await addIndexedDBItem({ 
+        taskId: savedTaskId, 
+        action: 'scan', 
+        image: imgSrc || photoUrl, 
+        coords: currentCoords, 
+        timestamp: new Date().getTime(), 
+        manualNumber: newNum, 
+        deviceId: getDeviceUuidToken() 
+      }); 
     }
+    
+    let localDupStatus = checkLocalDuplicateText(newNum, savedTaskId, await getIndexedDBQueue());
+    updateCardUi(card, newNum, localDupStatus || "Внесен 💾", "Буфер диска", photoUrl, timeStr, imgSrc, savedTaskId, "Этот аппарат");
+    
+    // В оффлайне принудительно даем короткий щелчок-подтверждение сохранения в буфер
+    triggerHardwareAlert('new');
+    await refreshSyncStatusBar(); 
+    return;
+  }
+
+  // Режим РАБОТЫ ОНЛАЙН (Сеть есть, отправляем на бэкенд)
+  card.className = "journal-item local-online-processing";
+  try {
+    let response = await fetch(API_URL, { 
+      method: 'POST', 
+      body: JSON.stringify({ 
+        action: 'editRecord', 
+        taskId: savedTaskId, 
+        photo: photoUrl, 
+        newNumber: newNum, 
+        sessionId: localStorage.getItem('terminal_session_id'), 
+        deviceId: getDeviceUuidToken() 
+      }) 
+    });
+    
+    let res = await response.json();
+    if (!checkSessionValidity(res)) return;
+    
+    if (res && res.success) {
+      let smartStatus = checkLocalDuplicateText(newNum, savedTaskId, null) || "Новый";
+      updateCardUi(card, newNum, smartStatus, address, photoUrl, timeStr, imgSrc, savedTaskId, "Правка");
+      
+      // 🔥 ОЗВУЧКА РЕЗУЛЬТАТА ИСПРАВЛЕНИЯ ГОСНОМЕРА НА СЕРВЕРЕ:
+      if (String(smartStatus).includes("Повтор") || String(res.status).includes("Повтор")) {
+        triggerHardwareAlert('repeat');
+      } else {
+        triggerHardwareAlert('new');
+      }
+    }
+  } catch (e) {
+    // Резервный уход в буфер, если в момент отправки правки моргнул интернет
+    await addIndexedDBItem({ 
+      taskId: savedTaskId, 
+      action: 'scan', 
+      image: imgSrc || photoUrl, 
+      coords: currentCoords, 
+      timestamp: new Date().getTime(), 
+      manualNumber: newNum, 
+      deviceId: getDeviceUuidToken() 
+    });
+    updateCardUi(card, newNum, "Внесен 💾", "Автономно", photoUrl, timeStr, imgSrc, savedTaskId, "Этот аппарат");
+    triggerHardwareAlert('new');
+  }
+  await refreshSyncStatusBar();
+}
 
     /* 🔥 ИСПРАВЛЕНО: Флаг выставляется на первой строчке. Гонка таймеров устранена */
     async function backgroundSyncLoop() {
@@ -1047,13 +1148,20 @@ function reRequestGeolocation(isSilent) {
         if (res && res.error === "session_expired") { isSyncing = false; triggerGlobalSessionLock(); return; }
 
         await removeIndexedDBItem(item.taskId);
-        let card = document.getElementById("cam_" + item.taskId);
-        if (card) { 
-          let smartStatus = checkLocalDuplicateText(res.number, item.taskId, await getIndexedDBQueue()) || res.status;
-          updateCardUi(card, res.number, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId, "Буфер АЗС");
-        }
-      } catch (error) {} finally { isSyncing = false; await refreshSyncStatusBar(); if ((await getIndexedDBQueue()).length > 0) setTimeout(backgroundSyncLoop, 1000); }
-    }
+let card = document.getElementById("cam_" + item.taskId);
+if (card) { 
+  let smartStatus = checkLocalDuplicateText(res.number, item.taskId, await getIndexedDBQueue()) || res.status;
+  updateCardUi(card, res.number, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId, "Буфер АЗС");
+  
+  // 🔥 ОЗВУЧКА РЕЗУЛЬТАТА ВЫГРУЗКИ С СЕРВЕРА:
+  if (res.number === "Не распознан" || String(smartStatus).includes("игнорирован")) {
+    triggerHardwareAlert('error');
+  } else if (String(smartStatus).includes("Повтор") || String(res.status).includes("Повтор")) {
+    triggerHardwareAlert('repeat');
+  } else {
+    triggerHardwareAlert('new');
+  }
+}
 
     async function triggerSearch() {
       if (document.getElementById('global-session-lock-shield').style.display === 'flex') return;
@@ -1162,42 +1270,56 @@ function saveSettings() {
 
     /* 🔥 ПОЛНОЦЕННЫЙ ОРИГИНАЛЬНЫЙ ДВИЖОК АППАРАТНЫХ СИГНАЛОВ И ВИБРАЦИИ СМАРТФОНА */
     function triggerHardwareAlert(type) {
-      try {
-        if (type === 'snap') {
-          let overlay = document.getElementById('flash-overlay');
-          if (overlay) {
-            overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.85)'; overlay.style.opacity = '1';
-            setTimeout(() => { overlay.style.opacity = '0'; }, 150);
-          }
-        }
-        if (!globalAudioCtx) return;
-        let osc = globalAudioCtx.createOscillator();
-        let gainNode = globalAudioCtx.createGain();
-        osc.connect(gainNode); gainNode.connect(globalAudioCtx.destination);
-
-        if (type === 'snap' || type === 'new') {
-          osc.type = 'sine'; osc.frequency.setValueAtTime(880, globalAudioCtx.currentTime);
-          gainNode.gain.setValueAtTime(0.08, globalAudioCtx.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + 0.1);
-          osc.start(); osc.stop(globalAudioCtx.currentTime + 0.1);
-          if (navigator.vibrate) navigator.vibrate(40);
-        } else if (type === 'repeat') {
-          osc.type = 'triangle'; osc.frequency.setValueAtTime(587.33, globalAudioCtx.currentTime);
-          osc.frequency.setValueAtTime(1174.66, globalAudioCtx.currentTime + 0.08);
-          gainNode.gain.setValueAtTime(0.12, globalAudioCtx.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + 0.22);
-          osc.start(); osc.stop(globalAudioCtx.currentTime + 0.22);
-          if (navigator.vibrate) navigator.vibrate([60, 50, 60]);
-        } else if (type === 'error') {
-          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, globalAudioCtx.currentTime);
-          osc.frequency.linearRampToValueAtTime(110, globalAudioCtx.currentTime + 0.35);
-          gainNode.gain.setValueAtTime(0.15, globalAudioCtx.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + 0.35);
-          osc.start(); osc.stop(globalAudioCtx.currentTime + 0.35);
-          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        }
-      } catch(e) { console.log("Интерактивный движок заблокирован политикой жестов."); }
+  try {
+    if (type === 'snap') {
+      let overlay = document.getElementById('flash-overlay');
+      if (overlay) {
+        overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.85)'; overlay.style.opacity = '1';
+        setTimeout(() => { overlay.style.opacity = '0'; }, 150);
+      }
     }
+    
+    // 🔥 АВТО-АКТИВАЦИЯ: Если контекст пустой или спит, будим его принудительно
+    if (!globalAudioCtx) { initAudioEngine(); }
+    if (!globalAudioCtx) return;
+    if (globalAudioCtx.state === 'suspended') { globalAudioCtx.resume(); }
+
+    let osc = globalAudioCtx.createOscillator();
+    let gainNode = globalAudioCtx.createGain();
+    osc.connect(gainNode); gainNode.connect(globalAudioCtx.destination);
+
+    if (type === 'snap' || type === 'new') {
+      // Для снимка оставляем хлёсткие 0.1с, для подтверждения берем из настроек
+      let dur = (type === 'snap') ? 0.1 : (parseFloat(appSettings.durNew) || 0.1);
+      
+      osc.type = 'sine'; osc.frequency.setValueAtTime(880, globalAudioCtx.currentTime);
+      gainNode.gain.setValueAtTime(0.08, globalAudioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + dur);
+      osc.start(); osc.stop(globalAudioCtx.currentTime + dur);
+      if (navigator.vibrate) navigator.vibrate(40);
+      
+    } else if (type === 'repeat') {
+      let dur = parseFloat(appSettings.durRep) || 0.3;
+      
+      osc.type = 'triangle'; osc.frequency.setValueAtTime(587.33, globalAudioCtx.currentTime);
+      osc.frequency.setValueAtTime(1174.66, globalAudioCtx.currentTime + (dur * 0.35));
+      gainNode.gain.setValueAtTime(0.12, globalAudioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + dur);
+      osc.start(); osc.stop(globalAudioCtx.currentTime + dur);
+      if (navigator.vibrate) navigator.vibrate([60, 50, 60]);
+      
+    } else if (type === 'error') {
+      let dur = parseFloat(appSettings.durErr) || 0.5;
+      
+      osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, globalAudioCtx.currentTime);
+      osc.frequency.linearRampToValueAtTime(110, globalAudioCtx.currentTime + dur);
+      gainNode.gain.setValueAtTime(0.15, globalAudioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + dur);
+      osc.start(); osc.stop(globalAudioCtx.currentTime + dur);
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    }
+  } catch(e) { console.log("Интерактивный движок заблокирован политикой жестов."); }
+}
 
     /* 🔥 АВТОМАТИЧЕСКАЯ ФОНОВАЯ ПРОВЕРКА ОБНОВЛЕНИЙ НАПРЯМУЮ С GITHUB RAW */
    // НА ЧТО ТОЧЕЧНО ЗАМЕНИТЬ ЭТУ ФУНКЦИЮ В <script>:
