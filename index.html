@@ -204,7 +204,7 @@
   <div id="global-session-lock-shield">
     <div class="shield-icon">🛑</div>
     <div class="shield-title">ДОСТУП ОГРАНИЧЕН!</div>
-    <div class="shield-desc">Сессия терминала АЗС закрыта. Пожалуйста, введите действующий PIN-код для открытия новой смены.</div>
+    <div class="shield-desc">Сессия терминала АЗС завершена. Пожалуйста, введите действующий PIN-код для открытия новой рабочей смены.</div>
     <input type="password" id="shield-pin-field" class="pin-crypto-field" maxlength="4" placeholder="••••" style="background: #2a2a2a; color: #ffffff; border: 2px solid #3a3b3c; margin-bottom: 5px;" oninput="evaluateShieldPin(this.value)">
     <p style="font-size: 11px; color: #65676b; margin-top: 10px; max-width: 280px;">Очередь фиксации заморожена в памяти диска. Ни один кадр машины не потеряется.</p>
   </div>
@@ -267,8 +267,9 @@
   </div>
 
   <div id="settings-tab" class="tab-content">
+    
     <div class="card" id="settings-lock-card">
-      <h3 id="lock-title" onclick="handleLockTitleClick()" style="cursor:pointer; user-select:none;">🔐 Управление профилем</h3>
+      <h3 id="lock-title" onclick="handleLockTitleClick()" style="cursor:pointer; user-select:none;">🔐 Управление сессией</h3>
       <button id="logout-btn-ui" class="btn-premium-steel" style="background: linear-gradient(135deg, #f02849 0%, #c01830 100%); padding:14px; box-shadow: 0 4px 12px rgba(240,40,73,0.25);" onclick="exitTerminalSession()">🔒 Завершить смену (Выйти из профиля)</button>
     </div>
 
@@ -303,16 +304,24 @@
       <label style="margin-top:10px;">Интервал "Свежего" повтора (минут):</label>
       <input type="number" id="settings-recent-mins" min="1" max="1440" value="30">
     </div>
+    <div class="card admin-only-node admin-hide">
+      <h3>Длительность сигналов (в секундах)</h3>
+      <label>Новый объект:</label><input type="text" id="settings-dur-new" placeholder="0.1">
+      <label>Повторный визит:</label><input type="text" id="settings-dur-rep" placeholder="0.3">
+      <label>Ошибка / Не распознан:</label><input type="text" id="settings-dur-err" placeholder="0.5">
+      <button class="btn-premium-blue" style="margin-top: 10px;" onclick="saveSettings()">💾 Сохранить настройки</button>
+      <p id="settings-status" style="color: #42b72a; font-weight: bold; margin-top: 10px; text-align:center;"></p>
+    </div>
   </div>
 
   <div id="help-tab" class="tab-content">
     <div class="card">
-      <h3>📖 Инструкция Терминала v8.9.3</h3>
-      <p style="font-size:13.5px; line-height:1.5; margin-bottom:10px;">Система создана для параллельной фиксации автотранспорта на линии несколькими устройствами одновременно без конфликтов сессий.</p>
+      <h3>📖 Инструкция Терминала v8.9.2</h3>
+      <p style="font-size:13.5px; line-height:1.5; margin-bottom:10px;">Система создана для скоростной фиксации автотранспорта на линии в любых условиях видимости и связи.</p>
       <div class="help-header">1. Автоматический учет терминалов</div>
-      <p class="help-text">Каждому смартфону присваивается уникальный виртуальный ID-отпечаток. Система сама подпишет автора карточки в журнале в столбце H.</p>
-      <div class="help-header">2. Прямые миниатюры фото</div>
-      <p class="help-text">Лента журнала автоматически на лету адаптирует ссылки Google Диска, подтягивая живые изображения в карточки машин.</p>
+      <p class="help-text">Каждому смартфону присваивается уникальный виртуальный ID-отпечаток. Система сама подпишет автора карточки в журнале.</p>
+      <div class="help-header">2. Использование прицела камеры</div>
+      <p class="help-text">На вкладке <b>"Камера"</b> наведите перекрестие на машину так, чтобы <b>госномер оказался строго в неоновой центральной точке</b>.</p>
     </div>
   </div>
 
@@ -330,7 +339,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9.3
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9.2
     </div>
   </div>
 
@@ -358,12 +367,23 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "8.9.3"; 
+    const APP_VERSION = "8.9.2"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 260, camH: 250 };
-    let gpsStatusText = "📍 GPS"; let currentCoords = null; let globalJournalCache = []; let isSyncing = false;
-    let globalAudioCtx = null; let indexedDatabase = null; let liveVideoStream = null; let videoTrack = null;
-    let zoomHardwareType = "Цифровой"; let adminUpgradeClicks = 0; let activeUndoTimers = {}; let activeIntervals = {};
+    let gpsStatusText = "📍 GPS";
+    let currentCoords = null;
+    let globalJournalCache = []; 
+    let isSyncing = false;
+    let globalAudioCtx = null; 
+    let indexedDatabase = null; 
+    let liveVideoStream = null;
+    let videoTrack = null;
+    let zoomHardwareType = "Цифровой";
+    let adminUpgradeClicks = 0; 
+
+    let activeUndoTimers = {};
+    let activeIntervals = {};
+
     let modalZoomScale = 1; let panX = 0; let panY = 0; let isDragging = false; let startX = 0; let startY = 0;
 
     function getDeviceUuidToken() {
@@ -375,23 +395,17 @@
       return uuid;
     }
 
-    // 🔥 ПАТЧ ДЛЯ МИНИАТЮР: Превращает ссылки просмотра Диска в потоковые стримы для тега <img>
-    function convertToDirectStreamUrl(url) {
-      if (!url || url.indexOf("drive.google.com") === -1) return url;
-      let fileId = "";
-      if (url.indexOf("/d/") !== -1) { fileId = url.split("/d/")[1].split("/")[0]; } 
-      else if (url.indexOf("id=") !== -1) { fileId = url.split("id=")[1].split("&")[0]; }
-      return fileId ? "https://docs.google.com/uc?export=view&id=" + fileId : url;
-    }
-
     function toggleThemeMode(event) {
       if (event) event.stopPropagation();
       document.body.classList.toggle('dark-mode');
-      localStorage.setItem('terminal_theme_dark', document.body.classList.contains('dark-mode') ? 'true' : 'false');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('terminal_theme_dark', isDark ? 'true' : 'false');
     }
 
     function loadSavedTheme() {
-      if (localStorage.getItem('terminal_theme_dark') === 'true') document.body.classList.add('dark-mode');
+      const isDark = localStorage.getItem('terminal_theme_dark') === 'true';
+      if (isDark) { document.body.classList.add('dark-mode'); } 
+      else { document.body.classList.remove('dark-mode'); }
     }
 
     function initAudioEngine() {
@@ -416,7 +430,8 @@
       return new Promise((resolve) => {
         if (!indexedDatabase) return resolve([]);
         let tx = indexedDatabase.transaction("uploadQueue", "readonly");
-        let req = tx.objectStore("uploadQueue").getAll(); req.onsuccess = function() { resolve(req.result || []); };
+        let req = tx.objectStore("uploadQueue").getAll(); 
+        req.onsuccess = function() { resolve(req.result || []); }; req.onerror = function() { resolve([]); };
       });
     }
 
@@ -441,7 +456,9 @@
         if (!indexedDatabase || !records || !records.length) return resolve();
         let tx = indexedDatabase.transaction("journalHistory", "readwrite");
         let store = tx.objectStore("journalHistory");
-        store.clear().onsuccess = function() { records.forEach(r => { if (r.taskId) store.put(r); }); };
+        store.clear().onsuccess = function() {
+          records.forEach(r => { if (r.taskId) store.put(r); });
+        };
         tx.oncomplete = function() { resolve(); };
       });
     }
@@ -450,13 +467,18 @@
       return new Promise((resolve) => {
         if (!indexedDatabase) return resolve([]);
         let tx = indexedDatabase.transaction("journalHistory", "readonly");
-        let req = tx.objectStore("journalHistory").getAll(); req.onsuccess = function() { resolve(req.result || []); };
+        let req = tx.objectStore("journalHistory").getAll();
+        req.onsuccess = function() { resolve(req.result || []); }; req.onerror = function() { resolve([]); };
       });
     }
 
     function checkSessionValidity(serverResponse) {
       if (typeof serverResponse === 'object' && serverResponse && serverResponse.error === "session_expired") {
-        triggerGlobalSessionLock(); return false;
+        triggerGlobalSessionLock();
+        return false;
+      }
+      if (serverResponse && serverResponse.currentSessionId) {
+        localStorage.setItem('terminal_session_id', serverResponse.currentSessionId);
       }
       return true;
     }
@@ -465,6 +487,7 @@
       localStorage.removeItem('terminal_user_role');
       localStorage.removeItem('terminal_session_id');
       renderAccessLayers();
+      
       document.getElementById('global-session-lock-shield').style.display = 'flex';
       document.getElementById('shield-pin-field').value = "";
       document.getElementById('shield-pin-field').focus();
@@ -472,20 +495,56 @@
 
     function evaluateShieldPin(val) {
       if (val.length === 4) {
+        let adminPin = localStorage.getItem('terminal_pin_admin') || "1111";
+        let userPin = localStorage.getItem('terminal_pin_user') || "2222";
+        
         if (navigator.onLine) {
-          fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'validatePinGetToken', pin: val, deviceId: getDeviceUuidToken() }) })
+          fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'validatePinGetToken', pin: val }) })
             .then(r => r.json()).then(res => {
               if (res && res.success) {
                 localStorage.setItem('terminal_session_id', res.sessionId);
-                localStorage.setItem('terminal_user_role', res.role);
+                if (val === adminPin) {
+                  localStorage.setItem('terminal_user_role', 'admin');
+                } else if (val === userPin) {
+                  localStorage.setItem('terminal_user_role', 'user');
+                } else {
+                  localStorage.setItem('terminal_user_role', 'user');
+                  localStorage.setItem('terminal_pin_user', val);
+                }
+                
                 document.getElementById('global-session-lock-shield').style.display = 'none';
-                renderAccessLayers(); backgroundSyncLoop(); 
+                document.getElementById('shield-pin-field').value = "";
+                renderAccessLayers();
+                backgroundSyncLoop(); 
               } else {
                 document.getElementById('shield-pin-field').style.borderColor = '#f02849';
-                setTimeout(() => { document.getElementById('shield-pin-field').style.borderColor = '#3a3b3c'; document.getElementById('shield-pin-field').value = ""; }, 800);
+                setTimeout(() => {
+                  document.getElementById('shield-pin-field').style.borderColor = '#3a3b3c';
+                  document.getElementById('shield-pin-field').value = "";
+                }, 800);
               }
-            }).catch(() => { alert("Необходима сеть для создания новой параллельной сессии."); });
-        } else { alert("Терминал заблокирован. Подключите сеть для авторизации."); }
+            }).catch(() => {
+              if (val === adminPin || val === userPin) {
+                localStorage.setItem('terminal_user_role', val === adminPin ? 'admin' : 'user');
+                document.getElementById('global-session-lock-shield').style.display = 'none';
+                document.getElementById('shield-pin-field').value = "";
+                renderAccessLayers();
+              }
+            });
+        } else {
+          if (val === adminPin || val === userPin) {
+            localStorage.setItem('terminal_user_role', val === adminPin ? 'admin' : 'user');
+            document.getElementById('global-session-lock-shield').style.display = 'none';
+            document.getElementById('shield-pin-field').value = "";
+            renderAccessLayers();
+          } else {
+            document.getElementById('shield-pin-field').style.borderColor = '#f02849';
+            setTimeout(() => {
+              document.getElementById('shield-pin-field').style.borderColor = '#3a3b3c';
+              document.getElementById('shield-pin-field').value = "";
+            }, 800);
+          }
+        }
       }
     }
 
@@ -494,13 +553,31 @@
       if (role === 'user') {
         adminUpgradeClicks++;
         if (adminUpgradeClicks >= 5) {
-          adminUpgradeClicks = 0; localStorage.setItem('terminal_user_role', 'admin');
-          alert("👨‍✈️ Режим Администратора открыт!"); renderAccessLayers();
+          adminUpgradeClicks = 0;
+          localStorage.setItem('terminal_user_role', 'admin');
+          alert("👨‍✈️ Профиль повышен до Администратора!");
+          renderAccessLayers();
         }
       }
     }
 
-    function exitTerminalSession() { triggerGlobalSessionLock(); }
+    async function forceClearPwaCache() {
+      if (confirm("Выполнить полную очистку кэша приложения? Очередь машин не сотрется.")) {
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          for (let key of keys) { await caches.delete(key); }
+        }
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (let registration of registrations) { await registration.unregister(); }
+        }
+        window.location.reload(true);
+      }
+    }
+
+    function exitTerminalSession() {
+      triggerGlobalSessionLock();
+    }
 
     function renderAccessLayers() {
       let role = localStorage.getItem('terminal_user_role');
@@ -508,15 +585,16 @@
       let geoBlock = document.getElementById('settings-geo-block');
       let updateBlock = document.getElementById('settings-update-block');
       let adminNodes = document.querySelectorAll('.admin-only-node');
+      let logoutBtn = document.getElementById('logout-btn-ui');
       let lockTitle = document.getElementById('lock-title');
 
       if (!role) {
-        lockCard.style.display = "block"; geoBlock.style.display = "none"; updateBlock.style.display = "none";
+        lockCard.style.display = "block"; geoBlock.style.display = "none"; updateBlock.style.display = "none"; logoutBtn.style.display = "none";
         lockTitle.innerText = "🔐 Сессия закрыта";
         adminNodes.forEach(n => n.classList.add('admin-hide'));
         document.getElementById('global-session-lock-shield').style.display = 'flex';
       } else {
-        lockCard.style.display = "block"; geoBlock.style.display = "block"; updateBlock.style.display = "block";
+        lockCard.style.display = "block"; geoBlock.style.display = "block"; updateBlock.style.display = "block"; logoutBtn.style.display = "inline-block";
         lockTitle.innerText = role === 'admin' ? "👨‍✈️ Режим: Администратор" : "👷 Режим: Оператор";
         if (role === 'admin') { adminNodes.forEach(n => n.classList.remove('admin-hide')); } 
         else { adminNodes.forEach(n => n.classList.add('admin-hide')); }
@@ -526,9 +604,11 @@
     }
 
     function executeCameraZoom(val) {
-      let zoomVal = parseFloat(val); localStorage.setItem('camera_zoom_factor', zoomVal);
+      let zoomVal = parseFloat(val);
+      localStorage.setItem('camera_zoom_factor', zoomVal);
       document.getElementById('zoom-val-text').innerText = zoomVal.toFixed(1) + 'x';
       document.getElementById('zoom-type-text').innerText = `(${zoomHardwareType})`;
+
       if (zoomHardwareType === "Аппаратный" && videoTrack) {
         videoTrack.applyConstraints({ advanced: [{ zoom: zoomVal }] }).catch(() => { applyDigitalZoomFallback(zoomVal); });
       } else { applyDigitalZoomFallback(zoomVal); }
@@ -545,6 +625,7 @@
       try {
         liveVideoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
         videoEl.srcObject = liveVideoStream;
+        
         videoEl.onloadedmetadata = function() {
           videoTrack = liveVideoStream.getVideoTracks()[0];
           if (videoTrack && typeof videoTrack.getCapabilities === 'function') {
@@ -552,12 +633,15 @@
               let caps = videoTrack.getCapabilities();
               if (caps.zoom) {
                 zoomHardwareType = "Аппаратный";
-                document.getElementById('camera-zoom-slider').min = caps.zoom.min || 1;
-                document.getElementById('camera-zoom-slider').max = Math.min(caps.zoom.max || 4, 4);
+                let slider = document.getElementById('camera-zoom-slider');
+                slider.min = caps.zoom.min || 1; slider.max = Math.min(caps.zoom.max || 4, 4);
               } else { zoomHardwareType = "Цифровой"; }
             } catch(e) { zoomHardwareType = "Цифровой"; }
-          }
-          executeCameraZoom(parseFloat(localStorage.getItem('camera_zoom_factor') || '1.0'));
+          } else { zoomHardwareType = "Цифровой"; }
+
+          let savedZoom = parseFloat(localStorage.getItem('camera_zoom_factor') || '1.0');
+          document.getElementById('camera-zoom-slider').value = savedZoom;
+          executeCameraZoom(savedZoom);
         };
       } catch (err) { gpsStatusText = "❌ GPS"; await refreshSyncStatusBar(); }
     }
@@ -586,30 +670,49 @@
             sWidth = cropW; sHeight = cropH;
           }
         }
+
         ctx.drawImage(videoEl, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
         const rawBase64 = canvas.toDataURL('image/jpeg', 0.75);
 
-        await addIndexedDBItem({ taskId: taskId, action: 'scan', image: rawBase64, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: null, deviceId: getDeviceUuidToken() }); 
+        let offlineItem = { 
+          taskId: taskId, 
+          action: 'scan', 
+          image: rawBase64, 
+          coords: currentCoords, 
+          timestamp: new Date().getTime(), 
+          manualNumber: null,
+          deviceId: getDeviceUuidToken()
+        };
+        await addIndexedDBItem(offlineItem); 
         
         let scanResultArea = document.getElementById('scan-result');
-        let itemDiv = document.createElement('div'); itemDiv.id = "cam_" + taskId; scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
-        
+        let itemDiv = document.createElement('div'); itemDiv.id = "cam_" + taskId; 
+        scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
         let isOnline = navigator.onLine;
-        updateCardUi(itemDiv, isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ", isOnline ? "Выгрузка 📡" : "Очередь 💾", isOnline ? "Связь..." : "Координаты", "", "🕒 Снимок сделан", rawBase64, taskId, "Этот аппарат");
+        let displayNum = isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ";
+        let displayStatus = isOnline ? "Выгрузка 📡" : "Очередь 💾";
         
         activeUndoTimers[taskId] = 10;
+        updateCardUi(itemDiv, displayNum, displayStatus, isOnline ? "Связь с сервером..." : "Сбор координат", "", "🕒 Снимок сделан", rawBase64, taskId, "Этот аппарат");
+        await refreshSyncStatusBar();
+
         activeIntervals[taskId] = setInterval(async () => {
           activeUndoTimers[taskId]--;
-          let btn = document.getElementById(`undo_btn_${taskId}`); if (btn) btn.innerText = `🛑 Отмена (${activeUndoTimers[taskId]}с)`;
-          if (activeUndoTimers[taskId] <= 0) { clearInterval(activeIntervals[taskId]); delete activeUndoTimers[taskId]; if (btn) btn.remove(); backgroundSyncLoop(); }
+          let btn = document.getElementById(`undo_btn_${taskId}`);
+          if (btn) btn.innerText = `🛑 Отмена (${activeUndoTimers[taskId]}с)`;
+          if (activeUndoTimers[taskId] <= 0) {
+            clearInterval(activeIntervals[taskId]); delete activeIntervals[taskId]; delete activeUndoTimers[taskId];
+            if (btn) btn.remove();
+            backgroundSyncLoop(); 
+          }
         }, 1000);
-        await refreshSyncStatusBar();
-      } catch (err) { alert(err.message); }
+      } catch (err) { alert("Ошибка кадрирования: " + err.message); }
     }
 
     async function undoCapture(taskId) {
-      if (activeIntervals[taskId]) clearInterval(activeIntervals[taskId]);
-      await removeIndexedDBItem(taskId); let card = document.getElementById("cam_" + taskId); if (card) card.remove();
+      if (activeIntervals[taskId]) { clearInterval(activeIntervals[taskId]); delete activeIntervals[taskId]; }
+      delete activeUndoTimers[taskId]; await removeIndexedDBItem(taskId);
+      let card = document.getElementById("cam_" + taskId); if (card) card.remove();
       await refreshSyncStatusBar();
     }
 
@@ -619,13 +722,12 @@
       let taskId = card.getAttribute('data-task-id') || cardId.replace("cam_", "").replace("jour_", "");
       if (document.getElementById("cam_" + taskId)) document.getElementById("cam_" + taskId).remove();
       if (document.getElementById("jour_" + taskId)) document.getElementById("jour_" + taskId).remove();
-      
       globalJournalCache = globalJournalCache.filter(r => r.taskId !== taskId);
       await saveJournalToDisk(globalJournalCache);
 
       if (navigator.onLine) {
-        fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteRecord', taskId: taskId, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) })
-          .then(r => r.json()).then(res => { checkSessionValidity(res); refreshSyncStatusBar(); });
+        fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteRecord', taskId: taskId, sessionId: localStorage.getItem('terminal_session_id') }) })
+          .then(r => r.json()).then(res => { checkSessionValidity(res); refreshSyncStatusBar(); }).catch(() => {});
       } else {
         await addIndexedDBItem({ taskId: "del_" + taskId, action: 'delete', targetTaskId: taskId });
       }
@@ -636,7 +738,7 @@
       let w = parseInt(document.getElementById('settings-cam-w').value) || appSettings.camW || 260;
       let h = parseInt(document.getElementById('settings-cam-h').value) || appSettings.camH || 250;
       appSettings.camW = w; appSettings.camH = h;
-      let box = document.getElementById('stream-box-container'); if (box) box.style.width = w + 'px'; box.style.height = h + 'px';
+      let box = document.getElementById('stream-box-container'); if (box) { box.style.width = w + 'px'; box.style.height = h + 'px'; }
     }
 
     function charityTransform() { const img = document.getElementById('m-target-img'); if (img) img.style.transform = `translate(${panX}px, ${panY}px) scale(${modalZoomScale})`; }
@@ -653,12 +755,98 @@
         navigator.geolocation.getCurrentPosition(async function(position) {
           currentCoords = { latitude: position.coords.latitude, longitude: position.coords.longitude };
           gpsStatusText = "📍 GPS"; await refreshSyncStatusBar();
-        }, async function(error) { gpsStatusText = "⚠️ GPS"; await refreshSyncStatusBar(); }, { enableHighAccuracy: true, timeout: 8000 });
+        }, async function(error) {
+          gpsStatusText = "⚠️ GPS"; await refreshSyncStatusBar();
+        }, { enableHighAccuracy: true, timeout: 8000 });
       }
     }
 
+    function showUpdateToastNotification(msg) {
+      let toast = document.getElementById('toast-notification'); if (!toast) return;
+      toast.innerText = msg; toast.classList.add('show');
+      setTimeout(() => { toast.classList.remove('show'); }, 4500);
+    }
+
+    window.onload = async function() {
+      loadSavedTheme(); getDeviceUuidToken();
+      await initIndexedDB(); reRequestGeolocation(true); loadSettings(true);
+      globalJournalCache = await loadJournalFromDisk();
+      renderAccessLayers(); 
+      await restoreOfflineCards(); silentLoadJournalCache(); startLiveStreaming(); 
+      setInterval(backgroundSyncLoop, 10000);
+
+      let previousStoredVersion = localStorage.getItem('app_version_cache_tracker');
+      if (previousStoredVersion && previousStoredVersion !== APP_VERSION) {
+        showUpdateToastNotification(`🎉 Терминал обновлен до v${APP_VERSION}!`);
+      }
+      localStorage.setItem('app_version_cache_tracker', APP_VERSION);
+      document.body.addEventListener('click', initAudioEngine, { once: false });
+
+      const zoomContainer = document.querySelector('.modal-photo-container');
+      if (zoomContainer) {
+        zoomContainer.addEventListener('mousedown', (e) => { if (modalZoomScale <= 1 || e.target.classList.contains('zoom-btn')) return; isDragging = true; startX = e.clientX - panX; startY = e.clientY - panY; });
+        window.addEventListener('mousemove', (e) => { if (!isDragging) return; panX = e.clientX - startX; panY = e.clientY - startY; charityTransform(); });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+        zoomContainer.addEventListener('touchstart', (e) => { if (modalZoomScale <= 1 || e.target.classList.contains('zoom-btn')) return; isDragging = true; startX = e.touches[0].clientX - panX; startY = e.touches[0].clientY - panY; });
+        window.addEventListener('touchmove', (e) => { if (!isDragging) return; panX = e.touches[0].clientX - startX; panY = e.touches[0].clientY - startY; charityTransform(); });
+        window.addEventListener('touchend', () => { isDragging = false; });
+      }
+
+      document.getElementById('m-plate-field').addEventListener('input', function(e) {
+        let value = e.target.value.toUpperCase();
+        const latinToCyr = {'A':'А', 'B':'В', 'E':'Е', 'K':'К', 'M':'М', 'H':'Н', 'O':'О', 'P':'Р', 'C':'С', 'T':'Т', 'Y':'У', 'X':'Х'};
+        let converted = ""; for (let i = 0; i < value.length; i++) { converted += latinToCyr[value[i]] ? latinToCyr[value[i]] : value[i]; }
+        e.target.value = converted.replace(/[^АВЕКМНОРСТУХ0-9]/g, '');
+      });
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').then((reg) => { reg.update(); }).catch(() => {});
+      }
+    };
+
+    async function restoreOfflineCards() {
+      let q = await getIndexedDBQueue(); let scanResultArea = document.getElementById('scan-result'); if (!scanResultArea || q.length === 0) return;
+      let isOnline = navigator.onLine;
+      q.forEach(item => {
+        if (item.action === 'delete') return;
+        if (document.getElementById("cam_" + item.taskId)) return; 
+        let itemDiv = document.createElement('div'); itemDiv.id = "cam_" + item.taskId; scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
+        let displayNum = item.manualNumber || (isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ");
+        let displayStatus = item.manualNumber ? "Внесен 💾" : (isOnline ? "Выгрузка 📡" : "Очередь 💾");
+        let localDupStatus = checkLocalDuplicateText(displayNum, item.taskId, q); if (localDupStatus) displayStatus = localDupStatus;
+        updateCardUi(itemDiv, displayNum, displayStatus, item.manualNumber ? "Сохранено в телефоне" : "Ожидание сети", "", "🕒 Ожидает выгрузку", item.image, item.taskId, "Этот аппарат");
+      });
+    }
+
+    async function refreshSyncStatusBar() {
+      let q = await getIndexedDBQueue(); let bar = document.getElementById('sync-status-bar'); let archiveCount = globalJournalCache.length;
+      if (!navigator.onLine) {
+        bar.className = "status-offline"; bar.innerHTML = `${gpsStatusText} | 💾 Очередь: ${q.length} | 📁 Архив: ${archiveCount} шт. <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`; return;
+      }
+      if (q.length === 0) {
+        bar.className = "status-synced"; bar.innerHTML = `${gpsStatusText} | 🟢 Архив: ${archiveCount} шт. | ☁️ Облако <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+      } else {
+        bar.className = isSyncing ? "status-uploading" : "status-offline";
+        bar.innerHTML = `${gpsStatusText} | ${isSyncing ? '🔵 Сброс пакетов' : '🟡 Буфер'}: ${q.length} | 📁 Архив: ${archiveCount} <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
+      }
+    }
+
+    function silentLoadJournalCache() {
+      if (!navigator.onLine) return;
+      if (document.getElementById('global-session-lock-shield').style.display === 'flex') return;
+      try {
+        let days = parseInt(localStorage.getItem('settings_days') || appSettings.days);
+        let today = new Date(); let pastDate = new Date(); pastDate.setDate(today.getDate() - days);
+        let sDate = pastDate.toISOString().split('T')[0];
+        fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: { startDate: sDate }, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) })
+          .then(r => r.json()).then(async (records) => { 
+            if (!checkSessionValidity(records)) return;
+            if (records && records.length) { globalJournalCache = records; await saveJournalToDisk(records); refreshSyncStatusBar(); } 
+          }).catch(() => {});
+      } catch (e) {}
+    }
+
     function checkLocalDuplicateText(num, currentTaskId, preloadedQueue) {
-      if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ...") return null;
+      if (!num || num === "Не распознан" || num === "⏳ ЖДЕТ СЕТЬ" || num === "🤖 АНАЛИЗ..." || String(num).includes("Проверить вручную") || String(num).includes("Ошибка")) return null;
       let cleanNum = String(num).toUpperCase().trim(); let count = 0; let latestTimestamp = 0;
       function parseGSheetsDate(dateStr) {
         if (!dateStr) return 0;
@@ -678,99 +866,128 @@
       if (count === 0) return null;
       let now = new Date(); let lastDate = new Date(latestTimestamp || now.getTime());
       let isSameDay = (now.getDate() === lastDate.getDate() && now.getMonth() === lastDate.getMonth() && now.getFullYear() === lastDate.getFullYear());
-      if (count === 1) return isSameDay ? `Повтор • ${lastDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : `Повтор • ${lastDate.toLocaleDateString([], {day: '2-digit', month: '2-digit'})}`;
-      return `${count} повтора`;
+      let timeStr = lastDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      let dateStr = lastDate.toLocaleDateString([], {day: '2-digit', month: '2-digit'});
+      if (count === 1) return isSameDay ? `Повтор • ${timeStr}` : `Повтор • ${dateStr} ${timeStr}`;
+      return isSameDay ? `${count} повтора • ${timeStr}` : `${count} пов. • ${dateStr}`;
     }
 
     function showInJournal(number) {
       document.getElementById('search-number').value = String(number).toUpperCase().trim();
+      document.getElementById('search-start-date').value = ""; document.getElementById('search-end-date').value = "";
       openTab('search-tab', document.querySelector('[onclick*="search-tab"]')); triggerSearch();
     }
 
     function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId, operatorName) {
-      let isRep = String(status).includes("Повтор") || String(status).includes("пов.");
-      let isPending = String(status).includes("Очередь") || String(status).includes("сеть") || String(status).includes("Буфер") || String(status).includes("кэше") || String(status).includes("Выгрузка");
-      let isProcessing = String(number) === "🤖 АНАЛИЗ..." || String(status).includes("Пересчет");
-      let isErr = String(number) === "Не распознан" || String(status).includes("Ошибка");
+      number = number || ""; status = status || "";
+      let isRep = String(status).includes("Повтор") || String(status).includes("повтор") || String(status).includes("раз") || String(status).includes("пов.");
+      let isPending = String(status).includes("Ожидание") || String(status).includes("сеть") || String(status).includes("Внесен") || String(status).includes("Очередь") || String(status).includes("кэше");
+      let isProcessing = String(number) === "🤖 АНАЛИЗ..." || String(status).includes("Пересчет") || String(status).includes("Анализ") || String(status).includes("Расчет"); 
+      let isErr = String(number) === "Не распознан" || String(number).includes("Ошибка") || String(status).includes("ручную") || String(status).includes("вручную") || String(status).includes("Ошибка") || String(status).includes("ОШИБКА");
       
       if (isPending) cardElement.className = "journal-item local-offline";
       else if (isProcessing) cardElement.className = "journal-item local-online-processing";
       else if (isErr) cardElement.className = "journal-item error-item"; 
       else cardElement.className = `journal-item ${isRep ? 'repeat' : 'new'}`;
       
-      let badgeLabel = isPending ? "Буфер 💾" : (isProcessing ? "ИИ 🤖" : (isErr ? "ОШИБКА!" : "Новый"));
-      if (isRep) { badgeLabel = checkLocalDuplicateText(number, forcedTaskId || cardElement.id, null) || "Повтор"; }
+      let badgeLabel = "Новый";
+      if (isPending) badgeLabel = "Очередь 💾";
+      else if (isProcessing) badgeLabel = "Анализ 🤖";
+      else if (isErr) badgeLabel = "ОШИБКА!";
+      else if (isRep) { badgeLabel = checkLocalDuplicateText(number, forcedTaskId || cardElement.id, null) || "Повтор"; }
       
       if (photoUrl) cardElement.setAttribute('data-server-photo', photoUrl);
       if (forcedTaskId) cardElement.setAttribute('data-task-id', forcedTaskId);
       if (imgSrc) cardElement.setAttribute('data-local-src', imgSrc);
       
-      // 🔥 КЛЮЧЕВОЙ ФИКС: Пропускаем ссылку Диска через конвертер для стабильного рендеринга миниатюры
-      let actualImgSrc = imgSrc || convertToDirectStreamUrl(photoUrl);
-
-      cardElement.innerHTML = `
-        <div class="thumb-box" onclick="if('${photoUrl}') window.open('${photoUrl}', '_blank')">
-          <img src="${actualImgSrc}" style="${actualImgSrc ? 'display:block;' : 'display:none;'}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <span class="offline-photo-placeholder" style="${actualImgSrc ? 'display:none;' : 'display:flex;'}">⏳🌐</span>
-          <div class="status-right">${badgeLabel}</div>
-        </div>
-        <div class="info-left">
-          <div class="plate-container">
-            <span class="plate-display">${number}</span>
-            <button class="edit-trigger-btn" onclick="openFullscreenEdit('${cardElement.id}', '${photoUrl}', '__address_placeholder__', '${timeStr}', '${imgSrc || photoUrl}')">✏️</button>
-            ${isErr && navigator.onLine ? `<button class="retry-trigger-btn" onclick="retryAiRecognition('${forcedTaskId || cardElement.id}', '${photoUrl}')">🔄</button>` : ""}
-            ${isRep ? `<button class="journal-trigger-btn" onclick="showInJournal('${number}')">🔎 История</button>` : ""}
-            ${localStorage.getItem('terminal_user_role') === 'admin' ? `<button class="admin-delete-btn" onclick="executeAdminRecordPurge('${cardElement.id}', '${number}')">🗑️</button>` : ""}
-          </div>
-          <div class="info-date">📅 ${timeStr}</div>
-          <div style="font-size:11.5px; color:var(--text-sub); margin-top:1px;">👤 Терминал: <b>${operatorName || "Загрузка..."}</b></div>
-          <div class="info-address">📍 ${address || "Рейд АЗС"}</div>
-          ${forcedTaskId && activeUndoTimers[forcedTaskId] > 0 ? `<button id="undo_btn_${forcedTaskId}" class="undo-trigger-btn" onclick="undoCapture('${forcedTaskId}')">🛑 Отмена (${activeUndoTimers[forcedTaskId]}с)</button>` : ""}
+      let badgeHtml = `<div class="status-right">${badgeLabel}</div>`;
+      let thumbHtml = `
+        <div class="thumb-box" onclick="if('${photoUrl || ''}') window.open('${photoUrl}', '_blank')">
+          <img src="${imgSrc || photoUrl || ''}" style="${(imgSrc || photoUrl) ? 'display:block;' : 'display:none;'}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <span class="offline-photo-placeholder" style="${(imgSrc || photoUrl) ? 'display:none;' : 'display:flex;'}">⏳🌐</span>
+          ${badgeHtml}
         </div>
       `;
-      cardElement.innerHTML = cardElement.innerHTML.replace('__address_placeholder__', String(address || "Рейд АЗС").replace(/'/g, "\\'"));
+      let journalBtnHtml = isRep ? `<button class="journal-trigger-btn" onclick="showInJournal('${number}')">🔎 История</button>` : "";
+      let retryBtnHtml = (isErr && navigator.onLine) ? `<button class="retry-trigger-btn" title="Повторить" onclick="retryAiRecognition('${forcedTaskId || cardElement.id}', '${photoUrl}')">🔄</button>` : "";
+      let gpsHtmlLine = (!address || address === "Нет GPS" || String(address).includes("Сбор координат") || String(address).includes("🛑")) ? `<div class="info-address" style="color:#f02849;">🛑 Нет GPS</div>` : `<div class="info-address">📍 ${address}</div>`;
+      let undoBtnHtml = (forcedTaskId && activeUndoTimers[forcedTaskId] > 0) ? `<button id="undo_btn_${forcedTaskId}" class="undo-trigger-btn" onclick="undoCapture('${forcedTaskId}')">🛑 Отмена (${activeUndoTimers[forcedTaskId]}с)</button>` : "";
+      let adminPurgeHtml = (localStorage.getItem('terminal_user_role') === 'admin') ? `<button class="admin-delete-btn" title="Удалить навсегда" onclick="executeAdminRecordPurge('${cardElement.id}', '${number}')">🗑️</button>` : "";
+
+      let safeOpName = operatorName ? String(operatorName) : "Определяется...";
+
+      cardElement.innerHTML = `
+        ${thumbHtml}
+        <div class="info-left">
+          <div class="plate-wrapper">
+            <div class="plate-container">
+              <span class="plate-display">${number}</span>
+              <button class="edit-trigger-btn" onclick="openFullscreenEdit('${cardElement.id}', '${photoUrl}', '__address_placeholder__', '${timeStr}', '${imgSrc || photoUrl}')">✏️</button>
+              ${retryBtnHtml} ${journalBtnHtml} ${adminPurgeHtml}
+            </div>
+          </div>
+          <div class="info-date">📅 ${timeStr}</div>
+          <div style="font-size:11.5px; color:var(--text-sub); margin-top:1px;">👤 Терминал: <b>${safeOpName}</b></div>
+          ${gpsHtmlLine} ${undoBtnHtml}
+        </div>
+      `;
+      let safeAddress = String(address || "Ошибка ИИ / Нет связи").replace(/'/g, "\\'").replace(/"/g, '\\"');
+      cardElement.innerHTML = cardElement.innerHTML.replace('__address_placeholder__', safeAddress);
+    }
+
+    function validateGostTemplate(num) {
+      if (!num || num === "Не распознан") return false;
+      let clean = String(num).toUpperCase().trim();
+      return /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i.test(clean) || /^\d{4}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i.test(clean);
     }
 
     async function retryAiRecognition(cardId, serverPhotoUrl) {
-      if (!navigator.onLine) return; if (globalAudioCtx) globalAudioCtx.resume();
+      if (!navigator.onLine) { alert("Необходима сеть!"); return; }
+      if (globalAudioCtx) globalAudioCtx.resume();
       let card = document.getElementById(cardId); if (!card) return;
-      let taskId = card.getAttribute('data-task-id') || cardId.replace("cam_", "");
-      card.className = "journal-item local-online-processing"; card.querySelector('.plate-display').innerText = "🤖 ПЕРЕСЧЕТ...";
+      let taskId = card.getAttribute('data-task-id') || cardId.replace("cam_", ""); let localImg = card.getAttribute('data-local-src') || "";
+      card.className = "journal-item local-online-processing";
+      let textSpan = card.querySelector('.plate-display'); if (textSpan) textSpan.innerText = "🤖 ПЕРЕСЧЕТ...";
       try {
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'retryOcr', taskId: taskId, photoUrl: serverPhotoUrl, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) });
         let res = await response.json();
+        if (!checkSessionValidity(res)) return;
         if (res && res.success) {
-          let smartStatus = checkLocalDuplicateText(res.number, taskId, null) || res.status;
-          updateCardUi(card, res.number, smartStatus, res.address, res.photo, "Пересчитано", res.photo, taskId, "Корректор ИИ");
+          let finalNum = res.number; let finalStatus = res.status;
+          if (!validateGostTemplate(finalNum) && finalNum !== "Не распознан") finalStatus = "Проверить вручную ⚠️";
+          let smartStatus = checkLocalDuplicateText(finalNum, taskId, null) || finalStatus;
+          updateCardUi(card, finalNum, smartStatus, res.address || "АЗС-Терминал", res.photo || serverPhotoUrl, "Пересчитано", localImg || res.photo, taskId, "Корректор ИИ");
         }
-      } catch (e) { updateCardUi(card, "Не распознан", "Ошибка", "АЗС", serverPhotoUrl, "Ошибка", serverPhotoUrl, taskId, "Сбой"); }
+      } catch (e) { updateCardUi(card, "Не распознан", "Ошибка сети ⚠️", "АЗС", serverPhotoUrl, "Ошибка", localImg, taskId, "Сбой"); }
     }
 
     function openFullscreenEdit(cardId, photoUrl, address, timeStr, imgToDisplay) {
       initAudioEngine(); modalZoomScale = 1; panX = 0; panY = 0; charityTransform();
-      let currentNumber = document.querySelector(`#${cardId} .plate-display`).innerText;
-      if (currentNumber.includes("ЖДЕТ") || currentNumber.includes("АНАЛИЗ")) currentNumber = "";
-      let card = document.getElementById(cardId);
-      let savedTaskId = card.getAttribute('data-task-id') || cardId.replace("cam_", "").replace("jour_", "");
-      document.getElementById('m-target-img').src = convertToDirectStreamUrl(imgToDisplay || photoUrl);
-      document.getElementById('m-plate-field').value = currentNumber;
-      document.getElementById('m-save-btn').onclick = function() { saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgToDisplay, savedTaskId); };
-      document.getElementById('fullscreen-edit-modal').style.display = 'block'; document.getElementById('m-plate-field').focus();
+      let textSpan = document.querySelector(`#${cardId} .plate-display`); let currentNumber = textSpan ? textSpan.innerText : "";
+      if (currentNumber === "⏳ ЖДЕТ СЕТЬ" || currentNumber === "🤖 АНАЛИЗ..." || currentNumber.includes("Не распознан")) currentNumber = "";
+      let card = document.getElementById(cardId); let backupUrl = photoUrl || (card ? card.getAttribute('data-server-photo') : "");
+      let savedTaskId = cardId.replace("cam_", "").replace("jour_", "");
+      if (card && card.getAttribute('data-task-id')) savedTaskId = card.getAttribute('data-task-id');
+      document.getElementById('m-target-img').src = (imgToDisplay && !imgToDisplay.includes("exec")) ? imgToDisplay : (backupUrl || "");
+      let inputField = document.getElementById('m-plate-field'); inputField.value = currentNumber;
+      document.getElementById('m-save-btn').onclick = function() { saveFullscreenEdit(cardId, backupUrl, address, timeStr, imgToDisplay, savedTaskId); };
+      document.getElementById('fullscreen-edit-modal').style.display = 'block'; inputField.focus();
     }
 
     function closeFullscreenEdit() { document.getElementById('fullscreen-edit-modal').style.display = 'none'; }
 
     async function saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgSrc, savedTaskId) {
-      let newNum = document.getElementById('m-plate-field').value.toUpperCase().trim(); if (!newNum) return;
-      if (!validateGostTemplate(newNum)) { alert("Ошибка ГОСТ!"); return; } closeFullscreenEdit();
-      let card = document.getElementById(cardId); if (!card) return;
+      let newNum = document.getElementById('m-plate-field').value.toUpperCase().trim();
+      if (!newNum) return;
+      if (!validateGostTemplate(newNum)) { alert("Ошибка шаблона ГОСТа РФ!"); return; }
+      closeFullscreenEdit(); let card = document.getElementById(cardId); if (!card) return;
       
       if (!navigator.onLine) {
         let q = await getIndexedDBQueue(); let matchIdx = q.findIndex(item => item.taskId === savedTaskId);
-        if (matchIdx !== -1) { q[matchIdx].manualNumber = newNum; await addIndexedDBItem(q[matchIdx]); }
+        if (matchIdx !== -1) { q[matchIdx].manualNumber = newNum; await addIndexedDBItem(q[matchIdx]); } 
         else { await addIndexedDBItem({ taskId: savedTaskId, action: 'scan', image: imgSrc || photoUrl, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: newNum, deviceId: getDeviceUuidToken() }); }
         let localDupStatus = checkLocalDuplicateText(newNum, savedTaskId, await getIndexedDBQueue());
-        updateCardUi(card, newNum, localDupStatus || "Внесен 💾", "Буфер диска", photoUrl, timeStr, imgSrc, savedTaskId, "Этот аппарат");
+        updateCardUi(card, newNum, localDupStatus || "Внесен 💾", "Сохранено локально на диск", photoUrl, timeStr, imgSrc, savedTaskId, "Этот аппарат");
         await refreshSyncStatusBar(); return;
       }
 
@@ -778,126 +995,155 @@
       try {
         let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'editRecord', taskId: savedTaskId, photo: photoUrl, newNumber: newNum, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) });
         let res = await response.json();
+        if (!checkSessionValidity(res)) return;
         if (res && res.success) {
+          function getGSheetsTimestamp() { let d = new Date(); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU'); }
+          globalJournalCache.unshift({ taskId: savedTaskId, number: newNum, date: getGSheetsTimestamp(), address: address, gps: "Network", photo: photoUrl, operator: "Правка" });
+          await saveJournalToDisk(globalJournalCache); 
           let smartStatus = checkLocalDuplicateText(newNum, savedTaskId, null) || "Новый";
-          updateCardUi(card, newNum, smartStatus, address, photoUrl, timeStr, imgSrc, savedTaskId, "Правка");
+          updateCardUi(card, newNum, smartStatus, address, photoUrl, timeStr, imgSrc, savedTaskId, "Правка"); await refreshSyncStatusBar();
         }
       } catch (e) {
         await addIndexedDBItem({ taskId: savedTaskId, action: 'scan', image: imgSrc || photoUrl, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: newNum, deviceId: getDeviceUuidToken() });
-        updateCardUi(card, newNum, "Внесен 💾", "Автономно", photoUrl, timeStr, imgSrc, savedTaskId, "Этот аппарат");
+        let localDupStatus = checkLocalDuplicateText(newNum, savedTaskId, await getIndexedDBQueue());
+        updateCardUi(card, newNum, localDupStatus || "Внесен 💾", "Сеть упала • Сохранено в БД", photoUrl, timeStr, imgSrc, savedTaskId, "Этот аппарат");
+        await refreshSyncStatusBar();
       }
-      await refreshSyncStatusBar();
     }
 
     async function backgroundSyncLoop() {
       if (document.getElementById('global-session-lock-shield').style.display === 'flex') return;
       if (isSyncing) return; let q = await getIndexedDBQueue(); if (q.length === 0) { await refreshSyncStatusBar(); return; }
-      if (!navigator.onLine) return;
+      if (!navigator.onLine) { isSyncing = false; await refreshSyncStatusBar(); return; }
       
-      let item = q[0]; if (activeUndoTimers[item.taskId] > 0) return;
+      let item = q[0]; if (activeUndoTimers[item.taskId] > 0) return; 
       isSyncing = true; await refreshSyncStatusBar();
       try {
-        item.sessionId = localStorage.getItem('terminal_session_id'); item.deviceId = getDeviceUuidToken();
-        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(item) });
+        let payload = item.action === 'delete' ? { action: 'deleteRecord', taskId: item.targetTaskId } : item;
+        payload.sessionId = localStorage.getItem('terminal_session_id');
+        payload.deviceId = getDeviceUuidToken();
+        
+        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
         let res = await response.json();
         if (res && res.error === "session_expired") { isSyncing = false; triggerGlobalSessionLock(); return; }
 
         await removeIndexedDBItem(item.taskId);
-        let card = document.getElementById("cam_" + item.taskId);
-        if (card) { 
-          let smartStatus = checkLocalDuplicateText(res.number, item.taskId, await getIndexedDBQueue()) || res.status;
-          updateCardUi(card, res.number, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId, "Буфер АЗС"); 
+        if (item.action !== 'delete') {
+          let card = document.getElementById("cam_" + item.taskId);
+          if (card) {
+            let smartStatus = checkLocalDuplicateText(res.number, item.taskId, await getIndexedDBQueue()) || res.status;
+            updateCardUi(card, res.number, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId, "Буфер АЗС");
+          }
         }
-      } catch (error) {} finally { isSyncing = false; await refreshSyncStatusBar(); if ((await getIndexedDBQueue()).length > 0) setTimeout(backgroundSyncLoop, 1000); }
+      } catch (error) { isSyncing = false; await refreshSyncStatusBar(); return; } 
+      finally { isSyncing = false; await refreshSyncStatusBar(); if ((await getIndexedDBQueue()).length > 0 && navigator.onLine) setTimeout(backgroundSyncLoop, 1000); }
     }
 
     async function triggerSearch() {
       if (document.getElementById('global-session-lock-shield').style.display === 'flex') return;
-      let container = document.getElementById('journal-container'); container.innerHTML = "<p style='text-align:center; color:var(--text-sub);'>⏳ Чтение архива базы...</p>";
+      let sDate = document.getElementById('search-start-date').value;
+      let eDate = document.getElementById('search-end-date').value;
+      let fNum = document.getElementById('search-number').value;
+      let container = document.getElementById('journal-container');
+      container.innerHTML = "<p style='text-align:center; color:var(--text-sub);'>⏳ Чтение архива базы...</p>";
       try {
         if (navigator.onLine) {
-          let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: { number: document.getElementById('search-number').value }, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) });
-          let records = await response.json(); if (checkSessionValidity(records)) { globalJournalCache = records; await saveJournalToDisk(records); }
+          let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: { startDate: sDate, endDate: eDate, number: fNum }, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) });
+          let records = await response.json(); 
+          if (records && records.error === "session_expired") { triggerGlobalSessionLock(); return; }
+          if (records) { globalJournalCache = records; await saveJournalToDisk(records); }
         }
-        renderOfflineMixedJournal();
-      } catch(e) { renderOfflineMixedJournal(); }
+        renderOfflineMixedJournal(await getIndexedDBQueue(), sDate, eDate, fNum);
+      } catch(e) { renderOfflineMixedJournal(await getIndexedDBQueue(), sDate, eDate, fNum); }
     }
 
-    function renderOfflineMixedJournal() {
+    function renderOfflineMixedJournal(queueItems, sDate, eDate, filterNumber) {
       let container = document.getElementById('journal-container'); container.innerHTML = "";
-      let fNum = document.getElementById('search-number').value.toUpperCase().trim();
-      globalJournalCache.forEach(item => {
-        if (fNum && item.number.toUpperCase().indexOf(fNum) === -1) return;
+      let cleanFilterNum = filterNumber ? String(filterNumber).toUpperCase().trim() : "";
+      let startTs = sDate ? new Date(sDate + "T00:00:00").getTime() : 0;
+      let endTs = eDate ? new Date(eDate + "T23:59:59").getTime() : Infinity;
+      let combinedList = [];
+
+      queueItems.forEach(q => {
+        if (q.action === 'delete') return;
+        let taskNum = q.manualNumber || "⏳ ЖДЕТ СЕТЬ";
+        if (cleanFilterNum && String(taskNum).toUpperCase().indexOf(cleanFilterNum) === -1) return;
+        if (q.timestamp < startTs || q.timestamp > endTs) return;
+        combinedList.push({ isFromQueue: true, taskId: q.taskId, number: taskNum, status: "В кэше 💾", address: "Локальный буфер", photo: "", thumb: q.image, dateStr: "Буфер", rawDate: q.timestamp, operator: "Этот аппарат" });
+      });
+
+      function parseGSheetsDate(dateStr) {
+        if (!dateStr) return 0;
+        try { let parts = String(dateStr).split(' '); let dParts = parts[0].split('.'); let tParts = parts[1].split(':'); return new Date(dParts[2], dParts[1] - 1, dParts[0], tParts[0], tParts[1], tParts[2] || 0).getTime(); } catch(e) { return 0; }
+      }
+
+      globalJournalCache.forEach(r => {
+        let rowTs = parseGSheetsDate(r.date);
+        if (cleanFilterNum && String(r.number).toUpperCase().indexOf(cleanFilterNum) === -1) return;
+        if (sDate && rowTs < startTs) return; if (eDate && rowTs > endTs) return;
+        combinedList.push({ isFromQueue: false, taskId: r.taskId, number: r.number, status: r.status, address: r.address, photo: r.photo, thumb: r.photo, dateStr: r.date, rawDate: rowTs, operator: r.operator });
+      });
+
+      combinedList.sort((a, b) => b.rawDate - a.rawDate);
+      if (!combinedList.length) { container.innerHTML = "<p style='text-align:center; color:var(--text-sub); margin-top:20px;'>Журнал пуст</p>"; return; }
+
+      combinedList.forEach(item => {
         let itemDiv = document.createElement('div'); itemDiv.id = "jour_" + item.taskId; container.appendChild(itemDiv);
-        updateCardUi(itemDiv, item.number, item.status, item.address, item.photo, item.date, item.photo, item.taskId, item.operator);
+        let finalStatus = item.status;
+        if (!item.isFromQueue && !validateGostTemplate(item.number) && item.number !== "Не распознан") finalStatus = "Проверить вручную ⚠️";
+        updateCardUi(itemDiv, item.number, finalStatus, item.address, item.photo, item.dateStr, item.thumb, item.taskId, item.operator);
       });
-    }
-
-    async function restoreOfflineCards() {
-      let q = await getIndexedDBQueue(); let scanResultArea = document.getElementById('scan-result'); if (!scanResultArea || q.length === 0) return;
-      q.forEach(item => {
-        if (item.action === 'delete') return; if (document.getElementById("cam_" + item.taskId)) return;
-        let itemDiv = document.createElement('div'); itemDiv.id = "cam_" + item.taskId; scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
-        let localDupStatus = checkLocalDuplicateText(item.manualNumber || "⏳ ЖДЕТ СЕТЬ", item.taskId, q);
-        updateCardUi(itemDiv, item.manualNumber || "⏳ ЖДЕТ СЕТЬ", localDupStatus || "В кэше 💾", "Локально", "", "Буфер", item.image, item.taskId, "Этот аппарат");
-      });
-    }
-
-    async function refreshSyncStatusBar() {
-      let q = await getIndexedDBQueue(); let bar = document.getElementById('sync-status-bar'); let archiveCount = globalJournalCache.length;
-      if (!navigator.onLine) { bar.className = "status-offline"; bar.innerHTML = `${gpsStatusText} | 💾 Буфер: ${q.length} <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`; return; }
-      bar.className = q.length === 0 ? "status-synced" : "status-uploading";
-      bar.innerHTML = `${gpsStatusText} | 🟢 Архив: ${archiveCount} шт. | ${q.length > 0 ? '🔵 Синхронизация пакетов: ' + q.length : '☁️ Спутник'} <button class="top-bar-moon" onclick="toggleThemeMode(event)">🌙</button>`;
-    }
-
-    function silentLoadJournalCache() {
-      if (!navigator.onLine || document.getElementById('global-session-lock-shield').style.display === 'flex') return;
-      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'search', filters: {}, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) })
-        .then(r => r.json()).then(async (records) => { if (checkSessionValidity(records)) { globalJournalCache = records; await saveJournalToDisk(records); refreshSyncStatusBar(); } });
-    }
-
-    function loadSettings() {
-      let localDays = localStorage.getItem('settings_days'); if (localDays) document.getElementById('settings-days').value = localDays;
-      applyLocalUiDimensions();
-      if (!navigator.onLine) return;
-      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings', sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) })
-        .then(r => r.json()).then(res => { if (checkSessionValidity(res)) { document.getElementById('settings-days').value = res.days; localStorage.setItem('settings_days', res.days); } });
-    }
-
-    function saveSettings() {
-      let days = document.getElementById('settings-days').value; localStorage.setItem('settings_days', days);
-      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', days: days, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) })
-        .then(r => r.json()).then(res => { if (checkSessionValidity(res)) alert("Конфигурация зафиксирована!"); });
-    }
-
-    function triggerHardwareAlert(type) {
-      let overlay = document.getElementById('flash-overlay');
-      if (type === 'snap' && overlay) { overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.85)'; overlay.style.opacity = '1'; setTimeout(() => overlay.style.opacity = '0', 150); }
-    }
-
-    function showUpdateToastNotification(msg) {
-      let toast = document.getElementById('toast-notification'); if (!toast) return;
-      toast.innerText = msg; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 4500);
-    }
-
-    function validateGostTemplate(num) {
-      let clean = String(num).toUpperCase().trim();
-      return /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i.test(clean) || /^\d{4}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i.test(clean);
     }
 
     function openTab(tabId, el) {
-      if (tabId !== 'scan-tab' && liveVideoStream) { try { liveVideoStream.getTracks().forEach(t => track.stop()); }catch(e){} liveVideoStream = null; }
+      if (tabId !== 'scan-tab') {
+        if (liveVideoStream) { try { liveVideoStream.getTracks().forEach(track => track.stop()); } catch(e) {} liveVideoStream = null; }
+        let videoEl = document.getElementById('live-webcam'); if (videoEl) videoEl.srcObject = null;
+      }
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active'); if (tabId === 'scan-tab') startLiveStreaming();
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active'); if (el) el.classList.add('active');
+      if (tabId === 'scan-tab') startLiveStreaming();
     }
 
-    window.onload = async function() {
-      loadSavedTheme(); getDeviceUuidToken(); await initIndexedDB(); reRequestGeolocation(true);
-      globalJournalCache = await loadJournalFromDisk(); renderAccessLayers(); await restoreOfflineCards();
-      silentLoadJournalCache(); startLiveStreaming(); setInterval(backgroundSyncLoop, 10000);
-      if (localStorage.getItem('app_version_cache_tracker') !== APP_VERSION) showUpdateToastNotification(`🎉 Обновлено до v${APP_VERSION}`);
-      localStorage.setItem('app_version_cache_tracker', APP_VERSION);
-    };
+    function loadSettings(isSilent) {
+      let localRecent = localStorage.getItem('settings_recent_mins'); if (localRecent) appSettings.recentMins = parseInt(localRecent);
+      let localDays = localStorage.getItem('settings_days'); if (localDays) appSettings.days = parseInt(localDays);
+      let localW = localStorage.getItem('settings_cam_w'); if (localW) appSettings.camW = parseInt(localW);
+      let localH = localStorage.getItem('settings_cam_h'); if (localH) appSettings.camH = parseInt(localH);
+
+      document.getElementById('settings-recent-mins').value = appSettings.recentMins; document.getElementById('settings-days').value = appSettings.days;
+      document.getElementById('settings-cam-w').value = appSettings.camW; document.getElementById('settings-cam-h').value = appSettings.camH;
+      applyLocalUiDimensions();
+      
+      if (!navigator.onLine) return;
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings', sessionId: localStorage.getItem('terminal_session_id') }) })
+        .then(r => r.json()).then(res => {
+          if (!checkSessionValidity(res)) return;
+          if (!isSilent) { document.getElementById('settings-days').value = res.days; }
+          refreshSyncStatusBar();
+        }).catch(() => {});
+    }
+    
+    function saveSettings() {
+      let days = document.getElementById('settings-days').value;
+      localStorage.setItem('settings_recent_mins', document.getElementById('settings-recent-mins').value); localStorage.setItem('settings_days', days);
+      localStorage.setItem('settings_cam_w', document.getElementById('settings-cam-w').value); localStorage.setItem('settings_cam_h', document.getElementById('settings-cam-h').value);
+      applyLocalUiDimensions();
+
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', days: days, durNew: 0.1, durRep: 0.3, durErr: 0.5, sessionId: localStorage.getItem('terminal_session_id') }) })
+        .then(r => r.json()).then(res => {
+          if (!checkSessionValidity(res)) return;
+          document.getElementById('settings-status').innerText = "Сохранено!"; setTimeout(() => document.getElementById('settings-status').innerText = "", 3000);
+        });
+    }
+    
+    function triggerHardwareAlert(type) {
+      let overlay = document.getElementById('flash-overlay');
+      if (type === 'snap' && overlay) {
+        overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.85)'; overlay.style.opacity = '1'; setTimeout(() => { overlay.style.opacity = '0'; }, 150);
+      }
+    }
   </script>
 </body>
 </html>
