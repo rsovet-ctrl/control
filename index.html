@@ -170,7 +170,7 @@
     .zoom-btn { background: rgba(0, 0, 0, 0.75); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: 44px; height: 44px; font-size: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); user-select: none; }
     .modal-plate-input { font-size: 28px; font-weight: bold; text-align: center; letter-spacing: 1px; text-transform: uppercase; padding: 12px; border: 3px solid var(--accent-blue); border-radius: 12px; width: 100%; box-sizing: border-box; background: var(--bg-main); color: var(--text-main); margin-bottom: 12px; }
     
-    /* 🔥 ЭРГОНОМИКА v8.9.6: Кнопки жестко зафиксированы под полем ввода номера, убран отступ margin-top: auto */
+    /* 🔥 ЭРГОНОМИКА v8.9.8: Кнопки жестко зафиксированы под полем ввода номера, убран отступ margin-top: auto */
     .modal-btn-table { display: table; width: 100%; border-spacing: 10px 0; margin-top: 12px; margin-bottom: auto; }
     .modal-btn-cell { display: table-cell; width: 50%; }
     .m-btn { width: 100%; padding: 16px; font-size: 16px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
@@ -340,7 +340,7 @@
   </div>
 <div id="help-tab" class="tab-content">
  <div class="card">
-  <h3> Biel-Контур: Полная инструкция Терминала v8.9.6</h3>
+  <h3> Biel-Контур: Полная инструкция Терминала v8.9.8</h3>
   
   <div class="help-header">1. Авторизация и Белый Список устройств</div>
   <p class="help-text">В системе полностью ликвидированы общие пароли. При первом старте нового смартфона приложение отправляет на сервер заявку. Пока администратор не одобрит её, экран намертво блокируется красным щитом 🛑.</p>
@@ -365,7 +365,7 @@
   <div class="help-header">5. Потоковый веб-формат медиа-архива</div>
   <p class="help-text">Все фотографии сохраняются в облачную папку Google Диска. Сервер на лету переводит ссылки в прямой легкий CDN-формат. Это исключает появление черных и битых квадратов в Журнале, позволяя оперативно сверять госномера по живой картинке машины.</p>
 </div>
-
+</div>
   <div class="premium-bottom-nav">
     <button class="nav-tab-btn active" onclick="openTab('scan-tab', this)">
       <span class="nav-icon">📷</span><span>Камера</span>
@@ -412,7 +412,7 @@
   
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "8.9.6"; 
+    const APP_VERSION = "8.9.8"; 
     const GITHUB_RAW_URL = "https://raw.githubusercontent.com/rsovet-ctrl/control/main/index.html";
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 260, camH: 250 };
@@ -1049,21 +1049,25 @@ res.devices.forEach(dev => {
     }
 
     /* 🔥 АВТОМАТИЧЕСКАЯ ФОНОВАЯ ПРОВЕРКА ОБНОВЛЕНИЙ НАПРЯМУЮ С GITHUB RAW */
-    async function executeBackgroundGitHubCheck() {
-      if (!navigator.onLine) return;
-      try {
-        let response = await fetch(GITHUB_RAW_URL + "?nocache=" + new Date().getTime());
-        let htmlText = await response.json();
-        let match = htmlText.match(/const APP_VERSION = "([^"]+)"/);
-        if (match && match[1] && match[1] !== APP_VERSION) {
-          console.log("PWA устарел. Выполняю автоматический сброс кэша...");
-          if ('caches' in window) { const keys = await caches.keys(); for (let key of keys) { await caches.delete(key); } }
-          if ('serviceWorker' in navigator) { const regs = await navigator.serviceWorker.getRegistrations(); for (let r of regs) { await r.unregister(); } }
-          window.location.reload(true);
-        }
-      } catch(e) {}
-    }
+   // НА ЧТО ТОЧЕЧНО ЗАМЕНИТЬ ЭТУ ФУНКЦИЮ В <script>:
 
+async function executeBackgroundGitHubCheck() {
+  if (!navigator.onLine) return;
+  try {
+    let response = await fetch(GITHUB_RAW_URL + "?nocache=" + new Date().getTime());
+    
+    // 🔥 ИСПРАВЛЕНО: Читаем как текст (.text()), а не как (.json())
+    let htmlText = await response.text(); 
+    
+    let match = htmlText.match(/const APP_VERSION = "([^"]+)"/);
+    if (match && match[1] && match[1] !== APP_VERSION) {
+      console.log("PWA устарел. Выполняю автоматический сброс кэша...");
+      if ('caches' in window) { const keys = await caches.keys(); for (let key of keys) { await caches.delete(key); } }
+      if ('serviceWorker' in navigator) { const regs = await navigator.serviceWorker.getRegistrations(); for (let r of regs) { await r.unregister(); } }
+      window.location.reload(true);
+    }
+  } catch(e) {}
+}
     function showUpdateToastNotification(msg) {
       let toast = document.getElementById('toast-notification'); if (!toast) return;
       toast.innerText = msg; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 4500);
