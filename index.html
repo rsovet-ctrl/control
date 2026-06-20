@@ -1202,22 +1202,34 @@ function saveSettings() {
     /* 🔥 АВТОМАТИЧЕСКАЯ ФОНОВАЯ ПРОВЕРКА ОБНОВЛЕНИЙ НАПРЯМУЮ С GITHUB RAW */
    // НА ЧТО ТОЧЕЧНО ЗАМЕНИТЬ ЭТУ ФУНКЦИЮ В <script>:
 
+// НА ЧТО ТОЧЕЧНО ЗАМЕНИТЬ ФУНКЦИЮ executeBackgroundGitHubCheck() В <script>:
+
 async function executeBackgroundGitHubCheck() {
-  if (!navigator.onLine) return;
+  if (!navigator.onLine) return; // Оффлайн проверку не запускаем
   try {
+    // Делаем скрытый запрос к Гитхабу с обходом кэша сети
     let response = await fetch(GITHUB_RAW_URL + "?nocache=" + new Date().getTime());
+    let htmlText = await response.text(); // Читаем строго как текст файла index.html
     
-    // 🔥 ИСПРАВЛЕНО: Читаем как текст (.text()), а не как (.json())
-    let htmlText = await response.text(); 
-    
+    // Вытаскиваем маркер версии, лежащий на Гитхабе
     let match = htmlText.match(/const APP_VERSION = "([^"]+)"/);
+    
     if (match && match[1] && match[1] !== APP_VERSION) {
-      console.log("PWA устарел. Выполняю автоматический сброс кэша...");
+      console.log(`Найдена новая сборка v${match[1]}! Запускаю автообновление терминала...`);
+      
+      // Сами молча чистим кэш аппарата, инспектор даже ничего не поймет
       if ('caches' in window) { const keys = await caches.keys(); for (let key of keys) { await caches.delete(key); } }
       if ('serviceWorker' in navigator) { const regs = await navigator.serviceWorker.getRegistrations(); for (let r of regs) { await r.unregister(); } }
+      
+      // Запоминаем версию для праздничного тоста
+      localStorage.setItem('pwa_just_updated_version_flag', match[1]);
+      
+      // Мягко перезагружаем экран на новую версию
       window.location.reload(true);
     }
-  } catch(e) {}
+  } catch(e) {
+    console.log("Контур обновлений Гитхаба временно недоступен.");
+  }
 }
     function showUpdateToastNotification(msg) {
       let toast = document.getElementById('toast-notification'); if (!toast) return;
@@ -1272,11 +1284,15 @@ async function executeBackgroundGitHubCheck() {
 // Проверяем, не перезагрузился ли телефон только что после успешного обновления
 let updatedVersionSuccess = localStorage.getItem('pwa_just_updated_version_flag');
 if (updatedVersionSuccess) {
-  localStorage.removeItem('pwa_just_updated_version_flag'); // Сразу стираем маркер
+  localStorage.removeItem('pwa_just_updated_version_flag');
   
-  // Вызываем всплывающее окно-тост (оно у нас уже оформлено красивой плашкой в CSS)
   setTimeout(() => {
-    showUpdateToastNotification(`🎉 База успешно перезаписана! Терминал обновлен до v${updatedVersionSuccess}`);
+    // Универсальный текст, который красиво сработает и при кнопке, и при автообновлении
+    let msg = updatedVersionSuccess === 'сброшена' 
+      ? `🎉 Модули кэша успешно перезаписаны напрямую с GitHub!` 
+      : `🎉 База успешно перезаписана! Терминал автоматически обновлен до v${updatedVersionSuccess}`;
+      
+    showUpdateToastNotification(msg);
   }, 1000);
 }
       
@@ -1301,7 +1317,7 @@ if (updatedVersionSuccess) {
     };
 
 
-// НА ЧТО МЕНЯЕМ ФУНКЦИЮ forceClearPwaCache() В <script>:
+// НА ЧТО ТОЧЕЧНО ЗАМЕНИТЬ ФУНКЦИЮ forceClearPwaCache() В <script>:
 
 async function forceClearPwaCache() {
   let btn = document.getElementById('pwa-refresh-btn');
@@ -1310,61 +1326,29 @@ async function forceClearPwaCache() {
   
   if (btn && icon && text) {
     btn.disabled = true;
-    icon.classList.add('turbine-spin'); // Запуск вращения турбины
-    text.innerText = "Сверка версий с GitHub...";
+    icon.classList.add('turbine-spin'); // Запуск бешеного вращения стрелочек
+    text.innerText = "Перезапись модулей PWA...";
   }
-
-  try {
-    // 1. Запрашиваем свежий код index.html напрямую с GitHub bypass-методом
-    let response = await fetch(GITHUB_RAW_URL + "?nocache=" + new Date().getTime());
-    let htmlText = await response.text();
-    
-    // Ищем регулярным выражением строку const APP_VERSION = "X.X.X" в коде GitHub
-    let match = htmlText.match(/const APP_VERSION = "([^"]+)"/);
-    
-    if (match && match[1]) {
-      let githubVersion = match[1];
-      
-      // 2. Если версия на GitHub СОВПАДАЕТ с текущей локальной константой APP_VERSION
-      if (githubVersion === APP_VERSION) {
-        alert(`Новых версий нет! У вас уже установлена самая актуальная сборка v${APP_VERSION}`);
-        
-        // Возвращаем кнопку в исходное рабочее состояние
-        if (btn && icon && text) {
-          btn.disabled = false;
-          icon.classList.remove('turbine-spin');
-          text.innerText = "Принудительно обновить кэш (Сброс версий)";
-        }
-        return; // Прерываем функцию, ничего не стираем
-      }
-      
-      // 3. Если на GitHub лежит НОВАЯ версия — запускаем процедуру жесткой зачистки
-      if (text) text.innerText = `Найдена v${githubVersion}! Перезапись модулей...`;
-      
-      if ('caches' in window) {
-        const keys = await caches.keys();
-        for (let key of keys) { await caches.delete(key); }
-      }
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        for (let registration of registrations) { await registration.unregister(); }
-      }
-      
-      // Секретный маркер в память: запишем версию, чтобы поймать её ПОСЛЕ перезагрузки страницы
-      localStorage.setItem('pwa_just_updated_version_flag', githubVersion);
-      
-      setTimeout(() => {
-        window.location.reload(true);
-      }, 800);
-      
-    } else {
-      alert("Не удалось прочитать маркер версии в репозитории GitHub.");
-      resetPwaUpdateBtn(btn, icon, text);
-    }
-  } catch (e) {
-    alert("Ошибка сети! Не удалось связаться с сервером обновлений GitHub.");
-    resetPwaUpdateBtn(btn, icon, text);
+  
+  // Вслепую стираем абсолютно весь локальный кэш смартфона
+  if ('caches' in window) {
+    const keys = await caches.keys();
+    for (let key of keys) { await caches.delete(key); }
   }
+  
+  // Полностью ликвидируем фоновый Service Worker
+  if ('serviceWorker' in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (let registration of registrations) { await registration.unregister(); }
+  }
+  
+  // Оставляем маркер для красивого уведомления после перезапуска
+  localStorage.setItem('pwa_just_updated_version_flag', 'сброшена');
+  
+  // Даем турбине прокрутиться 0.8 сек для визуального отклика и перезагружаем софт
+  setTimeout(() => {
+    window.location.reload(true);
+  }, 800);
 }
 
 // Вспомогательная функция сброса кнопки при ошибках сети
