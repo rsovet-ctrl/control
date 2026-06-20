@@ -168,9 +168,10 @@
     
     .zoom-controls { position: absolute; bottom: 12px; right: 12px; display: flex; gap: 10px; z-index: 3100; }
     .zoom-btn { background: rgba(0, 0, 0, 0.75); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: 44px; height: 44px; font-size: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); user-select: none; }
-
     .modal-plate-input { font-size: 28px; font-weight: bold; text-align: center; letter-spacing: 1px; text-transform: uppercase; padding: 12px; border: 3px solid var(--accent-blue); border-radius: 12px; width: 100%; box-sizing: border-box; background: var(--bg-main); color: var(--text-main); margin-bottom: 12px; }
-    .modal-btn-table { display: table; width: 100%; border-spacing: 10px 0; margin-top: auto; }
+    
+    /* 🔥 ИСПРАВЛЕНО: Изменена эргономика. Кнопки подняты под инпут, margin-top изменен на 12px, убран auto сброс вниз */
+    .modal-btn-table { display: table; width: 100%; border-spacing: 10px 0; margin-top: 12px; margin-bottom: auto; }
     .modal-btn-cell { display: table-cell; width: 50%; }
     .m-btn { width: 100%; padding: 16px; font-size: 16px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
     .m-btn-save { background: #42b72a; color: white; }
@@ -186,12 +187,31 @@
     }
     #toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-    .user-device-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 14px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-left: 4px solid #1877f2; }
+    #global-session-lock-shield {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(18, 18, 18, 0.98); z-index: 99999; flex-direction: column; align-items: center; justify-content: center; color: #ffffff; text-align: center; padding: 24px; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .shield-icon { font-size: 64px; margin-bottom: 16px; animation: pulse-shield-red 2s infinite ease-in-out; }
+    @keyframes pulse-shield-red { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
+    .shield-title { font-size: 22px; font-weight: 800; color: #ff4d4d; margin: 0 0 10px 0; letter-spacing: 0.5px; }
+    .shield-desc { font-size: 14px; color: #b0b3b8; max-width: 320px; line-height: 1.5; margin: 0 0 25px 0; }
+    
+    .help-header { font-weight: bold; font-size: 15px; color: var(--accent-blue); margin-top: 12px; margin-bottom: 4px; text-align: left; }
+    .help-text { font-size: 13px; color: var(--text-main); line-height: 1.4; margin: 0 0 12px 0; text-align: left; }
+    .help-bullet { margin-left: 8px; margin-bottom: 6px; font-size: 13px; text-align: left; }
+
+    .user-device-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 14px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
     .user-device-meta { font-size: 11.5px; color: var(--text-sub); line-height: 1.5; margin-top: 6px; }
     .user-inline-row { display: flex; gap: 8px; margin-top: 6px; align-items: center; }
     .user-inline-input { flex: 1; padding: 8px; font-size: 14px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main); margin-bottom: 0; }
     .btn-user-save { background: #42b72a; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; }
     .btn-user-logout { background: linear-gradient(135deg, #f02849 0%, #c01830 100%); color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; margin-top: 8px; display: inline-flex; }
+
+    /* 🔥 АНИМАЦИЯ ТУРБИНЫ ДЛЯ КНОПКИ ОБНОВЛЕНИЯ КЭША */
+    @keyframes spin-turbine {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(1440deg); }
+    }
+    .turbine-spin { display: inline-block; animation: spin-turbine 0.8s cubic-bezier(0.55, 0.085, 0.68, 0.53) infinite; }
   </style>
 </head>
 <body>
@@ -277,8 +297,8 @@
 
     <div class="card id-block-geo" id="settings-update-block" style="display:none;">
       <h3>Контур обновлений PWA</h3>
-      <button class="btn-premium-steel" style="background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); box-shadow: 0 4px 12px rgba(225,29,72,0.2);" onclick="forceClearPwaCache()">🔄 Принудительно обновить кэш (Сброс версий)</button>
-      <p style="font-size:11px; color:var(--text-sub); margin-top:8px; margin-bottom:0; text-align:center;">Принудительно скачивает чистую копию кода терминала с GitHub.</p>
+      <button id="pwa-refresh-btn" class="btn-premium-steel" style="background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); box-shadow: 0 4px 12px rgba(225,29,72,0.2);" onclick="forceClearPwaCache()">🔄 Принудительно обновить кэш (Сброс версий)</button>
+      <p style="font-size:11px; color:var(--text-sub); margin-top:8px; margin-bottom:0; text-align:center;">Принудительно скачивает чистую копию кода терминала с GitHub bypass-методом.</p>
     </div>
 
     <div class="card id-block-geo" id="settings-geo-block" style="display:none;">
@@ -310,10 +330,10 @@
 
   <div id="help-tab" class="tab-content">
     <div class="card">
-      <h3>📖 Инструкция Терминала v8.9.4</h3>
+      <h3>📖 Инструкция Терминала v8.9.5</h3>
       <p style="font-size:13.5px; line-height:1.5; margin-bottom:10px;">Система создана для параллельной фиксации автотранспорта на линии несколькими устройствами одновременно без конфликтов сессий.</p>
-      <div class="help-header">1. Автономные сессии устройств</div>
-      <p class="help-text">Каждый телефон привязан к собственному UUID. Вход на одном посту больше не сбрасывает сессию другого поста.</p>
+      <div class="help-header">1. Автоматический учет терминалов</div>
+      <p class="help-text">Каждому смартфону присваивается уникальный виртуальный ID-отпечаток. Система сама подпишет автора карточки в журнале в столбце H.</p>
       <div class="help-header">2. Прямые миниатюры фото</div>
       <p class="help-text">Лента журнала автоматически на лету адаптирует ссылки Google Диска, подтягивая живые изображения в карточки машин.</p>
     </div>
@@ -336,7 +356,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9.4
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9.5
     </div>
   </div>
 
@@ -364,7 +384,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "8.9.4"; 
+    const APP_VERSION = "8.9.5"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 260, camH: 250 };
     let gpsStatusText = "📍 GPS"; let currentCoords = null; let globalJournalCache = []; let isSyncing = false;
@@ -441,6 +461,7 @@
       });
     }
 
+    // Сохранение журнала на диск
     function saveJournalToDisk(records) {
       return new Promise((resolve) => {
         if (!indexedDatabase || !records || !records.length) return resolve();
@@ -473,6 +494,11 @@
       document.getElementById('global-session-lock-shield').style.display = 'flex';
       document.getElementById('shield-pin-field').value = "";
       document.getElementById('shield-pin-field').focus();
+
+      // Направляем прощальный/блокировочный статус в бэкенд мгновенно
+      if (navigator.onLine) {
+        fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'shieldHeartbeat', deviceId: getDeviceUuidToken() }) }).catch(() => {});
+      }
     }
 
     function evaluateShieldPin(val) {
@@ -489,8 +515,8 @@
                 document.getElementById('shield-pin-field').style.borderColor = '#f02849';
                 setTimeout(() => { document.getElementById('shield-pin-field').style.borderColor = '#3a3b3c'; document.getElementById('shield-pin-field').value = ""; }, 800);
               }
-            }).catch(() => { alert("Необходима сеть для авторизации устройства."); });
-        } else { alert("Оффлайн-вход невозможен."); }
+            }).catch(() => { alert("Необходима сеть для авторизации."); });
+        } else { alert("Требуется интернет-соединение."); }
       }
     }
 
@@ -505,7 +531,7 @@
       }
     }
 
-    /* 🔥 ИНТЕРФЕЙС АДМИНИСТРАТОРА: ВЫГРУЗКА, ИЗМЕНЕНИЕ ИМЕНИ И ЖЕСТКИЙ СБРОС ТЕРМИНАЛОВ */
+    /* ИНТЕРФЕЙС АДМИНИСТРАТОРА: ВЫГРУЗКА, ИЗМЕНЕНИЕ ИМЕНИ И ЖЕСТКИЙ СБРОС ТЕРМИНАЛОВ */
     async function loadUserManagementList() {
       if (!navigator.onLine) {
         document.getElementById('user-management-container').innerHTML = "<p style='text-align:center; padding:20px; color:var(--text-sub);'>База устройств недоступна оффлайн.</p>";
@@ -527,7 +553,15 @@
           res.devices.forEach(dev => {
             let div = document.createElement('div');
             div.className = "user-device-card";
-            if (dev.name.includes("Неопознанный")) div.style.borderLeft = "4px solid #ff7a00";
+            
+            // Динамический раскрас под Контуры Б и В
+            if (dev.lastAddress.includes("ОФФЛАЙН")) {
+              div.style.borderLeft = "4px solid #65676b"; // Серый оффлайн
+            } else if (dev.lastAddress.includes("блокировки")) {
+              div.style.borderLeft = "4px solid #ff7a00"; // Оранжевый блок
+            } else {
+              div.style.borderLeft = "4px solid #1877f2"; // Живой онлайн
+            }
             
             div.innerHTML = `
               <div style="font-weight: bold; font-size: 14px; color: var(--text-main);">📝 Задать имя / кличку:</div>
@@ -538,7 +572,7 @@
               <div class="user-device-meta">
                 <b>ID устройства:</b> <code style="color:var(--accent-blue);">${dev.id}</code><br>
                 <b>🕒 Последняя связь:</b> ${dev.lastActive}<br>
-                <b>📍 Локация GPS:</b> ${dev.lastAddress}
+                <b>📍 Статус лога:</b> ${dev.lastAddress}
               </div>
               <button class="btn-user-logout" onclick="forceLogoutDevice('${dev.id}')">🛑 Разлогинить устройство</button>
             `;
@@ -569,8 +603,28 @@
           body: JSON.stringify({ action: 'logoutUser', targetDeviceId: id, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() })
         });
         let res = await response.json();
-        if (res && res.success) { alert("Устройство успешно выброшено из системы!"); loadUserManagementList(); }
+        if (res && res.success) { alert("Устройство выброшено из системы!"); loadUserManagementList(); }
       } catch(e) { alert("Ошибка связи."); }
+    }
+
+    /* 🔥 ИСПРАВЛЕНО: Добавлена анимация «Турбины» (Вариант 1) при сбросе воркеров */
+    async function forceClearPwaCache() {
+      if (confirm("Выполнить полную очистку кэша приложения? Очередь машин не сотрется.")) {
+        let btn = document.getElementById('pwa-refresh-btn');
+        if (btn) {
+          btn.innerHTML = `<span class="turbine-spin">🔄</span> Перезапись модулей PWA...`;
+          btn.disabled = true;
+        }
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          for (let key of keys) { await caches.delete(key); }
+        }
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (let registration of registrations) { await registration.unregister(); }
+        }
+        setTimeout(() => { window.location.reload(true); }, 800);
+      }
     }
 
     function exitTerminalSession() { triggerGlobalSessionLock(); }
@@ -669,7 +723,6 @@
         const rawBase64 = canvas.toDataURL('image/jpeg', 0.75);
 
         await addIndexedDBItem({ taskId: taskId, action: 'scan', image: rawBase64, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: null, deviceId: getDeviceUuidToken() }); 
-        
         let scanResultArea = document.getElementById('scan-result');
         let itemDiv = document.createElement('div'); itemDiv.id = "cam_" + taskId; scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
         let isOnline = navigator.onLine;
@@ -883,7 +936,7 @@
         let card = document.getElementById("cam_" + item.taskId);
         if (card) { 
           let smartStatus = checkLocalDuplicateText(res.number, item.taskId, await getIndexedDBQueue()) || res.status;
-          updateCardUi(card, res.number, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId, "Буфер АЗС"); 
+          updateCardUi(card, res.number, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId, "Буфер АЗС");
         }
       } catch (error) {} finally { isSyncing = false; await refreshSyncStatusBar(); if ((await getIndexedDBQueue()).length > 0) setTimeout(backgroundSyncLoop, 1000); }
     }
@@ -944,27 +997,10 @@
         .then(r => r.json()).then(res => { if (checkSessionValidity(res)) alert("Конфигурация сохранена!"); });
     }
 
-    function triggerHardwareAlert(type) {
-      let overlay = document.getElementById('flash-overlay');
-      if (type === 'snap' && overlay) { overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.85)'; overlay.style.opacity = '1'; setTimeout(() => overlay.style.opacity = '0', 150); }
-    }
-
-    function showUpdateToastNotification(msg) {
-      let toast = document.getElementById('toast-notification'); if (!toast) return;
-      toast.innerText = msg; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 4500);
-    }
-
-    function validateGostTemplate(num) {
-      let clean = String(num).toUpperCase().trim();
-      return /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i.test(clean) || /^\d{4}[АВЕКМНОРСТУХ]{2}\d{2,3}$/i.test(clean);
-    }
-
     function openTab(tabId, el) {
-      if (tabId !== 'scan-tab' && liveVideoStream) { try { liveVideoStream.getTracks().forEach(t => t.stop()); }catch(e){} liveVideoStream = null; }
+      if (tabId !== 'scan-tab' && liveVideoStream) { try { liveVideoStream.getTracks().forEach(t => track.stop()); }catch(e){} liveVideoStream = null; }
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active'); if (el) el.classList.add('active');
-      if (tabId === 'scan-tab') startLiveStreaming();
+      document.getElementById(tabId).classList.add('active'); if (tabId === 'scan-tab') startLiveStreaming();
     }
 
     window.onload = async function() {
@@ -973,6 +1009,13 @@
       silentLoadJournalCache(); startLiveStreaming(); setInterval(backgroundSyncLoop, 10000);
       if (localStorage.getItem('app_version_cache_tracker') !== APP_VERSION) showUpdateToastNotification(`🎉 Обновлено до v${APP_VERSION}`);
       localStorage.setItem('app_version_cache_tracker', APP_VERSION);
+
+      // 🔥 КОНТУР Б: Запускаем тихий пульс экрана блокировки раз в 5 минут
+      setInterval(() => {
+        if (document.getElementById('global-session-lock-shield').style.display === 'flex' && navigator.onLine) {
+          fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'shieldHeartbeat', deviceId: getDeviceUuidToken() }) }).catch(() => {});
+        }
+      }, 5 * 60 * 1000);
     };
   </script>
 </body>
