@@ -1130,7 +1130,7 @@ async function saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgSrc, sa
 }
 
     /* 🔥 ИСПРАВЛЕНО: Флаг выставляется на первой строчке. Гонка таймеров устранена */
-    async function backgroundSyncLoop() {
+async function backgroundSyncLoop() {
       if (isSyncing) return; 
       if (document.getElementById('global-session-lock-shield').style.display === 'flex') return;
       
@@ -1147,14 +1147,17 @@ async function saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgSrc, sa
         let res = await response.json();
         if (res && res.error === "session_expired") { isSyncing = false; triggerGlobalSessionLock(); return; }
 
- await removeIndexedDBItem(item.taskId);
+        await removeIndexedDBItem(item.taskId);
         let card = document.getElementById("cam_" + item.taskId);
         if (card) { 
+          // Обновляем кэш, чтобы поиск работал
+          globalJournalCache.unshift({taskId: item.taskId, number: res.number, status: res.status, date: new Date().toLocaleString(), address: res.address});
+          
           let smartStatus = checkLocalDuplicateText(res.number, item.taskId, await getIndexedDBQueue()) || res.status;
           updateCardUi(card, res.number, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId, "Буфер АЗС");
           
-          // 🔥 ОЗВУЧКА РЕЗУЛЬТАТА ВЫГРУЗКИ С СЕРВЕРА:
-          if (res.number === "Не распознан" || String(smartStatus).includes("игнорирован")) {
+          // 🔥 ДОБАВЛЯЕМ ЗВУК И ВИБРАЦИЮ:
+          if (res.number === "Не распознан" || String(smartStatus).includes("Ошибка")) {
             triggerHardwareAlert('error');
           } else if (String(smartStatus).includes("Повтор") || String(res.status).includes("Повтор")) {
             triggerHardwareAlert('repeat');
@@ -1162,16 +1165,8 @@ async function saveFullscreenEdit(cardId, photoUrl, address, timeStr, imgSrc, sa
             triggerHardwareAlert('new');
           }
         }
-        
-      // 🛠️ ДОБАВЛЯЕМ ПРОПУЩЕННЫЙ БЛОК ЗАКРЫТИЯ (ВОЗВРАЩАЕМ ФЛАГ СИНХРОНИЗАЦИИ В СТРОЙ)
-      } catch (error) {
-        console.log("Ошибка выгрузки пакета: " + error);
-      } finally { 
-        isSyncing = false; 
-        await refreshSyncStatusBar(); 
-        if ((await getIndexedDBQueue()).length > 0) setTimeout(backgroundSyncLoop, 1000); 
-      }
-    } // <--- ЭТА ФИГУРНАЯ СКОБКА ОБЯЗАТЕЛЬНО ЗАКРЫВАЕТ ФУНКЦИЮ backgroundSyncLoop!
+      } catch (error) {} finally { isSyncing = false; await refreshSyncStatusBar(); if ((await getIndexedDBQueue()).length > 0) setTimeout(backgroundSyncLoop, 1000); }
+    }// <--- ЭТА ФИГУРНАЯ СКОБКА ОБЯЗАТЕЛЬНО ЗАКРЫВАЕТ ФУНКЦИЮ backgroundSyncLoop!
 
     // ТЕПЕРЬ СЛЕДУЮЩАЯ ФУНКЦИЯ ИДЕТ СВОИМ ОТДЕЛЬНЫМ НЕЗАВИСИМЫМ БЛОКОМ:
     async function triggerSearch() {
