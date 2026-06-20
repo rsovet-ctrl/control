@@ -931,14 +931,14 @@ function reRequestGeolocation(isSilent) {
       let isRep = String(status).includes("Повтор") || String(status).includes("пов.");
       let isPending = String(status).includes("Очередь") || String(status).includes("сеть") || String(status).includes("Буфер") || String(status).includes("кэше") || String(status).includes("Выгрузка");
       let isProcessing = String(number) === "🤖 АНАЛИЗ..." || String(status).includes("Пересчет");
-      let isErr = String(number) === "Не распознан" || String(status).includes("Ошибка");
+let isErr = String(number) === "Не распознан" || String(status).includes("Ошибка") || String(status).includes("Проверить");
       
       if (isPending) cardElement.className = "journal-item local-offline";
       else if (isProcessing) cardElement.className = "journal-item local-online-processing";
       else if (isErr) cardElement.className = "journal-item error-item"; 
       else cardElement.className = `journal-item ${isRep ? 'repeat' : 'new'}`;
       
-      let badgeLabel = isPending ? "Буфер 💾" : (isProcessing ? "ИИ 🤖" : (isErr ? "ОШИБКА!" : "Новый"));
+let badgeLabel = isPending ? "Буфер 💾" : (isProcessing ? "ИИ 🤖" : (isErr ? "⚠️ ПРОВЕРИТЬ" : "Новый"));
       if (isRep) { badgeLabel = checkLocalDuplicateText(number, forcedTaskId || cardElement.id, null) || "Повтор"; }
       
       if (photoUrl) cardElement.setAttribute('data-server-photo', photoUrl);
@@ -1150,22 +1150,39 @@ async function backgroundSyncLoop() {
         await removeIndexedDBItem(item.taskId);
         let card = document.getElementById("cam_" + item.taskId);
         if (card) { 
-          // Обновляем кэш, чтобы поиск работал
-          globalJournalCache.unshift({taskId: item.taskId, number: res.number, status: res.status, date: new Date().toLocaleString(), address: res.address});
+          // 📅 Форматируем дату строго в формат "dd.MM.yyyy HH:mm:ss", чтобы функция parseGSheetsDate не ломалась на телефонах
+          let now = new Date();
+          let pad = (n) => String(n).padStart(2, '0');
+          let formattedDate = `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+          // Обновляем локальный кэш, чтобы моментально подхватывать повторы в разделе "Камера"
+          globalJournalCache.unshift({
+            taskId: item.taskId, 
+            number: res.number, 
+            status: res.status, 
+            date: formattedDate, 
+            address: res.address
+          });
           
           let smartStatus = checkLocalDuplicateText(res.number, item.taskId, await getIndexedDBQueue()) || res.status;
           updateCardUi(card, res.number, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId, "Буфер АЗС");
           
-          // 🔥 ДОБАВЛЯЕМ ЗВУК И ВИБРАЦИЮ:
-          if (res.number === "Не распознан" || String(smartStatus).includes("Ошибка")) {
-            triggerHardwareAlert('error');
+          // 🔥 АППАРАТНАЯ ОЗВУЧКА И ВИБРАЦИЯ (С учётом статуса проверки ГОСТа):
+          if (res.number === "Не распознан" || String(smartStatus).includes("Ошибка") || String(smartStatus).includes("Проверить") || String(res.status).includes("Проверить")) {
+            triggerHardwareAlert('error'); // Низкая сирена + тяжелый вибро-удар на ошибку ГОСТа/распознавания
           } else if (String(smartStatus).includes("Повтор") || String(res.status).includes("Повтор")) {
-            triggerHardwareAlert('repeat');
+            triggerHardwareAlert('repeat'); // Двойной писк на повторный заезд авто
           } else {
-            triggerHardwareAlert('new');
+            triggerHardwareAlert('new');    // Короткий щелчок на чистый новый номер
           }
         }
-      } catch (error) {} finally { isSyncing = false; await refreshSyncStatusBar(); if ((await getIndexedDBQueue()).length > 0) setTimeout(backgroundSyncLoop, 1000); }
+      } catch (error) {
+        console.log("Ошибка синхронизации пакета: " + error);
+      } finally { 
+        isSyncing = false; 
+        await refreshSyncStatusBar(); 
+        if ((await getIndexedDBQueue()).length > 0) setTimeout(backgroundSyncLoop, 1000); 
+      }
     }// <--- ЭТА ФИГУРНАЯ СКОБКА ОБЯЗАТЕЛЬНО ЗАКРЫВАЕТ ФУНКЦИЮ backgroundSyncLoop!
 
     // ТЕПЕРЬ СЛЕДУЮЩАЯ ФУНКЦИЯ ИДЕТ СВОИМ ОТДЕЛЬНЫМ НЕЗАВИСИМЫМ БЛОКОМ:
