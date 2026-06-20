@@ -186,17 +186,12 @@
     }
     #toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-    #global-session-lock-shield {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(18, 18, 18, 0.98); z-index: 99999; flex-direction: column; align-items: center; justify-content: center; color: #ffffff; text-align: center; padding: 24px; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    .shield-icon { font-size: 64px; margin-bottom: 16px; animation: pulse-shield-red 2s infinite ease-in-out; }
-    @keyframes pulse-shield-red { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
-    .shield-title { font-size: 22px; font-weight: 800; color: #ff4d4d; margin: 0 0 10px 0; letter-spacing: 0.5px; }
-    .shield-desc { font-size: 14px; color: #b0b3b8; max-width: 320px; line-height: 1.5; margin: 0 0 25px 0; }
-    
-    .help-header { font-weight: bold; font-size: 15px; color: var(--accent-blue); margin-top: 12px; margin-bottom: 4px; text-align: left; }
-    .help-text { font-size: 13px; color: var(--text-main); line-height: 1.4; margin: 0 0 12px 0; text-align: left; }
-    .help-bullet { margin-left: 8px; margin-bottom: 6px; font-size: 13px; text-align: left; }
+    .user-device-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 14px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-left: 4px solid #1877f2; }
+    .user-device-meta { font-size: 11.5px; color: var(--text-sub); line-height: 1.5; margin-top: 6px; }
+    .user-inline-row { display: flex; gap: 8px; margin-top: 6px; align-items: center; }
+    .user-inline-input { flex: 1; padding: 8px; font-size: 14px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main); margin-bottom: 0; }
+    .btn-user-save { background: #42b72a; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; }
+    .btn-user-logout { background: linear-gradient(135deg, #f02849 0%, #c01830 100%); color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; margin-top: 8px; display: inline-flex; }
   </style>
 </head>
 <body>
@@ -204,7 +199,7 @@
   <div id="global-session-lock-shield">
     <div class="shield-icon">🛑</div>
     <div class="shield-title">ДОСТУП ОГРАНИЧЕН!</div>
-    <div class="shield-desc">Сессия терминала АЗС закрыта. Пожалуйста, введите действующий PIN-код для открытия новой смены.</div>
+    <div class="shield-desc">Сессия терминала АЗС завершена. Пожалуйста, введите действующий PIN-код для открытия новой рабочей смены.</div>
     <input type="password" id="shield-pin-field" class="pin-crypto-field" maxlength="4" placeholder="••••" style="background: #2a2a2a; color: #ffffff; border: 2px solid #3a3b3c; margin-bottom: 5px;" oninput="evaluateShieldPin(this.value)">
     <p style="font-size: 11px; color: #65676b; margin-top: 10px; max-width: 280px;">Очередь фиксации заморожена в памяти диска. Ни один кадр машины не потеряется.</p>
   </div>
@@ -266,16 +261,24 @@
     <div id="journal-container"></div>
   </div>
 
+  <div id="user-tab" class="tab-content">
+    <div class="card">
+      <h3>👥 Контроль терминалов АЗС (Лист USER)</h3>
+      <p style="font-size:12px; color:var(--text-sub); margin:0;">Список всех независимых аппаратов, подключенных к бэкенду. Сессии автономны.</p>
+    </div>
+    <div id="user-management-container"></div>
+  </div>
+
   <div id="settings-tab" class="tab-content">
     <div class="card" id="settings-lock-card">
-      <h3 id="lock-title" onclick="handleLockTitleClick()" style="cursor:pointer; user-select:none;">🔐 Управление профилем</h3>
+      <h3 id="lock-title" onclick="handleLockTitleClick()" style="cursor:pointer; user-select:none;">🔐 Управление сессией</h3>
       <button id="logout-btn-ui" class="btn-premium-steel" style="background: linear-gradient(135deg, #f02849 0%, #c01830 100%); padding:14px; box-shadow: 0 4px 12px rgba(240,40,73,0.25);" onclick="exitTerminalSession()">🔒 Завершить смену (Выйти из профиля)</button>
     </div>
 
     <div class="card id-block-geo" id="settings-update-block" style="display:none;">
       <h3>Контур обновлений PWA</h3>
       <button class="btn-premium-steel" style="background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); box-shadow: 0 4px 12px rgba(225,29,72,0.2);" onclick="forceClearPwaCache()">🔄 Принудительно обновить кэш (Сброс версий)</button>
-      <p style="font-size:11px; color:var(--text-sub); margin-top:8px; margin-bottom:0; text-align:center;">Принудительно скачивает чистую копию кода терминала с GitHub bypass-методом.</p>
+      <p style="font-size:11px; color:var(--text-sub); margin-top:8px; margin-bottom:0; text-align:center;">Принудительно скачивает чистую копию кода терминала с GitHub.</p>
     </div>
 
     <div class="card id-block-geo" id="settings-geo-block" style="display:none;">
@@ -307,10 +310,10 @@
 
   <div id="help-tab" class="tab-content">
     <div class="card">
-      <h3>📖 Инструкция Терминала v8.9.3</h3>
+      <h3>📖 Инструкция Терминала v8.9.4</h3>
       <p style="font-size:13.5px; line-height:1.5; margin-bottom:10px;">Система создана для параллельной фиксации автотранспорта на линии несколькими устройствами одновременно без конфликтов сессий.</p>
-      <div class="help-header">1. Автоматический учет терминалов</div>
-      <p class="help-text">Каждому смартфону присваивается уникальный виртуальный ID-отпечаток. Система сама подпишет автора карточки в журнале в столбце H.</p>
+      <div class="help-header">1. Автономные сессии устройств</div>
+      <p class="help-text">Каждый телефон привязан к собственному UUID. Вход на одном посту больше не сбрасывает сессию другого поста.</p>
       <div class="help-header">2. Прямые миниатюры фото</div>
       <p class="help-text">Лента журнала автоматически на лету адаптирует ссылки Google Диска, подтягивая живые изображения в карточки машин.</p>
     </div>
@@ -323,6 +326,9 @@
     <button class="nav-tab-btn" onclick="openTab('search-tab', this); triggerSearch();">
       <span class="nav-icon">📋</span><span>Журнал</span>
     </button>
+    <button class="nav-tab-btn admin-only-node admin-hide" id="nav-btn-users" onclick="openTab('user-tab', this); loadUserManagementList();">
+      <span class="nav-icon">👥</span><span>Юзеры</span>
+    </button>
     <button class="nav-tab-btn" onclick="openTab('settings-tab', this); loadSettings();">
       <span class="nav-icon">⚙️</span><span>Опции</span>
     </button>
@@ -330,7 +336,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9.3
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9.4
     </div>
   </div>
 
@@ -358,7 +364,7 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "8.9.3"; 
+    const APP_VERSION = "8.9.4"; 
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 260, camH: 250 };
     let gpsStatusText = "📍 GPS"; let currentCoords = null; let globalJournalCache = []; let isSyncing = false;
@@ -375,7 +381,6 @@
       return uuid;
     }
 
-    // 🔥 ПАТЧ ДЛЯ МИНИАТЮР: Превращает ссылки просмотра Диска в потоковые стримы для тега <img>
     function convertToDirectStreamUrl(url) {
       if (!url || url.indexOf("drive.google.com") === -1) return url;
       let fileId = "";
@@ -484,8 +489,8 @@
                 document.getElementById('shield-pin-field').style.borderColor = '#f02849';
                 setTimeout(() => { document.getElementById('shield-pin-field').style.borderColor = '#3a3b3c'; document.getElementById('shield-pin-field').value = ""; }, 800);
               }
-            }).catch(() => { alert("Необходима сеть для создания новой параллельной сессии."); });
-        } else { alert("Терминал заблокирован. Подключите сеть для авторизации."); }
+            }).catch(() => { alert("Необходима сеть для авторизации устройства."); });
+        } else { alert("Оффлайн-вход невозможен."); }
       }
     }
 
@@ -495,9 +500,77 @@
         adminUpgradeClicks++;
         if (adminUpgradeClicks >= 5) {
           adminUpgradeClicks = 0; localStorage.setItem('terminal_user_role', 'admin');
-          alert("👨‍✈️ Режим Администратора открыт!"); renderAccessLayers();
+          alert("👨‍✈️ Режим Администратора активирован!"); renderAccessLayers();
         }
       }
+    }
+
+    /* 🔥 ИНТЕРФЕЙС АДМИНИСТРАТОРА: ВЫГРУЗКА, ИЗМЕНЕНИЕ ИМЕНИ И ЖЕСТКИЙ СБРОС ТЕРМИНАЛОВ */
+    async function loadUserManagementList() {
+      if (!navigator.onLine) {
+        document.getElementById('user-management-container').innerHTML = "<p style='text-align:center; padding:20px; color:var(--text-sub);'>База устройств недоступна оффлайн.</p>";
+        return;
+      }
+      let container = document.getElementById('user-management-container');
+      container.innerHTML = "<p style='text-align:center; padding:20px; color:var(--text-sub);'>⏳ Синхронизация списка терминалов...</p>";
+      
+      try {
+        let response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'getUsers', sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() })
+        });
+        let res = await response.json();
+        if (!checkSessionValidity(res)) return;
+        
+        if (res && res.success) {
+          container.innerHTML = "";
+          res.devices.forEach(dev => {
+            let div = document.createElement('div');
+            div.className = "user-device-card";
+            if (dev.name.includes("Неопознанный")) div.style.borderLeft = "4px solid #ff7a00";
+            
+            div.innerHTML = `
+              <div style="font-weight: bold; font-size: 14px; color: var(--text-main);">📝 Задать имя / кличку:</div>
+              <div class="user-inline-row">
+                <input type="text" class="user-inline-input" id="inp_${dev.id}" value="${dev.name}">
+                <button class="btn-user-save" onclick="saveDeviceNickname('${dev.id}')">💾</button>
+              </div>
+              <div class="user-device-meta">
+                <b>ID устройства:</b> <code style="color:var(--accent-blue);">${dev.id}</code><br>
+                <b>🕒 Последняя связь:</b> ${dev.lastActive}<br>
+                <b>📍 Локация GPS:</b> ${dev.lastAddress}
+              </div>
+              <button class="btn-user-logout" onclick="forceLogoutDevice('${dev.id}')">🛑 Разлогинить устройство</button>
+            `;
+            container.appendChild(div);
+          });
+        }
+      } catch(e) { container.innerHTML = "<p style='text-align:center; padding:20px; color:#f02849;'>Ошибка чтения листа USER.</p>"; }
+    }
+
+    async function saveDeviceNickname(id) {
+      let newName = document.getElementById(`inp_${id}`).value.trim();
+      if (!newName) return;
+      try {
+        let response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'saveUser', id: id, name: newName, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() })
+        });
+        let res = await response.json();
+        if (res && res.success) { loadUserManagementList(); }
+      } catch(e) { alert("Ошибка сохранения."); }
+    }
+
+    async function forceLogoutDevice(id) {
+      if (!confirm("Принудительно разлогинить этот аппарат? Сессия сотрется, экран инспектора мгновенно заблокируется.")) return;
+      try {
+        let response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'logoutUser', targetDeviceId: id, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() })
+        });
+        let res = await response.json();
+        if (res && res.success) { alert("Устройство успешно выброшено из системы!"); loadUserManagementList(); }
+      } catch(e) { alert("Ошибка связи."); }
     }
 
     function exitTerminalSession() { triggerGlobalSessionLock(); }
@@ -518,8 +591,14 @@
       } else {
         lockCard.style.display = "block"; geoBlock.style.display = "block"; updateBlock.style.display = "block";
         lockTitle.innerText = role === 'admin' ? "👨‍✈️ Режим: Администратор" : "👷 Режим: Оператор";
-        if (role === 'admin') { adminNodes.forEach(n => n.classList.remove('admin-hide')); } 
-        else { adminNodes.forEach(n => n.classList.add('admin-hide')); }
+        if (role === 'admin') { 
+          adminNodes.forEach(n => n.classList.remove('admin-hide')); 
+        } else { 
+          adminNodes.forEach(n => n.classList.add('admin-hide')); 
+          if(document.getElementById('user-tab').classList.contains('active')) {
+            openTab('scan-tab', document.querySelector('[onclick*="scan-tab"]'));
+          }
+        }
         document.getElementById('global-session-lock-shield').style.display = 'none';
       }
       triggerSearch();
@@ -552,8 +631,8 @@
               let caps = videoTrack.getCapabilities();
               if (caps.zoom) {
                 zoomHardwareType = "Аппаратный";
-                document.getElementById('camera-zoom-slider').min = caps.zoom.min || 1;
-                document.getElementById('camera-zoom-slider').max = Math.min(caps.zoom.max || 4, 4);
+                let slider = document.getElementById('camera-zoom-slider');
+                slider.min = caps.zoom.min || 1; slider.max = Math.min(caps.zoom.max || 4, 4);
               } else { zoomHardwareType = "Цифровой"; }
             } catch(e) { zoomHardwareType = "Цифровой"; }
           }
@@ -593,7 +672,6 @@
         
         let scanResultArea = document.getElementById('scan-result');
         let itemDiv = document.createElement('div'); itemDiv.id = "cam_" + taskId; scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
-        
         let isOnline = navigator.onLine;
         updateCardUi(itemDiv, isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ", isOnline ? "Выгрузка 📡" : "Очередь 💾", isOnline ? "Связь..." : "Координаты", "", "🕒 Снимок сделан", rawBase64, taskId, "Этот аппарат");
         
@@ -705,7 +783,6 @@
       if (forcedTaskId) cardElement.setAttribute('data-task-id', forcedTaskId);
       if (imgSrc) cardElement.setAttribute('data-local-src', imgSrc);
       
-      // 🔥 КЛЮЧЕВОЙ ФИКС: Пропускаем ссылку Диска через конвертер для стабильного рендеринга миниатюры
       let actualImgSrc = imgSrc || convertToDirectStreamUrl(photoUrl);
 
       cardElement.innerHTML = `
@@ -859,15 +936,12 @@
     function loadSettings() {
       let localDays = localStorage.getItem('settings_days'); if (localDays) document.getElementById('settings-days').value = localDays;
       applyLocalUiDimensions();
-      if (!navigator.onLine) return;
-      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getSettings', sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) })
-        .then(r => r.json()).then(res => { if (checkSessionValidity(res)) { document.getElementById('settings-days').value = res.days; localStorage.setItem('settings_days', res.days); } });
     }
 
     function saveSettings() {
       let days = document.getElementById('settings-days').value; localStorage.setItem('settings_days', days);
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', days: days, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) })
-        .then(r => r.json()).then(res => { if (checkSessionValidity(res)) alert("Конфигурация зафиксирована!"); });
+        .then(r => r.json()).then(res => { if (checkSessionValidity(res)) alert("Конфигурация сохранена!"); });
     }
 
     function triggerHardwareAlert(type) {
@@ -886,9 +960,11 @@
     }
 
     function openTab(tabId, el) {
-      if (tabId !== 'scan-tab' && liveVideoStream) { try { liveVideoStream.getTracks().forEach(t => track.stop()); }catch(e){} liveVideoStream = null; }
+      if (tabId !== 'scan-tab' && liveVideoStream) { try { liveVideoStream.getTracks().forEach(t => t.stop()); }catch(e){} liveVideoStream = null; }
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active'); if (tabId === 'scan-tab') startLiveStreaming();
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active'); if (el) el.classList.add('active');
+      if (tabId === 'scan-tab') startLiveStreaming();
     }
 
     window.onload = async function() {
