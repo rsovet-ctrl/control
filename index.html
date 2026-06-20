@@ -381,12 +381,13 @@
       return uuid;
     }
 
-    function convertToDirectStreamUrl(url) {
+function convertToDirectStreamUrl(url) {
       if (!url || url.indexOf("drive.google.com") === -1) return url;
       let fileId = "";
       if (url.indexOf("/d/") !== -1) { fileId = url.split("/d/")[1].split("/")[0]; } 
       else if (url.indexOf("id=") !== -1) { fileId = url.split("id=")[1].split("&")[0]; }
-      return fileId ? "https://docs.google.com/uc?export=view&id=" + fileId : url;
+      // Используем современный быстрый хостинг картинок Google User Content
+      return fileId ? "https://lh3.googleusercontent.com/d/" + fileId : url;
     }
 
     function toggleThemeMode(event) {
