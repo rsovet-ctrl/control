@@ -170,7 +170,7 @@
     .zoom-btn { background: rgba(0, 0, 0, 0.75); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: 44px; height: 44px; font-size: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); user-select: none; }
     .modal-plate-input { font-size: 28px; font-weight: bold; text-align: center; letter-spacing: 1px; text-transform: uppercase; padding: 12px; border: 3px solid var(--accent-blue); border-radius: 12px; width: 100%; box-sizing: border-box; background: var(--bg-main); color: var(--text-main); margin-bottom: 12px; }
     
-    /* 🔥 ЭРГОНОМИКА v8.9.9: Кнопки жестко зафиксированы под полем ввода номера, убран отступ margin-top: auto */
+    /* 🔥 ЭРГОНОМИКА v8.9.10: Кнопки жестко зафиксированы под полем ввода номера, убран отступ margin-top: auto */
     .modal-btn-table { display: table; width: 100%; border-spacing: 10px 0; margin-top: 12px; margin-bottom: auto; }
     .modal-btn-cell { display: table-cell; width: 50%; }
     .m-btn { width: 100%; padding: 16px; font-size: 16px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
@@ -332,17 +332,35 @@
     <span id="gps-icon-spin">🔄</span> <span id="gps-text-btn">Перезапустить спутники GPS</span>
   </button>
 </div>
-    <div class="card admin-only-node admin-hide">
-      <h3>Окно повторов</h3>
-      <label>Глубина отслеживания дубликатов (дней):</label>
-      <input type="number" id="settings-days" min="1" value="3">
-      <label style="margin-top:10px;">Интервал "Свежего" повтора (минут):</label>
-      <input type="number" id="settings-recent-mins" min="1" max="1440" value="30">
+   <div class="card admin-only-node admin-hide">
+  <h3>Окно повторов и Сигналы</h3>
+  <label>Глубина отслеживания дубликатов (дней):</label>
+  <input type="number" id="settings-days" min="1" value="3">
+  
+  <label style="margin-top:10px;">Интервал "Свежего" повтора (минут):</label>
+  <input type="number" id="settings-recent-mins" min="1" max="1440" value="30">
+  
+  <div class="range-container" style="margin-top:12px;">
+    <div>
+      <label>⏱️ Звук Нового (сек):</label>
+      <input type="number" id="settings-dur-new" step="0.05" min="0.05" max="2" value="0.1">
     </div>
+    <div>
+      <label>⏱️ Звук Повтора (сек):</label>
+      <input type="number" id="settings-dur-rep" step="0.05" min="0.05" max="2" value="0.3">
+    </div>
+    <div>
+      <label>⏱️ Звук Ошибки (сек):</label>
+      <input type="number" id="settings-dur-err" step="0.05" min="0.05" max="2" value="0.5">
+    </div>
+  </div>
+  
+  <button class="btn-premium-blue" style="margin-top:10px; padding:10px; font-size:13px;" onclick="saveSettings()">💾 Сохранить конфигурацию базы</button>
+</div>
   </div>
 <div id="help-tab" class="tab-content">
  <div class="card">
-  <h3> Biel-Контур: Полная инструкция Терминала v8.9.9</h3>
+  <h3> Biel-Контур: Полная инструкция Терминала v8.9.10</h3>
   
   <div class="help-header">1. Авторизация и Белый Список устройств</div>
   <p class="help-text">В системе полностью ликвидированы общие пароли. При первом старте нового смартфона приложение отправляет на сервер заявку. Пока администратор не одобрит её, экран намертво блокируется красным щитом 🛑.</p>
@@ -385,7 +403,7 @@
       <span class="nav-icon">❓</span><span>Справка</span>
     </button>
     <div class="nav-credit-line">
-      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9.9
+      Разработчик: <a href="http://max.ru/shantaev" target="_blank">Роман Шантаев</a> | Терминал v8.9.10
     </div>
   </div>
 
@@ -414,7 +432,7 @@
   
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
-    const APP_VERSION = "8.9.9"; 
+    const APP_VERSION = "8.9.10"; 
     const GITHUB_RAW_URL = "https://raw.githubusercontent.com/rsovet-ctrl/control/main/index.html";
     
     let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 260, camH: 250 };
@@ -1082,16 +1100,65 @@ function reRequestGeolocation(isSilent) {
         .then(r => r.json()).then(async (records) => { if (checkSessionValidity(records)) { globalJournalCache = records; await saveJournalToDisk(records); refreshSyncStatusBar(); } });
     }
 
-    function loadSettings() {
-      let localDays = localStorage.getItem('settings_days'); if (localDays) document.getElementById('settings-days').value = localDays;
-      applyLocalUiDimensions();
-    }
+   // НА ЧТО ТОЧЕЧНО ЗАМЕНИТЬ ФУНКЦИИ loadSettings И saveSettings В <script>
 
-    function saveSettings() {
-      let days = document.getElementById('settings-days').value; localStorage.setItem('settings_days', days);
-      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', days: days, sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() }) })
-        .then(r => r.json()).then(res => { if (checkSessionValidity(res)) alert("Конфигурация сохранена!"); });
-    }
+function loadSettings() {
+  // Загружаем сохраненные дни и минуты из памяти телефона
+  let localDays = localStorage.getItem('settings_days'); 
+  if (localDays) document.getElementById('settings-days').value = localDays;
+  
+  let localMins = localStorage.getItem('settings_recent_mins');
+  if (localMins) document.getElementById('settings-recent-mins').value = localMins;
+
+  // Загружаем длительность звуков
+  let dNew = localStorage.getItem('settings_dur_new'); if (dNew) { document.getElementById('settings-dur-new').value = dNew; appSettings.durNew = parseFloat(dNew); }
+  let dRep = localStorage.getItem('settings_dur_rep'); if (dRep) { document.getElementById('settings-dur-rep').value = dRep; appSettings.durRep = parseFloat(dRep); }
+  let dErr = localStorage.getItem('settings_dur_err'); if (dErr) { document.getElementById('settings-dur-err').value = dErr; appSettings.durErr = parseFloat(dErr); }
+
+  applyLocalUiDimensions();
+}
+
+function saveSettings() {
+  let days = document.getElementById('settings-days').value;
+  let mins = document.getElementById('settings-recent-mins').value;
+  let dNew = document.getElementById('settings-dur-new').value;
+  let dRep = document.getElementById('settings-dur-rep').value;
+  let dErr = document.getElementById('settings-dur-err').value;
+
+  // Сохраняем локально на аппарате
+  localStorage.setItem('settings_days', days);
+  localStorage.setItem('settings_recent_mins', mins);
+  localStorage.setItem('settings_dur_new', dNew);
+  localStorage.setItem('settings_dur_rep', dRep);
+  localStorage.setItem('settings_dur_err', dErr);
+  
+  // Обновляем рабочие переменные звукового движка
+  appSettings.durNew = parseFloat(dNew);
+  appSettings.durRep = parseFloat(dRep);
+  appSettings.durErr = parseFloat(dErr);
+
+  // Отправляем весь пакет на лист "Настройки" в Excel вертикально
+  if (navigator.onLine) {
+    fetch(API_URL, { 
+      method: 'POST', 
+      body: JSON.stringify({ 
+        action: 'saveSettings', 
+        days: days, 
+        mins: mins,
+        durNew: dNew,
+        durRep: dRep,
+        durErr: dErr,
+        sessionId: localStorage.getItem('terminal_session_id'), 
+        deviceId: getDeviceUuidToken() 
+      }) 
+    })
+    .then(r => r.json()).then(res => { 
+      if (checkSessionValidity(res)) alert("Все параметры синхронизированы с облаком таблицы!"); 
+    });
+  } else {
+    alert("Конфигурация сохранена локально на телефоне. Для отправки в таблицу нужен интернет.");
+  }
+}
 
     /* 🔥 ПОЛНОЦЕННЫЙ ОРИГИНАЛЬНЫЙ ДВИЖОК АППАРАТНЫХ СИГНАЛОВ И ВИБРАЦИИ СМАРТФОНА */
     function triggerHardwareAlert(type) {
