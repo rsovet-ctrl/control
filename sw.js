@@ -1,4 +1,4 @@
-const CACHE_NAME = 'car-control-v8.92';
+const CACHE_NAME = 'car-control-v8.8';
 const ASSETS_TO_CACHE = [
   './',
   'index.html',
