@@ -332,13 +332,42 @@
     <span id="gps-icon-spin">🔄</span> <span id="gps-text-btn">Перезапустить спутники GPS</span>
   </button>
 </div>
-   <div class="card admin-only-node admin-hide">
-  <h3>Окно повторов и Сигналы</h3>
+ <div class="card admin-only-node admin-hide">
+  <h3>⚙️ Конфигурация Сервера и OCR-Ядра</h3>
+  
   <label>Глубина отслеживания дубликатов (дней):</label>
   <input type="number" id="settings-days" min="1" value="3">
   
   <label style="margin-top:10px;">Интервал "Свежего" повтора (минут):</label>
   <input type="number" id="settings-recent-mins" min="1" max="1440" value="30">
+  
+  <label style="margin-top:10px; color: var(--accent-blue);">🤖 Движок распознавания номеров:</label>
+  <select id="settings-ocr-provider" onchange="toggleYandexUiBlock()">
+    <option value="google">Google Drive OCR (Бесплатно, 4-6 сек)</option>
+    <option value="yandex">Yandex Vision OCR (Платный, 0.8 сек)</option>
+  </select>
+
+  <div id="yandex-credentials-card" style="display:none; border-left: 3px solid #ffaa00; padding-left: 10px; margin-bottom: 12px;">
+    <label>Ключ API Яндекс (Api-Key):</label>
+    <input type="password" id="yandex-api-key" placeholder="Введите Api-Key...">
+    <label>ID каталога Яндекс (Folder ID):</label>
+    <input type="text" id="yandex-folder-id" placeholder="Введите Folder ID...">
+  </div>
+
+  <div class="range-container" style="margin-top:12px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+    <div>
+      <label>🪶 Сжатие JPEG (0.1 - 1.0):</label>
+      <input type="number" id="settings-img-quality" step="0.05" min="0.1" max="1" value="0.75">
+    </div>
+    <div>
+      <label>📐 Чёткость холста:</label>
+      <select id="settings-img-scale">
+        <option value="1">1.0x (Макс. сжатие / ~100 КБ)</option>
+        <option value="1.5" selected>1.5x (Оптимально / ~200 КБ)</option>
+        <option value="2">2.0x (Высокое / ~450 КБ)</option>
+      </select>
+    </div>
+  </div>
   
   <div class="range-container" style="margin-top:12px;">
     <div>
@@ -353,6 +382,10 @@
       <label>⏱️ Звук Ошибки (сек):</label>
       <input type="number" id="settings-dur-err" step="0.05" min="0.05" max="2" value="0.5">
     </div>
+  </div>
+  
+  <button class="btn-premium-blue" style="margin-top:14px; padding:12px; font-size:14px;" onclick="saveSettings()">💾 Сохранить конфигурацию базы</button>
+</div>
   </div>
   
   <button class="btn-premium-blue" style="margin-top:10px; padding:10px; font-size:13px;" onclick="saveSettings()">💾 Сохранить конфигурацию базы</button>
@@ -434,8 +467,8 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbxMQpUtH7vzL5MFaHRLKK793XdNMyogcUKyS5AhtdGb2HyC7rFF0x0K_eZ4xkWdNYg9/exec";
     const APP_VERSION = "8.9.111"; 
     const GITHUB_RAW_URL = "https://raw.githubusercontent.com/rsovet-ctrl/control/main/index.html";
-    
-    let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 260, camH: 250 };
+    let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 260, camH: 250, ocrProvider: 'google', imgQuality: 0.75, imgScale: 1.5 };
+ //   let appSettings = { durNew: 0.1, durRep: 0.3, durErr: 0.5, recentMins: 30, days: 3, camW: 260, camH: 250 };
     let gpsStatusText = "📍 GPS"; let currentCoords = null; let globalJournalCache = []; let isSyncing = false;
     let globalAudioCtx = null; let indexedDatabase = null; let liveVideoStream = null; let videoTrack = null;
     let zoomHardwareType = "Цифровой"; let adminUpgradeClicks = 0; let activeUndoTimers = {}; let activeIntervals = {};
@@ -750,49 +783,114 @@ async function deleteDeviceCompletely(id) {
       } catch (err) { gpsStatusText = "❌ GPS"; await refreshSyncStatusBar(); }
     }
 
-    async function captureLiveFrame() {
+   async function captureLiveFrame() {
       try {
         const videoEl = document.getElementById('live-webcam');
-        if (!videoEl || !liveVideoStream || !liveVideoStream.active) { alert("Трансляция недоступна!"); return; }
+        if (!videoEl || !liveVideoStream || !liveVideoStream.active) { 
+          alert("Трансляция недоступна!"); 
+          return; 
+        }
         
+        // Включаем вспышку на экране и звук затвора
         triggerHardwareAlert('snap');
         
         const taskId = "task_" + new Date().getTime();
-        const boxW = appSettings.camW; const boxH = appSettings.camH;
-        const canvas = document.createElement('canvas'); canvas.width = boxW * 2; canvas.height = boxH * 2;
+        const boxW = appSettings.camW; 
+        const boxH = appSettings.camH;
+        
+        // 🔥 ДИНАМИЧЕСКОЕ СЖАТИЕ КАДРА ИЗ НАСТРОЕК АДМИНИСТРАТОРА
+        let scaleFactor = parseFloat(appSettings.imgScale || 1.5);
+        let qualityFactor = parseFloat(appSettings.imgQuality || 0.75);
+
+        const canvas = document.createElement('canvas'); 
+        canvas.width = boxW * scaleFactor; 
+        canvas.height = boxH * scaleFactor;
         const ctx = canvas.getContext('2d');
         
-        let videoW = videoEl.videoWidth || 1280; let videoH = videoEl.videoHeight || 720;
+        let videoW = videoEl.videoWidth || 1280; 
+        let videoH = videoEl.videoHeight || 720;
         let sx = 0, sy = 0, sWidth = videoW, sHeight = videoH;
-        const videoRatio = videoW / videoH; const boxRatio = boxW / boxH;
-        if (videoRatio > boxRatio) { sWidth = videoH * boxRatio; sx = (videoW - sWidth) / 2; } 
-        else { sHeight = videoW / boxRatio; sy = (videoH - sHeight) / 2; }
         
+        const videoRatio = videoW / videoH; 
+        const boxRatio = boxW / boxH;
+        
+        if (videoRatio > boxRatio) { 
+          sWidth = videoH * boxRatio; 
+          sx = (videoW - sWidth) / 2; 
+        } else { 
+          sHeight = videoW / boxRatio; 
+          sy = (videoH - sHeight) / 2; 
+        }
+        
+        // Поддержка цифрового зума (кадрирование области захвата)
         if (zoomHardwareType === "Цифровой") {
           let zoomFactor = parseFloat(localStorage.getItem('camera_zoom_factor') || '1.0');
           if (zoomFactor > 1.0) {
-            let cropW = sWidth / zoomFactor; let cropH = sHeight / zoomFactor;
-            sx = sx + (sWidth - cropW) / 2; sy = sy + (sHeight - cropH) / 2;
-            sWidth = cropW; sHeight = cropH;
+            let cropW = sWidth / zoomFactor; 
+            let cropH = sHeight / zoomFactor;
+            sx = sx + (sWidth - cropW) / 2; 
+            sy = sy + (sHeight - cropH) / 2;
+            sWidth = cropW; 
+            sHeight = cropH;
           }
         }
-        ctx.drawImage(videoEl, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
-        const rawBase64 = canvas.toDataURL('image/jpeg', 0.75);
-
-        await addIndexedDBItem({ taskId: taskId, action: 'scan', image: rawBase64, coords: currentCoords, timestamp: new Date().getTime(), manualNumber: null, deviceId: getDeviceUuidToken() }); 
-        let scanResultArea = document.getElementById('scan-result');
-        let itemDiv = document.createElement('div'); itemDiv.id = "cam_" + taskId; scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
-        let isOnline = navigator.onLine;
-        updateCardUi(itemDiv, isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ", isOnline ? "Выгрузка 📡" : "Очередь 💾", isOnline ? "Связь..." : "Координаты", "", "🕒 Снимок сделан", rawBase64, taskId, "Этот аппарат");
         
+        // Отрисовка кадра на холсте с учетом выбранного масштаба
+        ctx.drawImage(videoEl, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
+        
+        // 🔥 Кодирование в легкий JPEG сжатого качества из настроек
+        const rawBase64 = canvas.toDataURL('image/jpeg', qualityFactor);
+
+        // Сохраняем снимок в локальный буфер IndexedDB
+        await addIndexedDBItem({ 
+          taskId: taskId, 
+          action: 'scan', 
+          image: rawBase64, 
+          coords: currentCoords, 
+          timestamp: new Date().getTime(), 
+          manualNumber: null, 
+          deviceId: getDeviceUuidToken() 
+        }); 
+        
+        // Создаем новую карточку в UI (раздел Камера)
+        let scanResultArea = document.getElementById('scan-result');
+        let itemDiv = document.createElement('div'); 
+        itemDiv.id = "cam_" + taskId; 
+        scanResultArea.insertBefore(itemDiv, scanResultArea.firstChild);
+        
+        let isOnline = navigator.onLine;
+        updateCardUi(
+          itemDiv, 
+          isOnline ? "🤖 АНАЛИЗ..." : "⏳ ЖДЕТ СЕТЬ", 
+          isOnline ? "Выгрузка 📡" : "Очередь 💾", 
+          isOnline ? "Связь..." : "Координаты", 
+          "", 
+          "🕒 Снимок сделан", 
+          rawBase64, 
+          taskId, 
+          "Этот аппарат"
+        );
+        
+        // Запуск 10-секундного таймера отмены (Анти-спам / Ошибочный снимок)
         activeUndoTimers[taskId] = 10;
         activeIntervals[taskId] = setInterval(async () => {
           activeUndoTimers[taskId]--;
-          let btn = document.getElementById(`undo_btn_${taskId}`); if (btn) btn.innerText = `🛑 Отмена (${activeUndoTimers[taskId]}с)`;
-          if (activeUndoTimers[taskId] <= 0) { clearInterval(activeIntervals[taskId]); delete activeUndoTimers[taskId]; if (btn) btn.remove(); backgroundSyncLoop(); }
+          let btn = document.getElementById(`undo_btn_${taskId}`); 
+          if (btn) btn.innerText = `🛑 Отмена (${activeUndoTimers[taskId]}с)`;
+          
+          if (activeUndoTimers[taskId] <= 0) { 
+            clearInterval(activeIntervals[taskId]); 
+            delete activeUndoTimers[taskId]; 
+            if (btn) btn.remove(); 
+            // По истечении 10 секунд отправляем пакет в фоновый цикл синхронизации
+            backgroundSyncLoop(); 
+          }
         }, 1000);
+        
         await refreshSyncStatusBar();
-      } catch (err) { alert(err.message); }
+      } catch (err) { 
+        alert("Ошибка захвата кадра: " + err.message); 
+      }
     }
 
     async function undoCapture(taskId) {
@@ -1233,62 +1331,63 @@ async function backgroundSyncLoop() {
 
    // НА ЧТО ТОЧЕЧНО ЗАМЕНИТЬ ФУНКЦИИ loadSettings И saveSettings В <script>
 
-function loadSettings() {
-  // Загружаем сохраненные дни и минуты из памяти телефона
-  let localDays = localStorage.getItem('settings_days'); 
-  if (localDays) document.getElementById('settings-days').value = localDays;
-  
-  let localMins = localStorage.getItem('settings_recent_mins');
-  if (localMins) document.getElementById('settings-recent-mins').value = localMins;
+function toggleYandexUiBlock() {
+  let provider = document.getElementById('settings-ocr-provider').value;
+  document.getElementById('yandex-credentials-card').style.display = (provider === 'yandex') ? 'block' : 'none';
+}
 
-  // Загружаем длительность звуков
+function loadSettings() {
+  let localDays = localStorage.getItem('settings_days'); if (localDays) document.getElementById('settings-days').value = localDays;
+  let localMins = localStorage.getItem('settings_recent_mins'); if (localMins) document.getElementById('settings-recent-mins').value = localMins;
+  
+  // Подгружаем настройки OCR и сжатия
+  let provider = localStorage.getItem('settings_ocr_provider') || 'google';
+  document.getElementById('settings-ocr-provider').value = provider;
+  let yKey = localStorage.getItem('yandex_api_key') || ''; document.getElementById('yandex-api-key').value = yKey;
+  let yFolder = localStorage.getItem('yandex_folder_id') || ''; document.getElementById('yandex-folder-id').value = yFolder;
+  
+  let quality = localStorage.getItem('settings_img_quality') || '0.75'; document.getElementById('settings-img-quality').value = quality; appSettings.imgQuality = parseFloat(quality);
+  let scale = localStorage.getItem('settings_img_scale') || '1.5'; document.getElementById('settings-img-scale').value = scale; appSettings.imgScale = parseFloat(scale);
+  
+  toggleYandexUiBlock();
+
   let dNew = localStorage.getItem('settings_dur_new'); if (dNew) { document.getElementById('settings-dur-new').value = dNew; appSettings.durNew = parseFloat(dNew); }
   let dRep = localStorage.getItem('settings_dur_rep'); if (dRep) { document.getElementById('settings-dur-rep').value = dRep; appSettings.durRep = parseFloat(dRep); }
   let dErr = localStorage.getItem('settings_dur_err'); if (dErr) { document.getElementById('settings-dur-err').value = dErr; appSettings.durErr = parseFloat(dErr); }
-
   applyLocalUiDimensions();
 }
 
 function saveSettings() {
   let days = document.getElementById('settings-days').value;
   let mins = document.getElementById('settings-recent-mins').value;
+  let provider = document.getElementById('settings-ocr-provider').value;
+  let yKey = document.getElementById('yandex-api-key').value.trim();
+  let yFolder = document.getElementById('yandex-folder-id').value.trim();
+  let quality = document.getElementById('settings-img-quality').value;
+  let scale = document.getElementById('settings-img-scale').value;
   let dNew = document.getElementById('settings-dur-new').value;
   let dRep = document.getElementById('settings-dur-rep').value;
   let dErr = document.getElementById('settings-dur-err').value;
 
-  // Сохраняем локально на аппарате
-  localStorage.setItem('settings_days', days);
-  localStorage.setItem('settings_recent_mins', mins);
-  localStorage.setItem('settings_dur_new', dNew);
-  localStorage.setItem('settings_dur_rep', dRep);
-  localStorage.setItem('settings_dur_err', dErr);
+  localStorage.setItem('settings_days', days); localStorage.setItem('settings_recent_mins', mins);
+  localStorage.setItem('settings_ocr_provider', provider); localStorage.setItem('yandex_api_key', yKey); localStorage.setItem('yandex_folder_id', yFolder);
+  localStorage.setItem('settings_img_quality', quality); localStorage.setItem('settings_img_scale', scale);
+  localStorage.setItem('settings_dur_new', dNew); localStorage.setItem('settings_dur_rep', dRep); localStorage.setItem('settings_dur_err', dErr);
   
-  // Обновляем рабочие переменные звукового движка
-  appSettings.durNew = parseFloat(dNew);
-  appSettings.durRep = parseFloat(dRep);
-  appSettings.durErr = parseFloat(dErr);
+  appSettings.imgQuality = parseFloat(quality); appSettings.imgScale = parseFloat(scale);
+  appSettings.durNew = parseFloat(dNew); appSettings.durRep = parseFloat(dRep); appSettings.durErr = parseFloat(dErr);
 
-  // Отправляем весь пакет на лист "Настройки" в Excel вертикально
   if (navigator.onLine) {
     fetch(API_URL, { 
       method: 'POST', 
       body: JSON.stringify({ 
-        action: 'saveSettings', 
-        days: days, 
-        mins: mins,
-        durNew: dNew,
-        durRep: dRep,
-        durErr: dErr,
-        sessionId: localStorage.getItem('terminal_session_id'), 
-        deviceId: getDeviceUuidToken() 
+        action: 'saveSettings', days: days, mins: mins, durNew: dNew, durRep: dRep, durErr: dErr,
+        ocrProvider: provider, yandexApiKey: yKey, yandexFolderId: yFolder, imgQuality: quality, imgScale: scale,
+        sessionId: localStorage.getItem('terminal_session_id'), deviceId: getDeviceUuidToken() 
       }) 
     })
-    .then(r => r.json()).then(res => { 
-      if (checkSessionValidity(res)) alert("Все параметры синхронизированы с облаком таблицы!"); 
-    });
-  } else {
-    alert("Конфигурация сохранена локально на телефоне. Для отправки в таблицу нужен интернет.");
-  }
+    .then(r => r.json()).then(res => { if (checkSessionValidity(res)) alert("Все параметры синхронизированы с облаком таблицы!"); });
+  } else { alert("Конфигурация сохранена локально на телефоне."); }
 }
 
     /* 🔥 ПОЛНОЦЕННЫЙ ОРИГИНАЛЬНЫЙ ДВИЖОК АППАРАТНЫХ СИГНАЛОВ И ВИБРАЦИИ СМАРТФОНА */
