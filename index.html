@@ -1245,7 +1245,22 @@ async function backgroundSyncLoop() {
       await refreshSyncStatusBar();
       try {
         item.sessionId = localStorage.getItem('terminal_session_id'); item.deviceId = getDeviceUuidToken();
-        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(item) });
+   //    let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(item) });
+        item.sessionId = localStorage.getItem('terminal_session_id'); 
+        item.deviceId = getDeviceUuidToken();
+        
+        // ⚡ АНТИ-РЕДИРЕКТ СИСТЕМА (Обход двойной загрузки Google)
+        let directUrl = API_URL;
+        try {
+          // 1. Стреляем микро-запросом (20 байт), чтобы мгновенно получить 302 Redirect
+          let pingRes = await fetch(API_URL, { method: 'POST', body: JSON.stringify({action: "ping"}) });
+          if (pingRes.url) directUrl = pingRes.url; // Ловим финальный боевой адрес Гугла
+        } catch(e) {}
+
+        // 2. Бьем тяжелой фотографией напрямую по финальному адресу ровно 1 раз!
+        let response = await fetch(directUrl, { method: 'POST', body: JSON.stringify(item) });
+
+        
         let res = await response.json();
         if (res && res.error === "session_expired") { isSyncing = false; triggerGlobalSessionLock(); return; }
 
