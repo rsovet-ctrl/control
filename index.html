@@ -1022,18 +1022,18 @@ function reRequestGeolocation(isSilent) {
       openTab('search-tab', document.querySelector('[onclick*="search-tab"]')); triggerSearch();
     }
 
-    function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId, operatorName) {
+  function updateCardUi(cardElement, number, status, address, photoUrl, timeStr, imgSrc, forcedTaskId, operatorName, debugData) {
       let isRep = String(status).includes("Повтор") || String(status).includes("пов.");
       let isPending = String(status).includes("Очередь") || String(status).includes("сеть") || String(status).includes("Буфер") || String(status).includes("кэше") || String(status).includes("Выгрузка");
       let isProcessing = String(number) === "🤖 АНАЛИЗ..." || String(status).includes("Пересчет");
-let isErr = String(number) === "Не распознан" || String(status).includes("Ошибка") || String(status).includes("Проверить");
+      let isErr = String(number) === "Не распознан" || String(status).includes("Ошибка") || String(status).includes("Проверить");
       
       if (isPending) cardElement.className = "journal-item local-offline";
       else if (isProcessing) cardElement.className = "journal-item local-online-processing";
       else if (isErr) cardElement.className = "journal-item error-item"; 
       else cardElement.className = `journal-item ${isRep ? 'repeat' : 'new'}`;
       
-let badgeLabel = isPending ? "Буфер 💾" : (isProcessing ? "ИИ 🤖" : (isErr ? "⚠️ ПРОВЕРИТЬ" : "Новый"));
+      let badgeLabel = isPending ? "Буфер 💾" : (isProcessing ? "ИИ 🤖" : (isErr ? "⚠️ ПРОВЕРИТЬ" : "Новый"));
       if (isRep) { badgeLabel = checkLocalDuplicateText(number, forcedTaskId || cardElement.id, null) || "Повтор"; }
       
       if (photoUrl) cardElement.setAttribute('data-server-photo', photoUrl);
@@ -1041,6 +1041,12 @@ let badgeLabel = isPending ? "Буфер 💾" : (isProcessing ? "ИИ 🤖" : (
       if (imgSrc) cardElement.setAttribute('data-local-src', imgSrc);
       
       let actualImgSrc = imgSrc || convertToDirectStreamUrl(photoUrl);
+
+      // Генерируем красивую микро-плашку телеметрии, если данные прилетели с сервера
+      let debugLine = "";
+      if (debugData) {
+        debugLine = `<div style="font-size:10px; color:var(--text-sub); margin-top:5px; font-family:monospace; background:rgba(0,0,0,0.06); padding:3px 6px; border-radius:6px; border:1px solid var(--border-color); display:inline-block; width:max-content;">⏱️ Ядро: ${debugData.provider.toUpperCase()} | ИИ: ${debugData.ocrTimeMs}мс | Скрипт: ${debugData.serverTimeMs}мс</div>`;
+      }
 
       cardElement.innerHTML = `
         <div class="thumb-box" onclick="if('${photoUrl}') window.open('${photoUrl}', '_blank')">
@@ -1059,6 +1065,7 @@ let badgeLabel = isPending ? "Буфер 💾" : (isProcessing ? "ИИ 🤖" : (
           <div class="info-date">📅 ${timeStr}</div>
           <div style="font-size:11.5px; color:var(--text-sub); margin-top:1px;">👤 Терминал: <b>${operatorName || "Загрузка..."}</b></div>
           <div class="info-address">📍 ${address || "Рейд АЗС"}</div>
+          ${debugLine}
           ${forcedTaskId && activeUndoTimers[forcedTaskId] > 0 ? `<button id="undo_btn_${forcedTaskId}" class="undo-trigger-btn" onclick="undoCapture('${forcedTaskId}')">🛑 Отмена (${activeUndoTimers[forcedTaskId]}с)</button>` : ""}
         </div>
       `;
@@ -1258,9 +1265,11 @@ async function backgroundSyncLoop() {
             date: formattedDate, 
             address: res.address
           });
+
           
           let smartStatus = checkLocalDuplicateText(res.number, item.taskId, await getIndexedDBQueue()) || res.status;
-          updateCardUi(card, res.number, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId, "Буфер АЗС");
+          updateCardUi(card, res.number, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId, "Буфер АЗС", res.debug);
+       //   updateCardUi(card, res.number, smartStatus, res.address, res.photo, "Сохранено", item.image, item.taskId, "Буфер АЗС");
           
           // 🔥 АППАРАТНАЯ ОЗВУЧКА И ВИБРАЦИЯ (С учётом статуса проверки ГОСТа):
           if (res.number === "Не распознан" || String(smartStatus).includes("Ошибка") || String(smartStatus).includes("Проверить") || String(res.status).includes("Проверить")) {
